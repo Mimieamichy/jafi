@@ -46,7 +46,7 @@ export default function HeroSection() {
       {/* Overlay Content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center bg-black/50  px-4 z-10">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Find the Trusted Reviews All Over the World
+          Find Trusted Reviews All Over the World
         </h1>
         <p className="text-lg mb-6">
           Discover genuine reviews from real users.

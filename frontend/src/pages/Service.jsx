@@ -5,7 +5,7 @@ const services = [
   { title: "List Your Business", icon: faStore, link: "/list-business" },
   { title: "Write a Review", icon: faPen, link: "/write-review" },
   { title: "Hirings", icon: faUserTie, link: "/hirings" },
-  { title: "Recent Reviews", icon: faStar, link: "/recent-reviews" },
+  { title: "Recent Listings", icon: faStar, link: "/recent-listings" },
   { title: "Featured Listings", icon: faList, link: "/featured-listings" },
 ];
 

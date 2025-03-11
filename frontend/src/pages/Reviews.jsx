@@ -7,50 +7,45 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
+const categories = {
+  Hospitality: ["Luxury Hotel", "Elite Restaurant", "Cozy Café"],
+  Technology: ["Smart Electronics", "Tech Gadgets", "CyberSecurity Firm"],
+  Fitness: ["Fitness Club", "Yoga Center", "Wellness Spa"],
+};
+
 const initialReviews = [
   {
     id: 1,
     name: "John Doe",
+    product: "Luxury Hotel",
+    category: "Hospitality",
     rating: 4,
     comment: "Great service! The process was smooth and very professional.",
   },
   {
     id: 2,
     name: "Jane Smith",
+    product: "Elite Restaurant",
+    category: "Hospitality",
     rating: 5,
     comment: "Absolutely amazing experience! Highly recommend.",
   },
   {
     id: 3,
     name: "Alex Johnson",
-    rating: 3,
-    comment: "Good service, but there’s room for improvement.",
-  },
-  {
-    id: 4,
-    name: "Alex Johnson",
-    rating: 4,
-    comment: "Good service, but there’s room for improvement.",
-  },
-  {
-    id: 5,
-    name: "Alex Johnson",
-    rating: 3,
-    comment: "Good service, but there’s room for improvement.",
-  },
-  {
-    id: 6,
-    name: "Alex Johnson",
+    product: "Smart Electronics",
+    category: "Technology",
     rating: 3,
     comment: "Good service, but there’s room for improvement.",
   },
 ];
 
 // Review Card Component
-const ReviewCard = ({ name, rating, comment }) => {
+const ReviewCard = ({ name, product, rating, comment }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md text-center">
-      <h3 className="text-lg font-semibold">{name}</h3>
+      <h3 className="text-lg font-semibold text-blue-600">{product}</h3>
+      <p className="text-gray-700">{name}</p>
 
       {/* Star Rating */}
       <div className="flex justify-center text-yellow-500 mt-2">
@@ -69,20 +64,28 @@ const ReviewCard = ({ name, rating, comment }) => {
     </div>
   );
 };
+
 // Main Component
 const CustomerReviews = () => {
   const [reviews, setReviews] = useState(initialReviews);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    category: "",
+    product: "",
     email: "",
     comment: "",
-    rating: 0, // Default rating is 0
+    rating: 0,
   });
 
   // Handle Input Changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    if (e.target.name === "category") {
+      // Reset product selection when category changes
+      setFormData({ ...formData, category: e.target.value, product: "" });
+    }
   };
 
   // Handle Star Click
@@ -93,16 +96,31 @@ const CustomerReviews = () => {
   // Handle Form Submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.name && formData.comment && formData.rating > 0) {
+    if (
+      formData.name &&
+      formData.category &&
+      formData.product &&
+      formData.comment &&
+      formData.rating > 0
+    ) {
       const newReview = {
         id: reviews.length + 1,
         name: formData.name,
+        category: formData.category,
+        product: formData.product,
         rating: formData.rating,
         comment: formData.comment,
       };
-      setReviews([newReview, ...reviews]); // Add new review
-      setFormData({ name: "", email: "", comment: "", rating: 0 }); // Reset form
-      setShowForm(false); // Hide form
+      setReviews([newReview, ...reviews]);
+      setFormData({
+        name: "",
+        category: "",
+        product: "",
+        email: "",
+        comment: "",
+        rating: 0,
+      });
+      setShowForm(false);
     }
   };
 
@@ -120,7 +138,7 @@ const CustomerReviews = () => {
           slidesPerView={1}
           navigation={true}
           pagination={{ clickable: true }}
-          autoplay={{ delay: 3000, disableOnInteraction: false }}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
           loop={true}
           breakpoints={{
             640: { slidesPerView: 1 },
@@ -162,6 +180,41 @@ const CustomerReviews = () => {
                 className="p-3 border rounded-md focus:ring focus:ring-blue-300 capitalize"
                 required
               />
+
+              {/* Category Dropdown */}
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="p-3 border rounded-md focus:ring focus:ring-blue-300"
+                required
+              >
+                <option value="">Select a Category</option>
+                {Object.keys(categories).map((category, index) => (
+                  <option key={index} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+
+              {/* Product/Company Dropdown (Filtered by Category) */}
+              <select
+                name="product"
+                value={formData.product}
+                onChange={handleChange}
+                className="p-3 border rounded-md focus:ring focus:ring-blue-300"
+                required
+                disabled={!formData.category} // Disable until category is selected
+              >
+                <option value="">Select a Product/Company</option>
+                {formData.category &&
+                  categories[formData.category].map((option, index) => (
+                    <option key={index} value={option}>
+                      {option}
+                    </option>
+                  ))}
+              </select>
+
               <input
                 type="email"
                 name="email"
@@ -196,7 +249,7 @@ const CustomerReviews = () => {
               />
               <button
                 type="submit"
-                className="px-6 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-md hover:bg-blue-700 transition"
+                className="px-6 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-md hover:bg-blue-700 transition cursor-pointer"
               >
                 Submit Review
               </button>

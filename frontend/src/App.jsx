@@ -1,21 +1,20 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./NavBar";
 import Homepage from "./pages/Homepage";
+import AuthForm from "../Auth";
 
-/*import About from "./pages/About";
-import Services from "./pages/Services";
-import Contact from "./pages/Contact";*/
+
 
 export default function App() {
   return (
     <Router>
       <Navbar />
-      <Routes>
+      <div className="pt-9"> 
+      <Routes >
         <Route path="/" element={<Homepage />} />
-       {/* <Route path="/about" element={<About />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/contact" element={<Contact />} />*/}
+        <Route path="/auth" element={<AuthForm />} />
       </Routes>
+      </div>
     </Router>
   );
 }
