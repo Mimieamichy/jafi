@@ -8,18 +8,17 @@ import Bank from "../assets/bank.jpg";
 import Hospital from "../assets/hospital.jpg";
 import Mall from "../assets/mall.jpg";
 import Hotel from "../assets/hotel.jpg";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCaretDown } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
 
 const images = [Car, Bank, Hospital, Mall, Hotel];
 
 export default function HeroSection() {
-  const [searchTerm, setSearchTerm] = useState(""); // Track input
   const [category, setCategory] = useState("automotives"); // Track dropdown
 
   // Handle search button click
   const handleSearch = () => {
-    console.log("Searching for:", searchTerm, "in", category);
+    console.log("Searching in category:", category);
     // Perform search action (e.g., API call or navigation)
   };
 
@@ -55,13 +54,6 @@ export default function HeroSection() {
         {/* Search Bar & Dropdown */}
         <div className="flex flex-col md:flex-row items-center gap-4 w-full max-w-lg">
           {/* Search Input */}
-          <input
-            type="text"
-            placeholder="Find Review"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-4 py-2 w-full border border-gray-300 rounded-md text-white"
-          />
 
           {/* Dropdown */}
           <div className="relative w-full">
@@ -86,7 +78,10 @@ export default function HeroSection() {
 
             {/* Custom Arrow Icon */}
             <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-            <FontAwesomeIcon icon={faCaretDown}  className="w-5 h-5 text-white"/> 
+              <FontAwesomeIcon
+                icon={faCaretDown}
+                className="w-5 h-5 text-white"
+              />
             </div>
           </div>
 

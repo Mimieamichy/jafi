@@ -1,9 +1,9 @@
 import About from "./About";
 import FeaturedListings from "./FeaturedListing";
-import Footer from "./Footer";
 import HeroSection from "./Hero";
 import CustomerReviews from "./Reviews";
 import Services from "./Service";
+import { ReviewsProvider } from "../context/reviewContext";
 
 export default function Homepage() {
   return (
@@ -11,9 +11,11 @@ export default function Homepage() {
       <div>
         <HeroSection />
       </div>
+      <ReviewsProvider> 
       <div>
         <CustomerReviews />
       </div>
+      </ReviewsProvider>
       <div>
         <FeaturedListings />
       </div>
@@ -24,10 +26,7 @@ export default function Homepage() {
         {" "}
         <Services />
       </div>
-      <div id="contact">
-        {" "}
-        <Footer />
-      </div>
+
     </div>
   );
 }
