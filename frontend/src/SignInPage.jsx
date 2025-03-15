@@ -1,0 +1,81 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+
+export default function SignIn() {
+  const [formData, setFormData] = useState({
+    emailOrPhone: "",
+    password: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Sign In Data:", formData);
+    alert("Sign In Successful! (Static Data Used for Now)");
+  };
+
+  return (
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
+      <h2 className="text-2xl font-bold mb-4 text-center">Sign In</h2>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Email/Phone Input */}
+        <input
+          type="text"
+          name="emailOrPhone"
+          value={formData.emailOrPhone}
+          onChange={handleChange}
+          placeholder="Email or Phone Number"
+          className="w-full p-2 border rounded"
+          required
+        />
+
+        {/* Password Input with Show/Hide */}
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            name="password"
+            placeholder="Password"
+            className="w-full p-2 border rounded-md pr-10"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-2 text-gray-500"
+          >
+            {showPassword ? (
+              <FontAwesomeIcon icon={faEye} />
+            ) : (
+              <FontAwesomeIcon icon={faEyeSlash} />
+            )}
+          </button>
+        </div>
+
+        {/* Sign In Button */}
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white p-2 rounded-lg"
+        >
+          Sign In
+        </button>
+
+        {/* Forgot Password & Sign Up Link */}
+        <div className="text-center mt-3">
+          <Link to="/forgot-password" className="text-blue-600 hover:underline">
+            Forgot Password?
+          </Link>
+        </div>
+      </form>
+    </div>
+  );
+}

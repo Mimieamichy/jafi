@@ -1,12 +1,17 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./NavBar";
 import Homepage from "./pages/Homepage";
-import AuthForm from "../Auth";
+import SignupPage from "./SignupPage";
+import HiringSignup from "./HiringSignup";
+import BusinessSignup from "./BusinessSignup";
 import PaginatedReviews from "./ReviewsPage";
 import Footer from "./pages/Footer";
 import RecentListings from "./RecentListings";
 import { ReviewsProvider } from "./context/reviewContext";
-import BusinessListing from "./BusinessListing";
+import SignupModal from "./SignupModal";
+import SignIn from "./SignInPage";
+import Pricing from "./Pricing";
+import HiringPayment from "./HirePayment";
 
 export default function App() {
   return (
@@ -16,10 +21,14 @@ export default function App() {
         <div className="pt-9">
           <Routes>
             <Route path="/" element={<Homepage />} />
-            <Route path="/auth" element={<AuthForm />} />
+            <Route path="/hiring-signup" element={<HiringSignup />} />
+            <Route path="/business-signup" element={<BusinessSignup />} />
             <Route path="/review-page" element={<PaginatedReviews />} />
             <Route path="/recent-listings" element={<RecentListings />} />
-            <Route path="/list-business" element={<BusinessListing />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignupModal />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/hiring-payment" element={<HiringPayment />} />
           </Routes>
           <div id="contact">
             {" "}
@@ -30,4 +39,3 @@ export default function App() {
     </Router>
   );
 }
-
