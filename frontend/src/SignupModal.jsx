@@ -1,11 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate,  } from "react-router-dom";
+
 
 const SignupModal = ({ isOpen, onClose, onSelect }) => {
-  if (!isOpen) return null;
+  const navigate = useNavigate();
   const handleReload = () => {
-    window.location.reload();
+    window.location.reload(navigate("/signin"));
+    ; // Reload the page
   };
+ 
+  if (!isOpen) return null;
 
+  
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
@@ -27,7 +32,12 @@ const SignupModal = ({ isOpen, onClose, onSelect }) => {
 
         <p className="mt-4 text-center">
           Already have an account?{" "}
-          <Link to="/signin" className="text-blue-600 hover:underline" onClick={handleReload}> 
+          <Link to="/signin"
+            
+            className="text-blue-600 hover:underline cursor-pointer"
+            onClick={handleReload}
+            
+          >
             Sign In
           </Link>
         </p>
