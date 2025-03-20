@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
 const categories = [
@@ -22,43 +22,71 @@ export default function HiringSignup() {
     name: "",
     email: "",
     phone: "",
-    password: "",
-    confirmPassword: "",
-    jobImage: null,
-    workSamples: null,
+    workSamples: [],
     address: "",
     category: "",
   });
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedData = JSON.parse(localStorage.getItem("hiringSignupData"));
+    if (storedData) {
+      setFormData({ ...storedData, workSamples: storedData.workSamples || [] });
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle single image upload with validation
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  // Convert images to base64 instead of using createObjectURL
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
 
-    if (file) {
-      const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
-      if (!allowedTypes.includes(file.type)) {
-        alert("Only JPEG, JPG, and PNG images are allowed.");
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be 5MB or less.");
-        return;
-      }
-
-      setFormData({ ...formData, jobImage: file });
+    if (formData.workSamples.length + files.length > 5) {
+      alert("You can upload a maximum of 5 images!");
+      return;
     }
+
+    const validFiles = files.filter((file) => {
+      if (!file.type.startsWith("image/")) {
+        alert("Only image files are allowed!");
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image must be less than 5MB!");
+        return false;
+      }
+      return true;
+    });
+
+    const promises = validFiles.map((file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+      });
+    });
+
+    Promise.all(promises).then((base64Images) => {
+      setFormData((prev) => ({
+        ...prev,
+        workSamples: [...prev.workSamples, ...base64Images],
+      }));
+    });
+  };
+
+  const removeImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      workSamples: prev.workSamples.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -71,6 +99,7 @@ export default function HiringSignup() {
     alert("Signup Successful! (Static Data Used for Now)");
     setOtpSent(true);
   };
+
   const handleVerifyOtp = () => {
     if (otp.length === 6) {
       localStorage.setItem("hiringSignupData", JSON.stringify(formData));
@@ -116,85 +145,42 @@ export default function HiringSignup() {
           />
 
           {/* Password Input with Show/Hide */}
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Password"
-              className="w-full p-2 border rounded-md pr-10"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-2 text-gray-500"
-            >
-              {showPassword ? (
-                <FontAwesomeIcon icon={faEye} />
-              ) : (
-                <FontAwesomeIcon icon={faEyeSlash} />
-              )}
-            </button>
-          </div>
-
-          {/* Confirm Password Input with Show/Hide */}
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              className="w-full p-2 border rounded-md pr-10"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-2 text-gray-500"
-            >
-              {showConfirmPassword ? (
-                <FontAwesomeIcon icon={faEye} />
-              ) : (
-                <FontAwesomeIcon icon={faEyeSlash} />
-              )}
-            </button>
-          </div>
 
           <label className="block">
-            <span>
-              Upload an image of you working (Max: 5MB, JPG/PNG only):
-            </span>
+            <span>Upload up to 5 images of jobs you've done:</span>
             <input
               type="file"
-              name="jobImage"
-              accept="image/jpeg, image/png, image/jpg"
-              onChange={handleFileChange}
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}
               className="w-full p-2 border rounded mt-1"
-              required
             />
           </label>
-
-          <label className="block">
-            <span>Upload images of jobs you've done:</span>
-            <input
-              type="file"
-              name="workSamples"
-              accept="image/jpeg, image/png, image/jpg"
-              onChange={handleFileChange}
-              className="w-full p-2 border rounded mt-1"
-              required
-            />
-          </label>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {formData.workSamples.map((img, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={img}
+                  alt="Preview"
+                  className="w-16 h-16 rounded-md object-cover"
+                />
+                <button
+                  type="button"
+                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+                  onClick={() => removeImage(index)}
+                >
+                  <FontAwesomeIcon icon={faTimes} />
+                </button>
+              </div>
+            ))}
+          </div>
 
           <input
             type="text"
             name="address"
             value={formData.address}
             onChange={handleChange}
-            placeholder="Location Address"
+            placeholder="Full Location Address"
             className="w-full p-2 border rounded"
             required
           />

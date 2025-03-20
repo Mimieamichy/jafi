@@ -15,10 +15,11 @@ const images = [Car, Bank, Hospital, Mall, Hotel];
 
 export default function HeroSection() {
   const [category, setCategory] = useState("automotives"); // Track dropdown
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Handle search button click
   const handleSearch = () => {
-    console.log("Searching in category:", category);
+    console.log("Searching for:", searchTerm, "in", category);
     // Perform search action (e.g., API call or navigation)
   };
 
@@ -45,7 +46,7 @@ export default function HeroSection() {
       {/* Overlay Content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center bg-black/50  px-4 z-10">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Find Trusted Reviews All Over the World
+          Find Trusted Reviews In Africa
         </h1>
         <p className="text-lg mb-6">
           Discover genuine reviews from real users.
@@ -54,6 +55,13 @@ export default function HeroSection() {
         {/* Search Bar & Dropdown */}
         <div className="flex flex-col md:flex-row items-center gap-4 w-full max-w-lg">
           {/* Search Input */}
+          <input
+             type="text"
+             placeholder="Find Review"
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
+             className="px-4 py-2 w-full border border-gray-300 rounded-md text-white"
+           />
 
           {/* Dropdown */}
           <div className="relative w-full">

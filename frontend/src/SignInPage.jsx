@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 export default function SignIn() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    emailOrPhone: "",
+    email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +20,7 @@ export default function SignIn() {
     e.preventDefault();
     console.log("Sign In Data:", formData);
     alert("Sign In Successful! (Static Data Used for Now)");
+    navigate("/hiring-dashboard");
   };
 
   return (
@@ -29,8 +31,8 @@ export default function SignIn() {
         {/* Email/Phone Input */}
         <input
           type="text"
-          name="emailOrPhone"
-          value={formData.emailOrPhone}
+          name="email"
+          value={formData.email}
           onChange={handleChange}
           placeholder="Email or Phone Number"
           className="w-full p-2 border rounded"
@@ -51,7 +53,7 @@ export default function SignIn() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-2 text-gray-500"
+            className="absolute right-3 top-2 text-gray-500 cursor-pointer"
           >
             {showPassword ? (
               <FontAwesomeIcon icon={faEye} />
@@ -64,14 +66,17 @@ export default function SignIn() {
         {/* Sign In Button */}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded-lg"
+          className="w-full bg-blue-600 text-white p-2 rounded-lg cursor-pointer"
         >
           Sign In
         </button>
 
         {/* Forgot Password & Sign Up Link */}
         <div className="text-center mt-3">
-          <Link to="/forgot-password" className="text-blue-600 hover:underline">
+          <Link
+            to="/forgot-password"
+            className="text-blue-600 hover:underline cursor-pointer"
+          >
             Forgot Password?
           </Link>
         </div>

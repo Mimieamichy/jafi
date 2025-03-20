@@ -12,25 +12,32 @@ import SignupModal from "./SignupModal";
 import SignIn from "./SignInPage";
 import Pricing from "./Pricing";
 import HiringPayment from "./HirePayment";
+import HiringDashboard from "./HiringDashboard";
+import HireProfileCard from "./HireProfileCard";
+import BusinessDashboard from "./BusinessDashboard";
+
 
 export default function App() {
   return (
     <Router>
       <Navbar />
       <ReviewsProvider>
-        <div className="pt-9">
+        <div className="pt-9 mt-10">
           <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/hiring-signup" element={<HiringSignup />} />
             <Route path="/business-signup" element={<BusinessSignup />} />
             <Route path="/review-page" element={<PaginatedReviews />} />
-            <Route path="/recent-listings" element={<RecentListings />} />
+            <Route path="/listed-business" element={<RecentListings />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignupModal />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/hiring-payment" element={<HiringPayment />} />
+            <Route path="/hiring-dashboard" element={<HiringDashboard />} />
+            <Route path="/hire-profile" element={<HireProfileCard />} />
+            <Route path="/bus-dashboard" element={<BusinessDashboard />} />
           </Routes>
-          <div id="contact">
+          <div id="contact" className="bottom-0 mt-26 sm:mt-0">
             {" "}
             <Footer />
           </div>

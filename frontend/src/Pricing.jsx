@@ -46,10 +46,10 @@ export default function Pricing() {
             days. An email of confirmation will be sent to you. Thank you
           </p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/bus-dashboard")}
             className="bg-blue-600 text-white p-3 rounded-lg mt-4"
           >
-            Go to Homepage
+            Go to Dashboard
           </button>
         </div>
       )}

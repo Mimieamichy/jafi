@@ -7,7 +7,7 @@ import { ReviewsProvider } from "../context/reviewContext";
 
 export default function Homepage() {
   return (
-    <div>
+    <div >
       <div>
         <HeroSection />
       </div>

@@ -1,16 +1,16 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faStore,
+ 
   faPen,
   faUserTie,
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
 
 const services = [
-  { title: "List Your Business", icon: faStore, link: "/list-business" },
+ 
   { title: "Reviews", icon: faPen, link: "/review-page" },
-  { title: "Hirings", icon: faUserTie, link: "/hirings" },
-  { title: "Recent Listings", icon: faStar, link: "/recent-listings" },
+  { title: "Hirings", icon: faUserTie, link: "/hire-profile" },
+  { title: "Listed Business", icon: faStar, link: "/listed-business" },
 ];
 
 const Services = () => {
@@ -21,7 +21,7 @@ const Services = () => {
         <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Services</h2>
 
         {/* Service Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 gap-6 mt-8">
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 gap-6 mt-8">
           {services.map((service, index) => (
             <a
               key={index}
