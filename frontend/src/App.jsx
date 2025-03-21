@@ -15,7 +15,9 @@ import HiringPayment from "./HirePayment";
 import HiringDashboard from "./HiringDashboard";
 import HireProfileCard from "./HireProfileCard";
 import BusinessDashboard from "./BusinessDashboard";
-
+import BusinessProfile from "./BusinessProfileCard";
+import BusinessPage from "./BusinessPage";
+import BusinessProfileCard from "./BusinessProfileCard";
 
 export default function App() {
   return (
@@ -28,7 +30,7 @@ export default function App() {
             <Route path="/hiring-signup" element={<HiringSignup />} />
             <Route path="/business-signup" element={<BusinessSignup />} />
             <Route path="/review-page" element={<PaginatedReviews />} />
-            <Route path="/listed-business" element={<RecentListings />} />
+            {/*<Route path="/listed-business" element={<RecentListings />} />*/}
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignupModal />} />
             <Route path="/pricing" element={<Pricing />} />
@@ -36,6 +38,8 @@ export default function App() {
             <Route path="/hiring-dashboard" element={<HiringDashboard />} />
             <Route path="/hire-profile" element={<HireProfileCard />} />
             <Route path="/bus-dashboard" element={<BusinessDashboard />} />
+            <Route path="/bus-profile" element={<BusinessProfileCard />} />
+            <Route path="/business/:businessName" element={<BusinessPage />} />
           </Routes>
           <div id="contact" className="bottom-0 mt-26 sm:mt-0">
             {" "}

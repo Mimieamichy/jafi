@@ -10,7 +10,7 @@ const services = [
  
   { title: "Reviews", icon: faPen, link: "/review-page" },
   { title: "Hirings", icon: faUserTie, link: "/hire-profile" },
-  { title: "Listed Business", icon: faStar, link: "/listed-business" },
+  { title: "Listed Business", icon: faStar, link: "/bus-profile" },
 ];
 
 const Services = () => {
