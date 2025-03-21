@@ -18,62 +18,71 @@ export default function BusinessProfileCard() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
-      {businesses.map((business, index) => (
-        <div
-          key={index}
-          className=" rounded-lg shadow-md p-4 bg-white transition hover:shadow-lg"
-        >
-          {/* Image */}
-          <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden">
-            <img
-              src={
-                business.images?.length > 0
-                  ? business.images[0]
-                  : "/placeholder.jpg"
-              }
-              alt={business.companyName}
-              className="w-full h-full  rounded-md"
-            />
-          </div>
+    <div>
+      <h2 className="text-4xl font-bold text-gray-900 m-3 text-center">
+        Listed Businesses
+      </h2>
 
-          {/* Business Details */}
-          <div className="mt-3">
-            <h2 className="text-lg font-bold">{business.companyName}</h2>
-            <p className="text-gray-600">{business.category}</p>
-            <p className="text-gray-800">{business.address}</p>
-
-            {/* Star Rating */}
-            <div className="flex items-center mt-1">
-              {[...Array(5)].map((_, i) => (
-                <span key={i}>
-                  {i < business.rating ? (
-                    <FontAwesomeIcon
-                      icon={faStar}
-                      className="text-yellow-400"
-                    />
-                  ) : (
-                    <FontAwesomeIcon icon={faStar} className="text-gray-300" />
-                  )}
-                </span>
-              ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
+        {businesses.map((business, index) => (
+          <div
+            key={index}
+            className=" rounded-lg shadow-md p-4 bg-white transition hover:shadow-lg"
+          >
+            {/* Image */}
+            <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden">
+              <img
+                src={
+                  business.images?.length > 0
+                    ? business.images[0]
+                    : "/placeholder.jpg"
+                }
+                alt={business.companyName}
+                className="w-full h-full  rounded-md"
+              />
             </div>
 
-            {/* Opening Time */}
-            <p className="text-blue-600 font-semibold mt-2">
-              {business.openingTime} - {business.closingTime}
-            </p>
+            {/* Business Details */}
+            <div className="mt-3">
+              <h2 className="text-lg font-bold">{business.companyName}</h2>
+              <p className="text-gray-600">{business.category}</p>
+              <p className="text-gray-800">{business.address}</p>
 
-            {/* See More Button */}
-            <Link
-              to={`/business/${business.companyName}`}
-              className="mt-2 inline-block text-blue-600 underline"
-            >
-              See More
-            </Link>
+              {/* Star Rating */}
+              <div className="flex items-center mt-1">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i}>
+                    {i < business.rating ? (
+                      <FontAwesomeIcon
+                        icon={faStar}
+                        className="text-yellow-400"
+                      />
+                    ) : (
+                      <FontAwesomeIcon
+                        icon={faStar}
+                        className="text-gray-300"
+                      />
+                    )}
+                  </span>
+                ))}
+              </div>
+
+              {/* Opening Time */}
+              <p className="text-blue-600 font-semibold mt-2">
+                {business.openingTime} - {business.closingTime}
+              </p>
+
+              {/* See More Button */}
+              <Link
+                to={`/business/${business.companyName}`}
+                className="mt-2 inline-block text-blue-600 underline"
+              >
+                See More
+              </Link>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

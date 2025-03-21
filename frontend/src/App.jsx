@@ -6,7 +6,6 @@ import HiringSignup from "./HiringSignup";
 import BusinessSignup from "./BusinessSignup";
 import PaginatedReviews from "./ReviewsPage";
 import Footer from "./pages/Footer";
-import RecentListings from "./RecentListings";
 import { ReviewsProvider } from "./context/reviewContext";
 import SignupModal from "./SignupModal";
 import SignIn from "./SignInPage";
@@ -15,7 +14,6 @@ import HiringPayment from "./HirePayment";
 import HiringDashboard from "./HiringDashboard";
 import HireProfileCard from "./HireProfileCard";
 import BusinessDashboard from "./BusinessDashboard";
-import BusinessProfile from "./BusinessProfileCard";
 import BusinessPage from "./BusinessPage";
 import BusinessProfileCard from "./BusinessProfileCard";
 
@@ -30,7 +28,6 @@ export default function App() {
             <Route path="/hiring-signup" element={<HiringSignup />} />
             <Route path="/business-signup" element={<BusinessSignup />} />
             <Route path="/review-page" element={<PaginatedReviews />} />
-            {/*<Route path="/listed-business" element={<RecentListings />} />*/}
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignupModal />} />
             <Route path="/pricing" element={<Pricing />} />

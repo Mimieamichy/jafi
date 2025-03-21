@@ -30,14 +30,19 @@ export default function HireProfileCard() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6 ">
-      {users.length > 0 ? (
-        users.map((user, index) => <UserCard key={index} user={user} />)
-      ) : (
-        <p className="text-center text-gray-600 col-span-full">
-          No users available
-        </p>
-      )}
+    <div>
+      <h2 className="text-4xl font-bold text-gray-900 m-3 text-center">
+        People Available for Hire
+      </h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6 ">
+        {users.length > 0 ? (
+          users.map((user, index) => <UserCard key={index} user={user} />)
+        ) : (
+          <p className="text-center text-gray-600 col-span-full">
+            No users available
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -61,11 +66,11 @@ function UserCard({ user }) {
     <div className="bg-white shadow-lg rounded-lg overflow-hidden max-w-md mx-auto">
       {/* Work Samples Carousel */}
       {user.workSamples.length > 0 && (
-        <div className="relative">
+        <div className="relative w-full h-40 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden">
           <img
             src={user.workSamples[currentIndex]}
             alt="Work Sample"
-            className="w-full h-56 object-cover"
+            className="w-full h-full "
           />
           <button
             onClick={prevImage}
