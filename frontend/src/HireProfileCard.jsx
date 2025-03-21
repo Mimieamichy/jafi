@@ -31,9 +31,14 @@ export default function HireProfileCard() {
 
   return (
     <div>
-      <h2 className="text-4xl font-bold text-gray-900 m-3 text-center">
-        People Available for Hire
-      </h2>
+      {users.length > 0 ? (
+        <h2 className="text-4xl font-bold text-gray-900 m-3 text-center">
+          People Available for Hire
+        </h2>
+      ) : (
+        <p> </p>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6 ">
         {users.length > 0 ? (
           users.map((user, index) => <UserCard key={index} user={user} />)
