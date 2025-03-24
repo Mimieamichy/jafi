@@ -166,9 +166,10 @@ export default function BusinessSignup() {
           required
         />
         <input
-          type="text"
+          type="tel"
           name="phone"
-          placeholder="Phone Number"
+          placeholder="123-456-7890"
+          maxlength="12"
           className="p-2 border rounded-md"
           value={formData.phone}
           onChange={handleChange}
