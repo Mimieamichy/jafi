@@ -20,7 +20,7 @@ export default function SignIn() {
     e.preventDefault();
     console.log("Sign In Data:", formData);
     alert("Sign In Successful! (Static Data Used for Now)");
-    navigate("/hiring-dashboard");
+    navigate("/bus-dashboard");
   };
 
   return (

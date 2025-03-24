@@ -8,13 +8,14 @@ export default function BusinessProfileCard() {
 
   useEffect(() => {
     const storedData = JSON.parse(localStorage.getItem("businessSignupData"));
+    console.log("Fetched Business Data:", storedData);
     if (storedData) {
       setBusinesses([storedData]); // Modify this to load multiple businesses
     }
   }, []);
 
   if (businesses.length === 0) {
-    return <p className="text-center">No businesses listed yet.</p>;
+    return <p className="text-center mt-2">No businesses listed yet.</p>;
   }
 
   return (
@@ -33,7 +34,8 @@ export default function BusinessProfileCard() {
             <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden">
               <img
                 src={
-                  business.images?.length > 0
+                  business.images?.length > 0 &&
+                  business.images[0].startsWith("data:image")
                     ? business.images[0]
                     : "/placeholder.jpg"
                 }

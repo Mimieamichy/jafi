@@ -1,345 +1,159 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faHome,
   faEdit,
+  faStar,
   faSignOutAlt,
-  faGlobe,
+  faMoneyBill,
 } from "@fortawesome/free-solid-svg-icons";
-import {
-  faFacebook,
-  faLinkedin,
-  faXTwitter,
-} from "@fortawesome/free-brands-svg-icons";
-import { useNavigate } from "react-router-dom";
 
 export default function BusinessDashboard() {
-  const [formData, setFormData] = useState({});
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({});
-  const [errorMessage, setErrorMessage] = useState("");
-  //const [reviews, setReviews] = useState([]);
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [business, setBusiness] = useState(null);
 
+  // Load business data from localStorage
   useEffect(() => {
     const storedData = JSON.parse(localStorage.getItem("businessSignupData"));
-    if (storedData && typeof storedData === "object") {
-      setFormData({
-        ...storedData,
-        socialLinks: storedData.socialLinks || {},
-        images: storedData.images || [],
-        openingDays: storedData.openingDays || [],
-      });
+    if (storedData) {
+      setBusiness(storedData);
     }
-    /*const storedReviews =
-      JSON.parse(localStorage.getItem("businessReviews")) || [];
-    setReviews(storedReviews);*/
   }, []);
 
-  const handleEditClick = () => {
-    setEditData({ ...formData });
-    setIsEditing(true);
-  };
-
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSocialLinkChange = (e) => {
-    const { name, value } = e.target;
-    setEditData((prev) => ({
-      ...prev,
-      socialLinks: { ...prev.socialLinks, [name]: value },
-    }));
-  };
-
-  const handleDaysChange = (e) => {
-    const { value, checked } = e.target;
-    setEditData((prev) => ({
-      ...prev,
-      openingDays: checked
-        ? [...prev.openingDays, value]
-        : prev.openingDays.filter((day) => day !== value),
-    }));
-  };
-
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const validImageTypes = [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/gif",
-    ];
-
-    // Check if all files are valid images
-    if (!files.every((file) => validImageTypes.includes(file.type))) {
-      setErrorMessage("Only JPG, PNG, and GIF images are allowed.");
-      return;
-    }
-
-    // Check if exactly 5 images are uploaded
-    if (files.length !== 5) {
-      setErrorMessage("You must upload exactly 5 images.");
-      return;
-    }
-
-    // Convert files to URLs for preview
-    const imageUrls = files.map((file) => URL.createObjectURL(file));
-
-    setEditData((prev) => ({
-      ...prev,
-      images: imageUrls,
-    }));
-
-    setErrorMessage("");
-  };
-
-  const handleSave = () => {
-    if (editData.images.length !== 5) {
-      setErrorMessage("You must upload exactly 5 images before saving.");
-      return;
-    }
-
-    localStorage.setItem("businessSignupData", JSON.stringify(editData));
-    setFormData(editData);
-    setIsEditing(false);
-  };
-
-  const handleSignOut = () => {
-    navigate("/");
-  };
+  if (!business) {
+    return (
+      <p className="text-center mt-5 text-gray-600">
+        No business found. Please sign up.
+      </p>
+    );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-gray-200 shadow-md rounded-lg">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-black">Business Dashboard</h2>
-        <div className="flex gap-4">
-          {!isEditing && (
-            <button onClick={handleEditClick} className="text-blue-500">
-              <FontAwesomeIcon icon={faEdit} size="lg" /> Edit
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Sidebar */}
+      <aside className="w-64 bg-gray-900 text-white p-5">
+        <h2 className="text-2xl font-bold mb-6">Business Dashboard</h2>
+        <ul>
+          <li className="mb-3">
+            <button
+              onClick={() => setActiveTab("overview")}
+              className="w-full flex items-center p-2 hover:bg-gray-700 rounded"
+            >
+              <FontAwesomeIcon icon={faHome} className="mr-2" /> Overview
             </button>
-          )}
-          <button onClick={handleSignOut} className="text-red-500">
-            <FontAwesomeIcon icon={faSignOutAlt} size="lg" /> SignOut
-          </button>
-        </div>
-      </div>
+          </li>
+          <li className="mb-3">
+            <button
+              onClick={() => setActiveTab("edit")}
+              className="w-full flex items-center p-2 hover:bg-gray-700 rounded"
+            >
+              <FontAwesomeIcon icon={faEdit} className="mr-2" /> Edit Business
+            </button>
+          </li>
+          <li className="mb-3">
+            <button
+              onClick={() => setActiveTab("reviews")}
+              className="w-full flex items-center p-2 hover:bg-gray-700 rounded"
+            >
+              <FontAwesomeIcon icon={faStar} className="mr-2" /> Reviews
+            </button>
+          </li>
+          <li className="mb-3">
+            <button
+              onClick={() => setActiveTab("subscription")}
+              className="w-full flex items-center p-2 hover:bg-gray-700 rounded"
+            >
+              <FontAwesomeIcon icon={faMoneyBill} className="mr-2" />{" "}
+              Subscription
+            </button>
+          </li>
+          <li className="mt-6">
+            <button className="w-full flex items-center p-2 bg-red-600 hover:bg-red-700 rounded">
+              <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" /> Logout
+            </button>
+          </li>
+        </ul>
+      </aside>
 
-      {/* Business Details (Read-Only) */}
-      {!isEditing && formData && (
-        <div className="space-y-4">
-          <p>
-            <strong>Business Name:</strong> {formData.companyName}
-          </p>
-          <p>
-            <strong>Email:</strong> {formData.email}
-          </p>
-          <p>
-            <strong>Location:</strong> {formData.address}
-          </p>
-          <p>
-            <strong>Category:</strong> {formData.category}
-          </p>
-          <p>
-            <strong>Description:</strong> {formData.description}
-          </p>
-          <p>
-            <strong>Phone:</strong> {formData.phone}
-          </p>
-          <p>
-            <strong>Opening Days:</strong>{" "}
-            {formData.openingDays?.join(", ") || "Not specified"}
-          </p>
-          <p>
-            <strong>Opening Time:</strong>{" "}
-            {formData.openingTime || "Not specified"}
-          </p>
-          <p>
-            <strong>Closing Time:</strong>{" "}
-            {formData.closingTime || "Not specified"}
-          </p>
-          <p>
-            <strong>Social Media:</strong>
-          </p>
-          <ul className=" pl-5">
-            <li>
-              <strong>
-                {" "}
-                <FontAwesomeIcon icon={faFacebook} />:
-              </strong>{" "}
-              {formData.socialLinks?.facebook || "Not provided"}
-            </li>
-            <li>
-              <strong>
-                {" "}
-                <FontAwesomeIcon icon={faLinkedin} />:
-              </strong>{" "}
-              {formData.socialLinks?.linkedin || "Not provided"}
-            </li>
-            <li>
-              <strong>
-                <FontAwesomeIcon icon={faXTwitter} />:
-              </strong>{" "}
-              {formData.socialLinks?.twitter || "Not provided"}
-            </li>
-            <li>
-              <strong>
-                <FontAwesomeIcon icon={faGlobe} />:
-              </strong>{" "}
-              {formData.socialLinks?.website || "Not provided"}
-            </li>
-          </ul>
-          <p>
-            <strong>Business Images:</strong>
-          </p>
-          <div className="grid grid-cols-5 gap-2 mt-2">
-            {formData.images?.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                alt={`Business ${index}`}
-                className="w-20 h-20 object-cover rounded border"
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Edit Mode */}
-      {isEditing && (
-        <div className="mt-4 border-t pt-4">
-          <h3 className="text-lg font-semibold">Edit Details</h3>
-
-          <label className="block mt-2">Phone Number:</label>
-          <input
-            type="text"
-            name="phone"
-            value={editData.phone || ""}
-            onChange={handleEditChange}
-            className="w-full p-2 border rounded-md"
-          />
-
-          <label className="block mt-2">Address:</label>
-          <input
-            type="text"
-            name="address"
-            value={editData.address || ""}
-            onChange={handleEditChange}
-            className="w-full p-2 border rounded-md"
-          />
-
-          <label className="block mt-2">Product Description:</label>
-          <textarea
-            name="description"
-            value={editData.description || ""}
-            onChange={handleEditChange}
-            className="w-full p-2 border rounded-md"
-            rows="3"
-          />
-
-          <label className="block mt-2">Opening Days:</label>
-          <div className="flex flex-wrap gap-2">
-            {[
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-              "Sunday",
-            ].map((day) => (
-              <label key={day} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  value={day}
-                  checked={editData.openingDays?.includes(day)}
-                  onChange={handleDaysChange}
-                />
-                {day}
-              </label>
-            ))}
-          </div>
-
-          <label className="block mt-2">Opening Time:</label>
-          <input
-            type="time"
-            name="openingTime"
-            value={editData.openingTime || ""}
-            onChange={handleEditChange}
-            className="w-full p-2 border rounded-md"
-          />
-
-          <label className="block mt-2">Closing Time:</label>
-          <input
-            type="time"
-            name="closingTime"
-            value={editData.closingTime || ""}
-            onChange={handleEditChange}
-            className="w-full p-2 border rounded-md"
-          />
-
-          <label className="block mt-2">Social Media Links:</label>
-          <input
-            type="text"
-            name="facebook"
-            value={editData.socialLinks?.facebook || ""}
-            onChange={handleSocialLinkChange}
-            placeholder="Facebook URL"
-            className="w-full p-2 border rounded-md"
-          />
-          <input
-            type="text"
-            name="linkedin"
-            value={editData.socialLinks?.linkedin || ""}
-            onChange={handleSocialLinkChange}
-            placeholder="LinkedIn URL"
-            className="w-full p-2 border rounded-md"
-          />
-          <input
-            type="text"
-            name="twitter"
-            value={editData.socialLinks?.twitter || ""}
-            onChange={handleSocialLinkChange}
-            placeholder="X (Twitter) URL"
-            className="w-full p-2 border rounded-md"
-          />
-
-          <label className="block mt-2">Upload 5 Images:</label>
-          <input
-            type="file"
-            multiple
-            accept="image/jpeg, image/png, image/jpg, image/gif"
-            onChange={handleImageUpload}
-            className="w-full p-2 border rounded mt-2"
-          />
-          {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-
-          <button
-            onClick={handleSave}
-            className="bg-green-500 text-white py-2 px-4 mt-3 rounded-lg"
-          >
-            Save Changes
-          </button>
-        </div>
-      )}
-      {/* Reviews Section */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold">Customer Reviews</h3>
-        {/*reviews.length > 0 ? (
-          reviews.map((review, index) => (
-            <div key={index} className="p-3 border rounded-md mt-2">
-              <p>
-                <strong>{review.name}:</strong> {review.comment}
+      {/* Main Content */}
+      <main className="flex-1 p-6">
+        {activeTab === "overview" && (
+          <div>
+            <h2 className="text-3xl font-semibold mb-4">Business Overview</h2>
+            <div className="bg-white p-5 rounded shadow-md">
+              <h3 className="text-xl font-bold">{business.companyName}</h3>
+              <p className="text-gray-600">{business.category}</p>
+              <p className="text-gray-800">{business.address}</p>
+              <p className="mt-3 text-gray-700">
+                Phone: <span className="font-semibold">{business.phone}</span>
+              </p>
+              <p className="mt-2 text-blue-600 font-semibold">
+                {business.openingTime} - {business.closingTime}
+              </p>
+              <p className="mt-2 text-gray-700">
+                Open on:{" "}
+                <span className="font-semibold">
+                  {business.openingDays.join(", ")}
+                </span>
               </p>
             </div>
-          ))
-        ) : (
-          <p className="text-gray-500">No reviews yet.</p>
-        )*/}
-        <p className="text-gray-500">No reviews yet.</p>
-      </div>
+          </div>
+        )}
+
+        {activeTab === "edit" && (
+          <div>
+            <h2 className="text-3xl font-semibold mb-4">
+              Edit Business Details
+            </h2>
+            <div className="bg-white p-5 rounded shadow-md">
+              <input
+                type="text"
+                className="border w-full p-2 mb-3"
+                defaultValue={business.companyName}
+              />
+              <input
+                type="text"
+                className="border w-full p-2 mb-3"
+                defaultValue={business.category}
+              />
+              <input
+                type="text"
+                className="border w-full p-2 mb-3"
+                defaultValue={business.address}
+              />
+              <input
+                type="text"
+                className="border w-full p-2 mb-3"
+                defaultValue={business.phone}
+              />
+              <button className="bg-blue-600 text-white px-4 py-2 rounded">
+                Save Changes
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "reviews" && (
+          <div>
+            <h2 className="text-3xl font-semibold mb-4">Customer Reviews</h2>
+            <p className="text-gray-600">No reviews yet.</p>
+          </div>
+        )}
+
+        {activeTab === "subscription" && (
+          <div>
+            <h2 className="text-3xl font-semibold mb-4">Subscription Plan</h2>
+            <div className="bg-white p-5 rounded shadow-md">
+              <p className="text-gray-700">
+                Plan: <strong>1 Month - $150</strong>
+              </p>
+              <button className="bg-green-600 text-white px-4 py-2 mt-3 rounded">
+                Upgrade Plan
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
