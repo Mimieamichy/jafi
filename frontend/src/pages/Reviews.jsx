@@ -1,4 +1,4 @@
-
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { useReviews } from "../context/reviewContext";
@@ -8,24 +8,21 @@ import "swiper/css";
 import "swiper/css/pagination";
 import { useNavigate } from "react-router-dom";
 
-
-
-
 const CustomerReviews = () => {
-  const { reviews, addReview } = useReviews();
-  const navigate = useNavigate()
-  const handlechange = () => {
-    navigate("/bus-profile")
+  const { reviews } = useReviews();
+  const [allReviews, setAllReviews] = useState(reviews);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedReviews =
+      JSON.parse(localStorage.getItem("businessReviews")) || [];
+    setAllReviews([...reviews, ...storedReviews]);
+  }, [reviews]);
+
+  const handleNavigate = () => {
+    navigate("/bus-profile");
   };
-  
 
-  // Handle Input Change
-  
-
-  // Handle Star Rating
-  
-  // Handle Form Submission
-  
   return (
     <section className="bg-gray-100 py-12 px-6">
       <div className="max-w-5xl mx-auto text-center">
@@ -46,13 +43,14 @@ const CustomerReviews = () => {
           }}
           className="mt-8"
         >
-          {reviews.map((review) => (
+          {allReviews.map((review, index) => (
             <SwiperSlide
-              key={review.id}
+              key={index}
               className="bg-white p-10 rounded-lg shadow-md h-64 flex flex-col justify-between"
             >
-              <h3 className="text-lg font-semibold">{review.product}</h3>
-              <p className="text-gray-700">{review.name}</p>
+
+              <h3 className="text-lg font-semibold text-black capitalize">{review.companyName}</h3>
+              <p className="text-gray-700 capitalize">{review.name}</p>
               <div className="flex justify-center text-yellow-500 mt-2">
                 {[...Array(5)].map((_, i) => (
                   <FontAwesomeIcon
@@ -72,18 +70,16 @@ const CustomerReviews = () => {
             </SwiperSlide>
           ))}
         </Swiper>
+
         {/* Write a Review Button */}
         <div className="mt-6 flex justify-center">
           <button
-            onClick={handlechange}
+            onClick={handleNavigate}
             className="px-6 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-md hover:bg-blue-700 transition cursor-pointer"
           >
             Write a Review
           </button>
         </div>
-
-        {/* Review Form */}
-        
       </div>
     </section>
   );

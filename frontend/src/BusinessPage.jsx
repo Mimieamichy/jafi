@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faStar,
@@ -30,6 +31,7 @@ export default function BusinessPage() {
     rating: 0,
     comment: "",
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedData = JSON.parse(localStorage.getItem("businessSignupData"));
@@ -58,6 +60,9 @@ export default function BusinessPage() {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  const handleLogout = () => {
+    navigate("/reviewer");
+  };
 
   // Handle star rating click
   const handleStarClick = (index) => {
@@ -65,10 +70,31 @@ export default function BusinessPage() {
   };
 
   // Handle form submission
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Review Submitted:", formData);
-    setShowReviewForm(false); // Close the form after submission
+
+    // Get existing reviews from localStorage or initialize an empty array
+    const existingReviews =
+      JSON.parse(localStorage.getItem("businessReviews")) || [];
+
+    // Create a new review object with the business name
+    const newReview = {
+      companyName: business.companyName,
+      name: formData.name,
+      rating: formData.rating,
+      comment: formData.comment,
+    };
+
+    // Update the reviews array
+    const updatedReviews = [...existingReviews, newReview];
+
+    // Save updated reviews back to localStorage
+    localStorage.setItem("businessReviews", JSON.stringify(updatedReviews));
+
+    // Reset form and close modal
+    setFormData({ name: "", rating: 0, comment: "" });
+    setShowReviewForm(false);
   };
 
   return (
@@ -163,7 +189,10 @@ export default function BusinessPage() {
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
-                 <FontAwesomeIcon icon={faFacebook} className="text-blue-500" />
+                  <FontAwesomeIcon
+                    icon={faFacebook}
+                    className="text-blue-500"
+                  />
                 </a>
               )}
               {business.socialLinks?.linkedin && (
@@ -173,7 +202,10 @@ export default function BusinessPage() {
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
-                  <FontAwesomeIcon icon={faLinkedin} className="text-blue-500" />
+                  <FontAwesomeIcon
+                    icon={faLinkedin}
+                    className="text-blue-500"
+                  />
                 </a>
               )}
               {business.socialLinks?.twitter && (
@@ -193,7 +225,10 @@ export default function BusinessPage() {
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"
                 >
-                 <FontAwesomeIcon icon={faGlobe} className="text-green-500 pr-2" />
+                  <FontAwesomeIcon
+                    icon={faGlobe}
+                    className="text-green-500 pr-2"
+                  />
                 </a>
               )}
             </div>
@@ -215,6 +250,15 @@ export default function BusinessPage() {
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-xl font-semibold mb-4">Write a Review</h2>
             <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+              {/* Company Name (Read-Only) */}
+              <input
+                type="text"
+                name="companyName"
+                value={business.companyName}
+                readOnly
+                className="p-3 border rounded-md bg-gray-200 text-gray-600"
+              />
+
               <input
                 type="text"
                 name="name"
@@ -250,6 +294,7 @@ export default function BusinessPage() {
               />
               <button
                 type="submit"
+                onClick={handleLogout}
                 className="px-6 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-md hover:bg-blue-700 transition cursor-pointer"
               >
                 Submit Review
