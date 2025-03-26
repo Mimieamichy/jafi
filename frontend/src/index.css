@@ -33,8 +33,9 @@
   /* Push it outside */
 }
 
-/* On hover, make them stand out */
 
 
-
+html {
+  scroll-behavior: smooth;
+}
 

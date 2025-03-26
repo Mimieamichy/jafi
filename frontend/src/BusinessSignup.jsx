@@ -4,6 +4,7 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
 export default function BusinessSignup() {
+  
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     companyName: "",
@@ -17,6 +18,7 @@ export default function BusinessSignup() {
     description: "",
     socialLinks: { facebook: "", linkedin: "", twitter: "", website: "" },
     images: [],
+    
   });
 
   const categories = [
@@ -43,6 +45,7 @@ export default function BusinessSignup() {
   ];
 
   useEffect(() => {
+     
     const storedData = JSON.parse(localStorage.getItem("businessSignupData"));
     if (storedData && typeof storedData === "object") {
       setFormData({
@@ -305,7 +308,7 @@ export default function BusinessSignup() {
 
         <button
           type="submit"
-          className="bg-blue-600 text-white py-2 rounded-lg"
+          className="bg-blue-600 text-white py-2 rounded-lg cursor-pointer"
         >
           Next (Choose Plan)
         </button>

@@ -70,7 +70,6 @@ export default function BusinessPage() {
   };
 
   // Handle form submission
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -78,12 +77,16 @@ export default function BusinessPage() {
     const existingReviews =
       JSON.parse(localStorage.getItem("businessReviews")) || [];
 
-    // Create a new review object with the business name
+    // Retrieve user role from localStorage
+    const userRole = localStorage.getItem("userRole") || "Reviewer"; // Default role if not set
+
+    // Create a new review object with the business name and user role
     const newReview = {
       companyName: business.companyName,
       name: formData.name,
       rating: formData.rating,
       comment: formData.comment,
+      userRole: userRole, // Store user role in the review
     };
 
     // Update the reviews array
