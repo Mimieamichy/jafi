@@ -18,6 +18,7 @@ const categories = [
 ];
 
 export default function HiringSignup() {
+  const userRole = localStorage.getItem("userRole") || "Hiring";
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -25,6 +26,7 @@ export default function HiringSignup() {
     workSamples: [],
     address: "",
     category: "",
+    userRole: userRole,
   });
 
   const [otpSent, setOtpSent] = useState(false);

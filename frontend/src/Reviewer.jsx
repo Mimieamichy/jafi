@@ -4,11 +4,13 @@ import { faEdit, faTrash, faSave } from "@fortawesome/free-solid-svg-icons";
 
 export default function ReviewersDashboard() {
   const [reviews, setReviews] = useState([]);
+  
 
   // Load reviews from localStorage (replace this with API later)
   useEffect(() => {
     const storedReviews =
       JSON.parse(localStorage.getItem("businessReviews")) || [];
+
     setReviews(storedReviews);
   }, []);
 
@@ -24,7 +26,8 @@ export default function ReviewersDashboard() {
   const handleDeleteReview = (index) => {
     const updatedReviews = reviews.filter((_, i) => i !== index);
     setReviews(updatedReviews);
-    localStorage.setItem("businessReviews", JSON.stringify(updatedReviews));
+    localStorage.setItem( "businessReviews", JSON.stringify(updatedReviews));
+   
   };
 
   return (

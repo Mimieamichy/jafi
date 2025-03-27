@@ -11,6 +11,7 @@ export default function SignIn() {
   });
   const [showPassword, setShowPassword] = useState(false);
 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -18,9 +19,23 @@ export default function SignIn() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Sign In Data:", formData);
+
+    // Simulating a user role (In real login, fetch from API)
+    const userData = {
+      email: formData.email,
+      userRole: " Business Owner", // Change this based on actual user role
+    };
+
+    // Save to localStorage
+    localStorage.setItem("userData", JSON.stringify(userData));
+    localStorage.setItem("userRole", userData.userRole);
+
+    console.log("User logged in as:", userData.userRole);
     alert("Sign In Successful! (Static Data Used for Now)");
-    navigate("/reviewer");
+
+    // Navigate to Dashboard
+    navigate("/bus-dashboard");
+    
   };
 
   return (
