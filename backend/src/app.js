@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const compression = require("compression");
 const rateLimit = require("express-rate-limit");
+const passport = require('./config/passport')
 
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(limiter);
 // Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 
 
 
@@ -33,6 +35,7 @@ app.use(express.urlencoded({ extended: true }));
 const serviceRoutes = require("./domains/service/service.routes");
 const userRoutes = require("./domains/user/user.routes");
 const otpRoutes = require("./domains/otp/otp.routes");
+const reviewRoutes = require("./domains/review/review.routes");
 
 
 
@@ -40,7 +43,7 @@ const otpRoutes = require("./domains/otp/otp.routes");
 app.use("/api/v1/service", serviceRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/otp", otpRoutes);
-
+app.use("/api/v1/review", reviewRoutes);
 
 
 
