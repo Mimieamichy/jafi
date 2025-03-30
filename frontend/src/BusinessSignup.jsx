@@ -4,7 +4,6 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
 export default function BusinessSignup() {
-  
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     companyName: "",
@@ -18,7 +17,6 @@ export default function BusinessSignup() {
     description: "",
     socialLinks: { facebook: "", linkedin: "", twitter: "", website: "" },
     images: [],
-    
   });
 
   const categories = [
@@ -45,8 +43,10 @@ export default function BusinessSignup() {
   ];
 
   useEffect(() => {
-     
     const storedData = JSON.parse(localStorage.getItem("businessSignupData"));
+    console.log(localStorage.getItem("businessSignupData"))
+    console.log(JSON.stringify(localStorage).length / 1024 + " KB used");
+
     if (storedData && typeof storedData === "object") {
       setFormData({
         ...storedData,
@@ -135,8 +135,8 @@ export default function BusinessSignup() {
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-4 text-black">
+    <div className="max-w-lg w-full mx-auto mt-10 p-4 sm:p-6 bg-white shadow-md rounded-lg">
+      <h2 className="text-2xl font-bold mb-4 text-black text-center">
         Business Listing Signup
       </h2>
 
@@ -145,76 +145,82 @@ export default function BusinessSignup() {
           type="text"
           name="companyName"
           placeholder="Business Name"
-          className="p-2 border rounded-md capitalize"
+          className="p-2 border rounded-md w-full capitalize"
           value={formData.companyName}
           onChange={handleChange}
           required
         />
+
         <input
           type="email"
           name="email"
           placeholder="Email"
-          className="p-2 border rounded-md"
+          className="p-2 border rounded-md w-full"
           value={formData.email}
           onChange={handleChange}
           required
         />
+
         <input
           type="text"
           name="address"
           placeholder="Location Address"
-          className="p-2 border rounded-md"
+          className="p-2 border rounded-md w-full"
           value={formData.address}
           onChange={handleChange}
           required
         />
+
         <input
           type="tel"
           name="phone"
           placeholder="123-456-7890"
-          maxlength="12"
-          className="p-2 border rounded-md"
+          maxLength="12"
+          className="p-2 border rounded-md w-full"
           value={formData.phone}
           onChange={handleChange}
           required
         />
+
         {/* Social Media Links */}
-        <input
-          type="text"
-          name="facebook"
-          placeholder="Facebook Link"
-          className="p-2 border rounded-md"
-          value={formData.socialLinks.facebook}
-          onChange={handleSocialLinksChange}
-        />
-        <input
-          type="text"
-          name="linkedin"
-          placeholder="LinkedIn Link"
-          className="p-2 border rounded-md"
-          value={formData.socialLinks.linkedin}
-          onChange={handleSocialLinksChange}
-        />
-        <input
-          type="text"
-          name="twitter"
-          placeholder="Twitter (X) Link"
-          className="p-2 border rounded-md"
-          value={formData.socialLinks.twitter}
-          onChange={handleSocialLinksChange}
-        />
-        <input
-          type="text"
-          name="website"
-          placeholder="Website Link"
-          className="p-2 border rounded-md"
-          value={formData.socialLinks.website}
-          onChange={handleSocialLinksChange}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input
+            type="text"
+            name="facebook"
+            placeholder="Facebook Link"
+            className="p-2 border rounded-md w-full"
+            value={formData.socialLinks.facebook}
+            onChange={handleSocialLinksChange}
+          />
+          <input
+            type="text"
+            name="linkedin"
+            placeholder="LinkedIn Link"
+            className="p-2 border rounded-md w-full"
+            value={formData.socialLinks.linkedin}
+            onChange={handleSocialLinksChange}
+          />
+          <input
+            type="text"
+            name="twitter"
+            placeholder="Twitter (X) Link"
+            className="p-2 border rounded-md w-full"
+            value={formData.socialLinks.twitter}
+            onChange={handleSocialLinksChange}
+          />
+          <input
+            type="text"
+            name="website"
+            placeholder="Website Link"
+            className="p-2 border rounded-md w-full"
+            value={formData.socialLinks.website}
+            onChange={handleSocialLinksChange}
+          />
+        </div>
 
         <select
           name="category"
-          className="p-2 border rounded-md"
+          className="p-2 border rounded-md w-full"
           value={formData.category}
           onChange={handleChange}
           required
@@ -229,44 +235,47 @@ export default function BusinessSignup() {
           ))}
         </select>
 
+        {/* Opening Days */}
         <fieldset className="border p-2 rounded-md">
           <legend className="text-black font-semibold">Opening Days:</legend>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {daysOfWeek.map((day) => (
-              <label key={day} className="block">
+              <label key={day} className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   value={day}
                   checked={formData.openingDays.includes(day)}
                   onChange={handleDaysChange}
                 />
-                {day}
+                <span>{day}</span>
               </label>
-            ))}{" "}
+            ))}
           </div>
         </fieldset>
 
-        <input
-          type="time"
-          name="openingTime"
-          value={formData.openingTime}
-          className="p-2 border rounded-md w-full"
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="time"
-          name="closingTime"
-          className="p-2 border rounded-md w-full"
-          value={formData.closingTime}
-          onChange={handleChange}
-          required
-        />
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            type="time"
+            name="openingTime"
+            className="p-2 border rounded-md w-full"
+            value={formData.openingTime}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="time"
+            name="closingTime"
+            className="p-2 border rounded-md w-full"
+            value={formData.closingTime}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
         <textarea
           name="description"
           placeholder="Description of Product"
-          className="p-2 border rounded-md"
+          className="p-2 border rounded-md w-full"
           rows="3"
           value={formData.description}
           onChange={handleChange}
@@ -281,7 +290,7 @@ export default function BusinessSignup() {
           className="w-full p-2 border rounded mt-1"
         />
 
-        {/* IMAGE PREVIEW SECTION */}
+        {/* Image Preview */}
         {formData.images.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-3">
             {formData.images.map((img, index) => (
@@ -308,7 +317,7 @@ export default function BusinessSignup() {
 
         <button
           type="submit"
-          className="bg-blue-600 text-white py-2 rounded-lg cursor-pointer"
+          className="bg-blue-600 text-white py-2 rounded-lg cursor-pointer w-full text-center"
         >
           Next (Choose Plan)
         </button>

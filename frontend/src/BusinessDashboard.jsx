@@ -16,13 +16,15 @@ export default function BusinessDashboard() {
   const [business, setBusiness] = useState(null);
   const [formData, setFormData] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const navigate = useNavigate()
+
+  const navigate = useNavigate();
   useEffect(() => {
     const storedData = JSON.parse(localStorage.getItem("businessSignupData"));
     if (storedData) {
       setBusiness(storedData);
       setFormData(storedData);
     }
+    console.log(localStorage.getItem("businessSignupData"));
   }, []);
   const handleSignOut = () => {
     navigate("/");
@@ -98,7 +100,10 @@ export default function BusinessDashboard() {
             </button>
           </li>
           <li className="mt-6">
-            <button onClick={handleSignOut} className="w-full flex items-center p-2 bg-red-600 hover:bg-red-700 rounded">
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center p-2 bg-red-600 hover:bg-red-700 rounded"
+            >
               <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" /> Logout
             </button>
           </li>
@@ -116,6 +121,7 @@ export default function BusinessDashboard() {
               <h3 className="text-xl font-bold">{business?.companyName}</h3>
               <p className="text-gray-600">{business?.category}</p>
               <p className="text-gray-800">{business?.address}</p>
+
               <p className="mt-3 text-gray-700">
                 Phone: <span className="font-semibold">{business?.phone}</span>
               </p>
@@ -138,6 +144,7 @@ export default function BusinessDashboard() {
               Edit Business Details
             </h2>
             <div className="bg-white p-5 rounded shadow-md">
+              {/* Address */}
               <div className="mb-4">
                 <label className="font-semibold">Address:</label>
                 <input
@@ -151,11 +158,12 @@ export default function BusinessDashboard() {
                 />
               </div>
 
+              {/* Phone Number */}
               <div className="mb-4">
                 <label className="font-semibold">Phone:</label>
                 <input
-                  type="type"
-                  maxlength="11"
+                  type="text"
+                  maxLength="11"
                   name="phone"
                   value={formData?.phone}
                   onChange={(e) =>
@@ -165,6 +173,7 @@ export default function BusinessDashboard() {
                 />
               </div>
 
+              {/* Opening & Closing Time */}
               <div className="mb-4 flex flex-col md:flex-row md:justify-between">
                 <div className="md:w-1/2 md:pr-2">
                   <label className="font-semibold">Opening Time:</label>
@@ -192,28 +201,83 @@ export default function BusinessDashboard() {
                 </div>
               </div>
 
+              {/* Opening Days */}
               <div className="mb-4">
-                {[
-                  "Monday",
-                  "Tuesday",
-                  "Wednesday",
-                  "Thursday",
-                  "Friday",
-                  "Saturday",
-                  "Sunday",
-                ].map((day) => (
-                  <label key={day} className="flex items-center gap-2 ">
-                    <input
-                      type="checkbox"
-                      value={day}
-                      checked={formData.openingDays?.includes(day)}
-                      onChange={handleDaysChange}
-                    />
-                    {day}
-                  </label>
-                ))}
+                <label className="font-semibold">Opening Days:</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
+                  ].map((day) => (
+                    <label key={day} className="flex items-center gap-2 ">
+                      <input
+                        type="checkbox"
+                        value={day}
+                        checked={formData.openingDays?.includes(day)}
+                        onChange={handleDaysChange}
+                      />
+                      {day}
+                    </label>
+                  ))}
+                </div>
               </div>
 
+              {/* Image Upload */}
+              <div className="mb-4">
+                <label className="font-semibold">Add Images:</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    const newImages = files.map((file) =>
+                      URL.createObjectURL(file)
+                    );
+                    setFormData((prev) => ({
+                      ...prev,
+                      images: [...(prev.images || []), ...newImages],
+                    }));
+                  }}
+                  className="border p-2 w-full rounded"
+                />
+              </div>
+
+              {/* Image Previews */}
+              {formData?.images && formData.images.length > 0 && (
+                <div className="mb-4">
+                  <p className="font-semibold">Image Previews:</p>
+                  <div className="flex flex-wrap gap-3">
+                    {formData.images.map((img, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={img}
+                          alt="Uploaded"
+                          className="w-24 h-24 object-cover rounded border"
+                        />
+                        <button
+                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              images: prev.images.filter((_, i) => i !== index),
+                            }));
+                          }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Save Button */}
               <button
                 onClick={() => setBusiness(formData)}
                 className="bg-green-600 text-white py-2 px-4 rounded-lg"
