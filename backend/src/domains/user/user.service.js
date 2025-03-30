@@ -2,10 +2,8 @@ const User = require("./user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const { OAuth2Client } = require("google-auth-library");
 
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
 exports.userLogin = async (email, password) => {
@@ -58,18 +56,3 @@ exports.userResetPassword = async (token, newPassword) => {
 
 
 
-exports.userGoogleLogin = async (idToken) => {
-  const ticket = await client.verifyIdToken({
-    idToken: idToken,
-    audience: process.env.GOOGLE_CLIENT_ID
-  });
-
-  const { email, name } = ticket.getPayload();
-
-  let user = await User.findOne({ where: { email } });
-  if (!user) {
-    user = await User.create({ name, email, password: null }); 
-  }
-
-  return jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-};

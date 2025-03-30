@@ -37,14 +37,3 @@ exports.resetPassword = async (req, res) => {
 };
 
 
-
-exports.googleLogin = async (req, res) => {
-  try {
-    const { idToken } = req.body;
-    const token = await UserService.userGoogleLogin(idToken);
-    res.status(200).json({token })
-  } catch (error) {
-    res.status(error.status || 500).json({ error: error.message });
-  }
-};
-

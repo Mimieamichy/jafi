@@ -11,6 +11,10 @@ const Service = sequelize.define(
       primaryKey: true,
       allowNull: false,
     },
+    uniqueId: {
+      type: DataTypes.STRING, 
+      unique: true,
+    },
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -24,13 +28,9 @@ const Service = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    first_name: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    last_name: {
-      type: DataTypes.STRING,
-      allowNull: true,
     },
     address: {
       type: DataTypes.STRING,
@@ -73,7 +73,15 @@ const Service = sequelize.define(
   {
     tableName: "services",
     timestamps: true,
-  }
+  hooks: {
+      afterCreate: async (service) => {
+        if (!service.uniqueId) {
+          service.uniqueId = `ser_${service.id}`;
+          await service.save();
+        }
+      },
+    },
+  },
 );
 
 Service.belongsTo(User, { foreignKey: "userId", as: "user" });
