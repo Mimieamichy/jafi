@@ -6,6 +6,7 @@ const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const passport = require('./config/passport')
 const app_url = process.env.APP_URL 
+const path = require("path");
 
 
 const app = express();
@@ -60,6 +61,13 @@ app.get("/", (req, res) => {
     });
 });
 
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+// Handle all unknown routes by serving index.html
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
+});
 
 // Error Handling Middleware
 app.use(errorHandler);
