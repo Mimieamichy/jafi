@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const passport = require('./config/passport')
+const app_url = process.env.APP_URL 
 
 
 const app = express();
@@ -40,10 +41,10 @@ const reviewRoutes = require("./domains/review/review.routes");
 
 
 
-app.use("/api/v1/service", serviceRoutes);
-app.use("/api/v1/user", userRoutes);
-app.use("/api/v1/otp", otpRoutes);
-app.use("/api/v1/review", reviewRoutes);
+app.use(`${app_url}/service`, serviceRoutes);
+app.use(`${app_url}/user`, userRoutes);
+app.use(`${app_url}/otp`, otpRoutes);
+app.use(`${app_url}/review`, reviewRoutes);
 
 
 
