@@ -8,20 +8,19 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 
 const countryOptions = africanCountries.map((country) => ({
   value: country.dial_code,
-  label: `${country.name} (${country.dial_code})`,
+  label: `${country.code} (${country.dial_code})`,
   flag: `https://flagcdn.com/w40/${country.code.toLowerCase()}.png`,
 }));
 
 const formatOptionLabel = (option) => (
-  <div className="flex items-center gap-2">
+  <div className="flex items-center gap-2 ">
     <img src={option.flag} alt="" className="w-5 h-4 object-cover rounded-sm" />
-    <span>{option.label}</span>
+    <span >{option.label}</span>
   </div>
 );
 
 const categories = [
   "Auto Repair",
-  "Contractor",
   "Electrician",
   "Heating and Air Conditioning",
   "Fumigation & Home Cleaning",
@@ -43,12 +42,19 @@ export default function HiringSignup() {
     address: "",
     category: "",
     countryCode: "+234",
+    otp:""
   });
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
 
   const navigate = useNavigate();
+  let rawPhone = formData.phone.trim()
+  if (rawPhone.startsWith('0')) {
+    rawPhone = rawPhone.slice(1)
+  }
+
+    const fullPhoneNumber = `${formData.countryCode}${rawPhone}`;
 
   // handleChange function to update form data
   const handleChange = (e) => {
@@ -95,7 +101,7 @@ export default function HiringSignup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const fullPhoneNumber = `${formData.countryCode}${formData.phone}`;
+    
 
     if (!isValidPhoneNumber(fullPhoneNumber)) {
       alert("Invalid phone number!");
@@ -109,6 +115,7 @@ export default function HiringSignup() {
     data.append("email", formData.email);
     data.append("phone", fullPhoneNumber);
     data.append("address", formData.address);
+    data.append("otp", formData.otp);
     data.append("category", formData.category);
 
     // Append images
@@ -124,9 +131,9 @@ export default function HiringSignup() {
           body: data,
         }
       );
-      console.log("Response:", response);
-
+      
       const result = await response.json();
+      console.log("Result:", result);
 
       if (response.ok) {
         alert("Signup Successful! Proceeding to OTP verification...");
@@ -134,6 +141,9 @@ export default function HiringSignup() {
       } else {
         alert(`Error: ${result.message}`);
       }
+      const serviceId = result.newService.id
+      localStorage.setItem("serviceId", serviceId)
+
     } catch (error) {
       console.error("Error submitting form:", error);
       alert("Something went wrong. Please try again.");
@@ -148,22 +158,27 @@ export default function HiringSignup() {
     }
 
     try {
-      const response = await fetch("http://your-api-url.com/verify-service", {
+      const response = await fetch("http://localhost:4900/api/v1/service/verify-service", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: formData.email,
-          otp: otp,
+          otp,
+          phone: fullPhoneNumber
+ 
         }),
       });
 
+      console.log("OTP Verification Data:", formData.otp)
       const result = await response.json();
+      console.log("OTP Verification Result:", result);
 
       if (response.ok) {
+        
         alert("OTP Verified Successfully!");
-        navigate("/hiring-payment"); // Redirect after successful verification
+        
+        navigate("/hiring-payment") // Redirect after successful verification
       } else {
-        alert(`Verification Failed: ${result.message}`);
+        alert(`Verification Failed: ${result.error}`);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
@@ -206,7 +221,7 @@ export default function HiringSignup() {
           />
 
           <div className="flex gap-2">
-            <div className="w-1/2">
+            <div className="w-1/3">
               <Select
                 options={countryOptions}
                 formatOptionLabel={formatOptionLabel}
@@ -227,7 +242,7 @@ export default function HiringSignup() {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Phone number"
-              className="w-1/2 p-2 border rounded"
+              className="w-[100%] p-2 border rounded"
               required
             />
           </div>
@@ -242,6 +257,7 @@ export default function HiringSignup() {
               multiple
               onChange={handleImageChange}
               className="w-full p-2 border rounded mt-1"
+              required
             />
           </label>
           <div className="flex flex-wrap gap-2 mt-2">
@@ -251,7 +267,7 @@ export default function HiringSignup() {
                   src={img}
                   alt="Preview"
                   className="w-16 h-16 rounded-md object-cover"
-                  required
+                  
                 />
                 <button
                   type="button"
@@ -299,9 +315,11 @@ export default function HiringSignup() {
           </button>
         </form>
       ) : (
+        
         <div className="text-center">
           <p className="text-black">Enter OTP sent to your phone</p>
           <input
+          name="otp"
             type="text"
             className="p-2 border rounded-md w-full text-center"
             value={otp}
@@ -314,6 +332,7 @@ export default function HiringSignup() {
             Verify OTP
           </button>
         </div>
+        
       )}
     </div>
   );
