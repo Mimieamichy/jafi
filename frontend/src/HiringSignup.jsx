@@ -19,6 +19,7 @@ const categories = [
 
 export default function HiringSignup() {
   const [formData, setFormData] = useState({
+    service: "",
     name: "",
     email: "",
     phone: "",
@@ -85,13 +86,11 @@ export default function HiringSignup() {
     e.preventDefault();
 
     // Check if passwords match (if applicable)
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
+    
 
     // Prepare FormData for file upload
     const data = new FormData();
+    data.append("service", formData.service);
     data.append("name", formData.name);
     data.append("email", formData.email);
     data.append("phone", formData.phone);
@@ -104,7 +103,7 @@ export default function HiringSignup() {
     });
 
     try {
-      const response = await fetch("http://your-api-url.com/register", {
+      const response = await fetch("http://localhost:4900/api/v1/service/register", {
         method: "POST",
         body: data,
       });
@@ -159,6 +158,15 @@ export default function HiringSignup() {
       <h2 className="text-2xl font-bold mb-4">Hiring Signup</h2>
       {!otpSent ? (
         <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="service"
+            value={formData.sercive}
+            onChange={handleChange}
+            placeholder="Service Name"
+            className="w-full p-2 border rounded capitalize"
+            required
+          />
           <input
             type="text"
             name="name"

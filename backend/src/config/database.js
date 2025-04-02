@@ -12,7 +12,7 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
     await sequelize.authenticate();
     console.log("Database connected successfully");
 
-    //await sequelize.sync({ alter: true }); 
+    await sequelize.sync({ alter: true }); 
     // console.log("Tables synced successfully");
   } catch (error) {
     console.error("Database connection error:", error);

@@ -7,6 +7,7 @@ exports.registerService = async (req, res) => {
     const { email, ...serviceData } = req.body;
     const images = req.files["hiring_images"] ? req.files["hiring_images"].map(file => file.path) : [];
 
+    console.log(req.body);
     const response = await ServiceService.registerService(email, serviceData, images);
     res.status(201).json(response);
   } catch (error) {
