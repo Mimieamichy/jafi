@@ -13,8 +13,6 @@ exports.registerService = async (email, name, service, phone, address, category,
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser || existingService) throw new Error("User already exists");
 
-        serviceData.images = images;
-        serviceData.email = email;
 
         // Generate random password
         const plainPassword = crypto.randomBytes(6).toString("hex");
