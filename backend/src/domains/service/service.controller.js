@@ -10,6 +10,7 @@ exports.registerService = async (req, res) => {
     const response = await ServiceService.registerService(email, name, service, phone, address, category, images);
     res.status(201).json(response);
   } catch (error) {
+    console.error(error);
     res.status(400).json({ error: error.message });
   }
 };
