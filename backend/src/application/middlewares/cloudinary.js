@@ -10,7 +10,8 @@ const storage = new CloudinaryStorage({
     if (file.fieldname === "featured_images") folder = "jafiImages/listings/featured";
     if (file.fieldname === "workSamples") folder = "jafiImages/services";
 
-    return { folder, allowed_formats: ["jpg", "jpeg", "png"] };
+    return { folder, allowed_formats: ["jpg", "jpeg", "png", "gif", "svg", "webp", "tiff", "bmp", "heic", "raw"] };
+
   },
 });
 
