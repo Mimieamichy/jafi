@@ -28,7 +28,7 @@ const Service = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    name: {
+    service_name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
