@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
@@ -33,12 +33,12 @@ export default function HiringSignup() {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const storedData = JSON.parse(localStorage.getItem("hiringSignupData"));
-    if (storedData) {
-      setFormData({ ...storedData, workSamples: storedData.workSamples || [] });
-    }
-  }, []);
+  // useEffect(() => {
+  //   const storedData = JSON.parse(localStorage.getItem("hiringSignupData"));
+  //   if (storedData) {
+  //     setFormData({ ...storedData, workSamples: storedData.workSamples || [] });
+  //   }
+  // }, []);
 
   // handleChange function to update form data
   const handleChange = (e) => {
@@ -106,7 +106,11 @@ export default function HiringSignup() {
       const response = await fetch("http://localhost:4900/api/v1/service/register", {
         method: "POST",
         body: data,
+
+      
       });
+      console.log("Response:", response);
+      
 
       const result = await response.json();
 
