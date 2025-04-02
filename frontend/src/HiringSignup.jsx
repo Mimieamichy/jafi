@@ -18,7 +18,6 @@ const categories = [
 ];
 
 export default function HiringSignup() {
-  const userRole = localStorage.getItem("userRole") || "Hiring";
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,7 +25,6 @@ export default function HiringSignup() {
     workSamples: [],
     address: "",
     category: "",
-    userRole: userRole,
   });
 
   const [otpSent, setOtpSent] = useState(false);
@@ -41,6 +39,7 @@ export default function HiringSignup() {
     }
   }, []);
 
+  // handleChange function to update form data
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -67,23 +66,13 @@ export default function HiringSignup() {
       return true;
     });
 
-    const promises = validFiles.map((file) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-      });
-    });
-
-    Promise.all(promises).then((base64Images) => {
-      setFormData((prev) => ({
-        ...prev,
-        workSamples: [...prev.workSamples, ...base64Images],
-      }));
-    });
+    setFormData((prev) => ({
+      ...prev,
+      workSamples: [...prev.workSamples, ...validFiles], // Use File objects instead of base64
+    }));
   };
 
+  // Remove image from the work samples array
   const removeImage = (index) => {
     setFormData((prev) => ({
       ...prev,
@@ -91,23 +80,77 @@ export default function HiringSignup() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  // Handle form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Data Submitted:", formData);
+
+    // Check if passwords match (if applicable)
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-    alert("Signup Successful! (Static Data Used for Now)");
-    setOtpSent(true);
+
+    // Prepare FormData for file upload
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("email", formData.email);
+    data.append("phone", formData.phone);
+    data.append("address", formData.address);
+    data.append("category", formData.category);
+
+    // Append images
+    formData.workSamples.forEach((image) => {
+      data.append(`workSamples`, image);
+    });
+
+    try {
+      const response = await fetch("http://your-api-url.com/register", {
+        method: "POST",
+        body: data,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Signup Successful! Proceeding to OTP verification...");
+        setOtpSent(true);
+      } else {
+        alert(`Error: ${result.message}`);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Something went wrong. Please try again.");
+    }
   };
 
-  const handleVerifyOtp = () => {
-    if (otp.length === 6) {
-      localStorage.setItem("hiringSignupData", JSON.stringify(formData));
-      navigate("/hiring-payment");
-    } else {
+  // Handle OTP verification
+  const handleVerifyOtp = async () => {
+    if (otp.length !== 6) {
       alert("Invalid OTP. Please enter a valid 6-digit code.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://your-api-url.com/verify-service", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          otp: otp,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("OTP Verified Successfully!");
+        navigate("/hiring-payment"); // Redirect after successful verification
+      } else {
+        alert(`Verification Failed: ${result.message}`);
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      alert("Something went wrong. Please try again.");
     }
   };
 

@@ -9,7 +9,7 @@ const {authorize} = require('../../application/middlewares/authorize')
 //public routes
 router.get("/", getAllServices);
 router.get("/:id", getAService);
-router.post("/register", uploadMiddleware, registerService);
+router.post("/register", uploadMiddleware, registerService);//signup api
 router.post("/verify-service", verifyServiceNumber);
 router.post("/pay/:serviceId", payForService);
 router.get("/verify/:pay_ref", verifyServicePayment)

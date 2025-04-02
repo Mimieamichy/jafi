@@ -5,7 +5,7 @@ const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview,
 const router = express.Router();
 
 // Google Authentication Routes
-router.get("/google", googleAuth);
+router.get("/google", googleAuth); //signup api
 router.get("/google-callback", googleAuthCallback);
 
 
