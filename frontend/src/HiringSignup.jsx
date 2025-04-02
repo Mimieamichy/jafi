@@ -2,6 +2,22 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
+import { africanCountries } from "./data/africanCountries";
+import { isValidPhoneNumber } from "libphonenumber-js";
+
+const countryOptions = africanCountries.map((country) => ({
+  value: country.dial_code,
+  label: `${country.name} (${country.dial_code})`,
+  flag: `https://flagcdn.com/w40/${country.code.toLowerCase()}.png`,
+}));
+
+const formatOptionLabel = (option) => (
+  <div className="flex items-center gap-2">
+    <img src={option.flag} alt="" className="w-5 h-4 object-cover rounded-sm" />
+    <span>{option.label}</span>
+  </div>
+);
 
 const categories = [
   "Auto Repair",
@@ -26,19 +42,13 @@ export default function HiringSignup() {
     workSamples: [],
     address: "",
     category: "",
+    countryCode: "+234",
   });
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
 
   const navigate = useNavigate();
-
-  // useEffect(() => {
-  //   const storedData = JSON.parse(localStorage.getItem("hiringSignupData"));
-  //   if (storedData) {
-  //     setFormData({ ...storedData, workSamples: storedData.workSamples || [] });
-  //   }
-  // }, []);
 
   // handleChange function to update form data
   const handleChange = (e) => {
@@ -85,15 +95,19 @@ export default function HiringSignup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if passwords match (if applicable)
-    
+    const fullPhoneNumber = `${formData.countryCode}${formData.phone}`;
+
+    if (!isValidPhoneNumber(fullPhoneNumber)) {
+      alert("Invalid phone number!");
+      return;
+    }
 
     // Prepare FormData for file upload
     const data = new FormData();
     data.append("service", formData.service);
     data.append("name", formData.name);
     data.append("email", formData.email);
-    data.append("phone", formData.phone);
+    data.append("phone", fullPhoneNumber);
     data.append("address", formData.address);
     data.append("category", formData.category);
 
@@ -103,14 +117,14 @@ export default function HiringSignup() {
     });
 
     try {
-      const response = await fetch("http://localhost:4900/api/v1/service/register", {
-        method: "POST",
-        body: data,
-
-      
-      });
+      const response = await fetch(
+        "http://localhost:4900/api/v1/service/register",
+        {
+          method: "POST",
+          body: data,
+        }
+      );
       console.log("Response:", response);
-      
 
       const result = await response.json();
 
@@ -191,15 +205,32 @@ export default function HiringSignup() {
             required
           />
 
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="Phone Number / WhatsApp"
-            className="w-full p-2 border rounded"
-            required
-          />
+          <div className="flex gap-2">
+            <div className="w-1/2">
+              <Select
+                options={countryOptions}
+                formatOptionLabel={formatOptionLabel}
+                onChange={(selected) =>
+                  setFormData({
+                    ...formData,
+                    countryCode: selected?.value || "+234",
+                  })
+                }
+                defaultValue={countryOptions.find(
+                  (opt) => opt.value === formData.countryCode
+                )}
+              />
+            </div>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Phone number"
+              className="w-1/2 p-2 border rounded"
+              required
+            />
+          </div>
 
           {/* Password Input with Show/Hide */}
 
@@ -220,6 +251,7 @@ export default function HiringSignup() {
                   src={img}
                   alt="Preview"
                   className="w-16 h-16 rounded-md object-cover"
+                  required
                 />
                 <button
                   type="button"

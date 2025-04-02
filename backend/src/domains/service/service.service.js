@@ -6,15 +6,13 @@ const OTPService = require("../otp/otp.service");
 const PaymentService= require("../payments/payments.service");
 
 
-exports.registerService = async (email, serviceData, images) => {
+exports.registerService = async (email, name, service, phone, address, category, images) => {
 
     try {
         const existingService = await Service.findOne({ where: { email } });
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser || existingService) throw new Error("User already exists");
 
-        serviceData.images = images;
-        serviceData.email = email;
 
         // Generate random password
         const plainPassword = crypto.randomBytes(6).toString("hex");
@@ -22,15 +20,15 @@ exports.registerService = async (email, serviceData, images) => {
 
         // Create user inside the transaction
         const user = await User.create(
-            { email, password: hashedPassword, role: "service" , name: serviceData.name});
+            { email, password: hashedPassword, role: "service" , name: name});
 
         // Create service inside the transaction
-        const service = await Service.create({ ...serviceData, password: hashedPassword, status: "pending", userId: user.id })
+        const newService = await Service.create({service_name: service, password: hashedPassword, status: "pending", userId: user.id, address, phone_number: phone, category, images, email });
     
 
         // Send OTP (outside transaction to avoid rollback on failure)
-        const response = await OTPService.sendOTP(service.phone_number, user.id);
-        return { message: "OTP sent successfully", service, response };
+        const response = await OTPService.sendOTP(newService.phone_number, user.id);
+        return { message: "OTP sent successfully", newService, response };
     } catch (error) {
         throw error;
     }
