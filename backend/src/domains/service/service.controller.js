@@ -18,7 +18,7 @@ exports.registerService = async (req, res) => {
 exports.verifyServiceNumber = async (req, res) => {
   try {
     const { otp, phone } = req.body;
-    const response = await ServiceService.verifyServiceNumber({phone_number: phone, otp});
+    const response = await ServiceService.verifyServiceNumber(phone, otp);
     res.status(200).json(response);
   } catch (error) {
     res.status(400).json({ error: error.message });

@@ -47,7 +47,6 @@ exports.getAllBusinesses = async (req, res) => {
 
 exports.approveBusiness = async (req, res) => {
   const { id } = req.params;
-
   try {
     await AdminService.approveBusiness(id);
     return res.status(200).json({ success: true, message: "Business approved successfully" });
@@ -61,11 +60,7 @@ exports.updateBusinessPrice = async (req, res) => {
   const { price } = req.body;
 
   try {
-    const business = await Business.findByPk(id);
-    if (!business) throw new Error("Business not found");
-
-    business.price = price;
-    await business.save();
+    await AdminService.updateBusinessPrice(id, price);
 
     return res.status(200).json({ success: true, message: "Business price updated successfully" });
   } catch (error) {
@@ -76,31 +71,29 @@ exports.updateBusinessPrice = async (req, res) => {
 // Service management
 exports.getAllServices = async (req, res) => {
   try {
-    const services = await Service.findAll();
+    const services = await AdminService.getAllServices();
     return res.status(200).json({ success: true, services });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-exports.approveService = async (req, res) => {
+
+exports.getAService = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const service = await Service.findByPk(id);
-    if (!service) throw new Error("Service not found");
+    const service = await AdminService.getAService(id);
+    return res.status(200).json({ success: true, service });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
 
-    service.status = "approved";
-    const user = await User.findByPk(service.userId);
-    if (user) {
-      service.userId = user.id; // Re-assign userId after approval
-    }
-
-    await service.save();
-
-    // Send an email notification to the service owner
-    await sendEmail(user.email, "Your Service is Approved", "Congratulations! Your service is approved.");
-
+exports.approveService = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await AdminService.getAService(id);
     return res.status(200).json({ success: true, message: "Service approved successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

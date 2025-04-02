@@ -2,6 +2,7 @@ const User = require("../user/user.model");
 const Business = require("../business/business.model");
 const Service = require("../service/service.model");
 const Review = require("../review/review.model"); 
+const AdminSettings = require('./admin.model')
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -90,4 +91,41 @@ exports.approveBusiness = async (businessId) => {
     // Send an email notification to the business owner
     await sendEmail(user.email, "JAFI AI Business Approved", "Your Business is Approved", "Congratulations! Your business is approved.");
 
+}
+
+exports.updateBusinessPrice = async (price) => {
+    const setting = await AdminSettings.findOne({ where: { key: "business_price" } });
+
+  if (!setting) {
+    // If the setting does not exist, create it
+    await AdminSettings.create({ key: "business_price", value: price });
+  } else {
+    // Update the existing setting
+    await setting.update({ value: price });
+  }
+    return { message: "Business price updated successfully" };
+}
+
+exports.getAllServices = async () => {
+    const services = await Service.findAll();
+    if (!services) throw new Error("No services found");
+    return services;
+}
+
+exports.getAService = async (serviceId) => {
+    const service = await Service.findByPk(serviceId);
+    if (!service) throw new Error("Service not found");
+    return service;
+}
+
+exports.approveAService = async (serviceId) => {
+    const service = await Service.findByPk(serviceId);
+    if (!service) throw new Error("Service not found");
+
+    // Approve the service
+    service.status = "approved";
+    await service.save();
+
+    // Send an email notification to the service owner
+    await sendEmail(service.email, "JAFI AI Service Approved", "Your Service is Approved", "Congratulations! Your service is approved.");
 }
