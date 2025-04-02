@@ -4,6 +4,7 @@ export default function HiringPayment() {
   const location = useLocation()
   const serviceId = location.state?.serviceId || localStorage.getItem("serviceId")
   const serviceIdNum = parseInt(serviceId)
+  const baseUrl = import.meta.env.BACKEND_URL
 
   const plan = { price: 150 }
 
@@ -14,7 +15,7 @@ export default function HiringPayment() {
     }
 
     try {
-      const response = await fetch(`http://localhost:4900/api/v1/service/pay/${serviceIdNum}`, {
+      const response = await fetch( `${baseUrl}/service/pay/${serviceIdNum}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
