@@ -23,8 +23,7 @@ export default function Navbar() {
   // Logout Function
   const handleLogout = () => {
     localStorage.removeItem("userRole");
-    localStorage.removeItem("businessSignupData"); // Remove business data
-    localStorage.removeItem("hiringSignupData"); // Remove hiring data
+ // Remove hiring data
     setIsLoggedIn(false);
     setUserRole(null);
     navigate("/");

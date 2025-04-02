@@ -16,6 +16,7 @@ export default function SignIn() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -23,12 +24,13 @@ export default function SignIn() {
     // Simulating a user role (In real login, fetch from API)
     const userData = {
       email: formData.email,
-      userRole: " Business Owner", // Change this based on actual user role
+      userRole: "Business owner" // Change this based on actual user role
     };
 
     // Save to localStorage
-    localStorage.setItem("userData", JSON.stringify(userData));
     localStorage.setItem("userRole", userData.userRole);
+    localStorage.setItem("userData", JSON.stringify(userData));
+    
 
     console.log("User logged in as:", userData.userRole);
     alert("Sign In Successful! (Static Data Used for Now)");

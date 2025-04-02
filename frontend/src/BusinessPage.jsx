@@ -78,7 +78,7 @@ export default function BusinessPage() {
       JSON.parse(localStorage.getItem("businessReviews")) || [];
 
     // Retrieve user role from localStorage
-    const userRole = localStorage.getItem("userRole") || "Reviewer"; // Default role if not set
+   // Default role if not set
 
     // Create a new review object with the business name and user role
     const newReview = {
@@ -86,7 +86,7 @@ export default function BusinessPage() {
       name: formData.name,
       rating: formData.rating,
       comment: formData.comment,
-      userRole: userRole, // Store user role in the review
+       // Store user role in the review
     };
 
     // Update the reviews array
