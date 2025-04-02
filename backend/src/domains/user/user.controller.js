@@ -25,6 +25,17 @@ exports.forgotPassword = async (req, res) => {
 };
 
 
+exports.verifyResetToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    const email = await UserService.verifyResetToken(token);
+
+    res.status(200).json({ message: "Token is valid", email });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+}
+
 exports.resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;

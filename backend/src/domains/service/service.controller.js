@@ -5,7 +5,7 @@ const sequelize = require("../../config/database");
 exports.registerService = async (req, res) => {
   try {
     const { email, ...serviceData } = req.body;
-    const images = req.files["hiring_images"] ? req.files["hiring_images"].map(file => file.path) : [];
+    const images = req.files["workSamples"] ? req.files["workSamples"].map(file => file.path) : [];
 
     const response = await ServiceService.registerService(email, serviceData, images);
     res.status(201).json(response);

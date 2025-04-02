@@ -12,7 +12,7 @@ exports.userLogin = async (email, password) => {
     throw new Error("Invalid credentials");
   }
 
-  return jwt.sign({ id: user.id, role: user.role}, process.env.JWT_SECRET, { expiresIn: "1h" });
+  return jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 };
 
 
@@ -22,7 +22,7 @@ exports.userForgotPassword = async (email) => {
 
   const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-  
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
     port: 465,
@@ -41,6 +41,17 @@ exports.userForgotPassword = async (email) => {
   return { message: "Reset token sent to email" };
 };
 
+
+exports.verifyResetToken = async (token) => {
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  if (!decoded.email) {
+    throw new Error("Invalid or expired token");
+  }
+
+  return decoded.email;
+
+};
 
 exports.userResetPassword = async (token, newPassword) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
