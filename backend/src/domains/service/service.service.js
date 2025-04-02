@@ -7,7 +7,7 @@ const PaymentService= require("../payments/payments.service");
 
 
 exports.registerService = async (email, name, service, phone, address, category, images) => {
-
+console.log(phone)
     try {
         const existingService = await Service.findOne({ where: { email } });
         const existingUser = await User.findOne({ where: { email } });
@@ -24,7 +24,7 @@ exports.registerService = async (email, name, service, phone, address, category,
 
         // Create service inside the transaction
         const newService = await Service.create({service_name: service, password: hashedPassword, status: "pending", userId: user.id, address, phone_number: phone, category, images, email });
-    
+        console.log(newService.phone_number)
 
         // Send OTP (outside transaction to avoid rollback on failure)
         const response = await OTPService.sendOTP(newService.phone_number, user.id);

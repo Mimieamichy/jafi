@@ -17,6 +17,7 @@ import BusinessPage from "./BusinessPage";
 import BusinessProfileCard from "./BusinessProfileCard";
 import ReviewersDashboard from "./Reviewer";
 import AdminDashboard from "./Admindashboard";
+import PaymentSuccess from "./PaymentSuccess";
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
               <Route path="/bus-profile" element={<BusinessProfileCard />} />
               <Route path="/reviewer" element={<ReviewersDashboard />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route
                 path="/business/:businessName"
                 element={<BusinessPage />}

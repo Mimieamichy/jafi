@@ -1,54 +1,53 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {  useLocation } from "react-router-dom"
 
 export default function HiringPayment() {
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const navigate = useNavigate();
+  const location = useLocation()
+  const serviceId = location.state?.serviceId || localStorage.getItem("serviceId")
+  const serviceIdNum = parseInt(serviceId)
 
-  const handlePayment = (plan) => {
-    alert(`Payment successful for: ${plan}`);
-    setPaymentSuccess(true);
-  };
+  const plan = { price: 150 }
 
-  const plans = [{ duration: "One Off", price: "$150" }];
+  const handlePayment = async () => {
+    if (!serviceIdNum) {
+      alert("Service ID not found.")
+      return
+    }
+
+    try {
+      const response = await fetch(`http://localhost:4900/api/v1/service/pay/${serviceIdNum}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ amount: plan.price }),
+      })
+
+      const result = await response.json()
+      const paystackUrl = result?.data?.paymentDetails?.data?.authorization_url
+
+      if (response.ok && paystackUrl) {
+        window.location.href = paystackUrl // ✅ Redirect to Paystack
+      } else {
+        alert(`Payment init failed: ${result.message || "No redirect link received"}`)
+      }
+    } catch (error) {
+      console.error("Payment error:", error)
+      alert("Something went wrong while initiating payment.")
+    }
+  }
 
   return (
     <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-      {!paymentSuccess ? (
-        <>
-          <h2 className="text-2xl font-bold mb-4 text-center">Make Payment</h2>
-          <div className="space-y-4">
-            {plans.map((plan, index) => (
-              <div key={index} className="p-4 border rounded-md text-center">
-                <h3 className="text-xl font-semibold">{plan.duration}</h3>
-                <p className="text-lg font-bold">{plan.price}</p>
-                <button
-                  onClick={() => handlePayment(plan.duration)}
-                  className="bg-blue-600 text-white py-2 px-4 rounded-lg mt-2"
-                >
-                  Pay Now
-                </button>
-              </div>
-            ))}
-          </div>
-        </>
-      ) : (
-        <div className="text-center w-[10em] mx-auto mb-10">
-          <h2 className="text-2xl font-bold text-green-600">
-            Payment Successful!
-          </h2>
-          <p className="text-gray-700 mt-2">
-            Your account is undergoing approval, which will take 1-2 working
-            days. An email of confirmation will be sent to you. Thank you
-          </p>
-          <button
-            onClick={() => navigate("/hiring-dashboard")}
-            className="bg-blue-600 text-white p-3 rounded-lg mt-4"
-          >
-            Go to Dashboard
-          </button>
-        </div>
-      )}
+      <h2 className="text-2xl font-bold mb-4 text-center">Make Payment</h2>
+      <div className="p-4 border rounded-md text-center">
+        <p className="text-lg font-bold">${plan.price}</p>
+        <button
+          onClick={handlePayment}
+          className="bg-blue-600 text-white py-2 px-4 rounded-lg mt-2"
+        >
+          Pay Now
+        </button>
+      </div>
     </div>
-  );
+  )
 }
