@@ -27,6 +27,7 @@ export default function HiringPayment() {
       });
 
       const result = await response.json();
+      console.log("Payment result:", result);
       const paystackUrl = result?.data?.paymentDetails?.data?.authorization_url;
 
       if (response.ok && paystackUrl) {
