@@ -62,12 +62,16 @@ app.get("/", (req, res) => {
 });
 
 // Serve static frontend files
-app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
+const frontendPath = path.resolve(__dirname, "..", "frontend", "dist");
 
-// Handle all unknown routes by serving index.html
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'));
-});
+if (fs.existsSync(frontendPath)) {
+    app.use(express.static(frontendPath));
+    app.get("*", (req, res) => {
+        res.sendFile(path.join(frontendPath, "index.html"));
+    });
+} else {
+    console.error("Frontend build folder not found. Make sure 'vite build' runs before deployment.");
+}
 
 // Error Handling Middleware
 app.use(errorHandler);
