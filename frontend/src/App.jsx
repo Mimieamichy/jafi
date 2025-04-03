@@ -18,6 +18,7 @@ import BusinessProfileCard from "./BusinessProfileCard";
 import ReviewersDashboard from "./Reviewer";
 import AdminDashboard from "./Admindashboard";
 import PaymentSuccess from "./PaymentSuccess";
+import NotFound from "./NotFound";
 
 export default function App() {
   return (
@@ -47,6 +48,7 @@ export default function App() {
                 path="/business/:businessName"
                 element={<BusinessPage />}
               />
+               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
         </ReviewsProvider>
