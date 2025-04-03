@@ -30,24 +30,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 // Serve static frontend files
-const allowedOrigins = [
-    process.env.FRONTEND_URL_PROD, 
-    process.env.FRONTEND_URL_DEV,
-];
-
-const corsOptions = {
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
+app.use(cors({
+    origin: ['https://jafiai.vercel.app'],
     credentials: true,
-};
+}))
 
-app.use(cors(corsOptions));
-
+app.use(cors()) // allow all
 
 // Routes
 const serviceRoutes = require("./domains/service/service.routes");
