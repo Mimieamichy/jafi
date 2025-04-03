@@ -5,7 +5,7 @@ const morgan = require("morgan");
 const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const passport = require('./config/passport')
-const app_url = process.env.APP_URL 
+const app_url = process.env.APP_URL
 const path = require("path");
 
 
@@ -13,11 +13,16 @@ const app = express();
 
 
 //middlewares
-const {errorHandler} = require("./application/middlewares/errorHandler");
+const { errorHandler } = require("./application/middlewares/errorHandler");
 
 
-// Security Middleware
-app.use(cors());
+// Security Middlewares
+// Serve static frontend files
+const corsOptions = {
+    origin: `${process.env.FRONTEND_URL}`,
+    credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
@@ -49,10 +54,6 @@ app.use(`${app_url}/review`, reviewRoutes);
 
 
 
-
-
-
-
 app.get("/", (req, res) => {
     res.json({
         message: "Welcome to Jafi API 🚀",
@@ -61,17 +62,7 @@ app.get("/", (req, res) => {
     });
 });
 
-// Serve static frontend files
-const frontendPath = path.resolve(__dirname, "..", "frontend", "dist");
 
-if (fs.existsSync(frontendPath)) {
-    app.use(express.static(frontendPath));
-    app.get("*", (req, res) => {
-        res.sendFile(path.join(frontendPath, "index.html"));
-    });
-} else {
-    console.error("Frontend build folder not found. Make sure 'vite build' runs before deployment.");
-}
 
 // Error Handling Middleware
 app.use(errorHandler);
