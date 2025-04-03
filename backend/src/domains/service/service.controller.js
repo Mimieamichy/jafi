@@ -4,10 +4,10 @@ const sequelize = require("../../config/database");
 
 exports.registerService = async (req, res) => {
   try {
-    const { email, name, service, phone, address, category } = req.body;
+    const { email, name, service, phone, address, category, description } = req.body;
     const images = req.files["workSamples"] ? req.files["workSamples"].map(file => file.path) : [];
 
-    const response = await ServiceService.registerService(email, name, service, phone, address, category, images);
+    const response = await ServiceService.registerService(email, name, service, phone, address, category, images, description);
     res.status(201).json(response);
   } catch (error) {
     console.error(error);
