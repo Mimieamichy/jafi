@@ -7,7 +7,7 @@ export default function HiringPayment() {
   const serviceId =
     location.state?.serviceId || localStorage.getItem("serviceId");
   const serviceIdNum = parseInt(serviceId);
-  const baseUrl = import.meta.env.BACKEND_URL;
+  const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
   const plan = { price: 150 };
 
