@@ -19,7 +19,7 @@ const formatOptionLabel = (option) => (
     <span>{option.label}</span>
   </div>
 );
-const baseUrl = import.meta.env.BACKEND_URL;
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 const categories = [
   "Auto Repair",
