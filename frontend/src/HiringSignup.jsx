@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import { africanCountries } from "./data/africanCountries";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import { useSnackbar } from "notistack";
 
 const countryOptions = africanCountries.map((country) => ({
   value: country.dial_code,
@@ -15,10 +16,10 @@ const countryOptions = africanCountries.map((country) => ({
 const formatOptionLabel = (option) => (
   <div className="flex items-center gap-2 ">
     <img src={option.flag} alt="" className="w-5 h-4 object-cover rounded-sm" />
-    <span >{option.label}</span>
+    <span>{option.label}</span>
   </div>
 );
-const baseUrl = import.meta.env.BACKEND_URL
+const baseUrl = import.meta.env.BACKEND_URL;
 
 const categories = [
   "Auto Repair",
@@ -34,6 +35,8 @@ const categories = [
 ];
 
 export default function HiringSignup() {
+  const { enqueueSnackbar } = useSnackbar();
+
   const [formData, setFormData] = useState({
     service: "",
     name: "",
@@ -43,19 +46,19 @@ export default function HiringSignup() {
     address: "",
     category: "",
     countryCode: "+234",
-    otp:""
+    otp: "",
   });
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
 
   const navigate = useNavigate();
-  let rawPhone = formData.phone.trim()
-  if (rawPhone.startsWith('0')) {
-    rawPhone = rawPhone.slice(1)
+  let rawPhone = formData.phone.trim();
+  if (rawPhone.startsWith("0")) {
+    rawPhone = rawPhone.slice(1);
   }
 
-    const fullPhoneNumber = `${formData.countryCode}${rawPhone}`;
+  const fullPhoneNumber = `${formData.countryCode}${rawPhone}`;
 
   // handleChange function to update form data
   const handleChange = (e) => {
@@ -64,21 +67,26 @@ export default function HiringSignup() {
   };
 
   // Convert images to base64 instead of using createObjectURL
+
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
 
     if (formData.workSamples.length + files.length > 5) {
-      alert("You can upload a maximum of 5 images!");
+      enqueueSnackbar("You can upload a maximum of 5 images!", {
+        variant: "warning",
+      });
       return;
     }
 
     const validFiles = files.filter((file) => {
       if (!file.type.startsWith("image/")) {
-        alert("Only image files are allowed!");
+        enqueueSnackbar("Only image files are allowed!", {
+          variant: "warning",
+        });
         return false;
       }
       if (file.size > 5 * 1024 * 1024) {
-        alert("Image must be less than 5MB!");
+        enqueueSnackbar("Image must be less than 5MB!", { variant: "warning" });
         return false;
       }
       return true;
@@ -102,10 +110,8 @@ export default function HiringSignup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    
-
     if (!isValidPhoneNumber(fullPhoneNumber)) {
-      alert("Invalid phone number!");
+      enqueueSnackbar("Invalid phone number!", { variant: "warning" });
       return;
     }
 
@@ -125,36 +131,40 @@ export default function HiringSignup() {
     });
 
     try {
-      const response = await fetch(
-        `${baseUrl}/service/register`,
-        {
-          method: "POST",
-          body: data,
-        }
-      );
-      
+      const response = await fetch(`${baseUrl}/service/register`, {
+        method: "POST",
+        body: data,
+      });
+
       const result = await response.json();
       console.log("Result:", result);
 
       if (response.ok) {
-        alert("Signup Successful! Proceeding to OTP verification...");
+        enqueueSnackbar(
+          "Signup Successful! Proceeding to OTP verification...",
+          { variant: "success" }
+        );
         setOtpSent(true);
       } else {
-        alert(`Error: ${result.message}`);
+        enqueueSnackbar(`Error: ${result.message}`, { variant: "error" });
       }
-      const serviceId = result.newService.id
-      localStorage.setItem("serviceId", serviceId)
-
+      const serviceId = result.newService.id;
+      localStorage.setItem("serviceId", serviceId);
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Something went wrong. Please try again.");
+
+      enqueueSnackbar("Something went wrong. Please try again.", {
+        variant: "error",
+      });
     }
   };
 
   // Handle OTP verification
   const handleVerifyOtp = async () => {
     if (otp.length !== 6) {
-      alert("Invalid OTP. Please enter a valid 6-digit code.");
+      enqueueSnackbar("Invalid OTP. Please enter a valid 6-digit code.", {
+        variant: "warning",
+      });
       return;
     }
 
@@ -164,26 +174,29 @@ export default function HiringSignup() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           otp,
-          phone: fullPhoneNumber
- 
+          phone: fullPhoneNumber,
         }),
       });
 
-      console.log("OTP Verification Data:", formData.otp)
+      console.log("OTP Verification Data:", formData.otp);
       const result = await response.json();
       console.log("OTP Verification Result:", result);
 
       if (response.ok) {
-        
-        alert("OTP Verified Successfully!");
-        
-        navigate("/hiring-payment") // Redirect after successful verification
+        enqueueSnackbar("OTP Verified Successfully!", { variant: "success" });
+
+        navigate("/hiring-payment"); // Redirect after successful verification
       } else {
-        alert(`Verification Failed: ${result.error}`);
+        enqueueSnackbar(`Verification Failed: ${result.error}`, {
+          variant: "error",
+        });
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      alert("Something went wrong. Please try again.");
+
+      enqueueSnackbar("Something went wrong. Please try again.", {
+        variant: "error",
+      });
     }
   };
 
@@ -265,10 +278,9 @@ export default function HiringSignup() {
             {formData.workSamples.map((img, index) => (
               <div key={index} className="relative">
                 <img
-                  src={img}
+                   src={URL.createObjectURL(img)}
                   alt="Preview"
                   className="w-16 h-16 rounded-md object-cover"
-                  
                 />
                 <button
                   type="button"
@@ -316,11 +328,10 @@ export default function HiringSignup() {
           </button>
         </form>
       ) : (
-        
         <div className="text-center">
           <p className="text-black">Enter OTP sent to your phone</p>
           <input
-          name="otp"
+            name="otp"
             type="text"
             className="p-2 border rounded-md w-full text-center"
             value={otp}
@@ -333,7 +344,6 @@ export default function HiringSignup() {
             Verify OTP
           </button>
         </div>
-        
       )}
     </div>
   );
