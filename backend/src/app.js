@@ -1,13 +1,12 @@
 const express = require("express");
+require("dotenv").config();
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const passport = require('./config/passport')
-const app_url = process.env.APP_URL
-const path = require("path");
-
+const app_url = process.env.APP_URL || "/api/v1";
 
 const app = express();
 
@@ -17,12 +16,6 @@ const { errorHandler } = require("./application/middlewares/errorHandler");
 
 
 // Security Middlewares
-// Serve static frontend files
-const corsOptions = {
-    origin: `${process.env.FRONTEND_URL}`,
-    credentials: true,
-};
-app.use(cors(corsOptions));
 app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
@@ -36,6 +29,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
+// Serve static frontend files
+const allowedOrigins = [
+    process.env.FRONTEND_URL_PROD, 
+    process.env.FRONTEND_URL_DEV,
+];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 
 // Routes
@@ -45,23 +56,10 @@ const otpRoutes = require("./domains/otp/otp.routes");
 const reviewRoutes = require("./domains/review/review.routes");
 
 
-
-
 app.use(`${app_url}/service`, serviceRoutes);
 app.use(`${app_url}/user`, userRoutes);
 app.use(`${app_url}/otp`, otpRoutes);
 app.use(`${app_url}/review`, reviewRoutes);
-
-
-
-app.get("/", (req, res) => {
-    res.json({
-        message: "Welcome to Jafi API 🚀",
-        status: "200",
-        documentation: "https://api.example.com/docs",
-    });
-});
-
 
 
 // Error Handling Middleware
