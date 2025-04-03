@@ -41,20 +41,7 @@ const Service = sequelize.define(
       allowNull: false,
     },
     category: {
-      type: DataTypes.ENUM(
-        "auto_repair",
-        "contractor",
-        "electricians",
-        "heating_ac",
-        "home_cleaning",
-        "landscaping",
-        "locksmith",
-        "movers",
-        "pest_control",
-        "plumbing",
-        "roofers",
-        "fumigation"
-      ),
+      type: DataTypes.STRING,
       allowNull: false,
     },
     images: {
