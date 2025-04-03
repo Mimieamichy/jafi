@@ -18,6 +18,7 @@ const formatOptionLabel = (option) => (
     <span >{option.label}</span>
   </div>
 );
+const baseUrl = import.meta.env.BACKEND_URL
 
 const categories = [
   "Auto Repair",
@@ -125,7 +126,7 @@ export default function HiringSignup() {
 
     try {
       const response = await fetch(
-        "http://localhost:4900/api/v1/service/register",
+        `${baseUrl}/service/register`,
         {
           method: "POST",
           body: data,
@@ -158,7 +159,7 @@ export default function HiringSignup() {
     }
 
     try {
-      const response = await fetch("http://localhost:4900/api/v1/service/verify-service", {
+      const response = await fetch(`${baseUrl}/service/verify-service`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

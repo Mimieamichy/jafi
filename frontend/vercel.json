@@ -1,5 +1,5 @@
-{ 
+{
   "rewrites": [
-    {"source": "/(.*)", "destination": "/"}
+    { "source": "/api/(.*)", "destination": "https://jafiai.onrender.com/api/v1" }
   ]
 }
