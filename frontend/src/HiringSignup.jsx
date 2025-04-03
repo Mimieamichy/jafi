@@ -146,16 +146,14 @@ export default function HiringSignup() {
         );
         setOtpSent(true);
       } else {
-        enqueueSnackbar(`Error: ${result.message}`, { variant: "error" });
+        enqueueSnackbar(`Error: ${result.error}`, { variant: "error" });
       }
       const serviceId = result.newService.id;
       localStorage.setItem("serviceId", serviceId);
     } catch (error) {
       console.error("Error submitting form:", error);
 
-      enqueueSnackbar("Something went wrong. Please try again.", {
-        variant: "error",
-      });
+     
     }
   };
 

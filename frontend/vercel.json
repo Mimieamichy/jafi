@@ -2,19 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": {
-        "rewrites": [
-          {
-            "source": "/api/(.*)",
-            "destination": "https://jafi-0fve.onrender.com"
-          },
-          {
-            "source": "/(.*)",
-            "destination": "/"
-          }
-        ]
-      }
-      
+      "destination": "https://jafi-0fve.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",
