@@ -144,7 +144,7 @@ exports.getReviewsForListings = async (listingId) => {
             {
                 model: User,
                 as: "user",
-                attributes: ["id", "name", "email"],
+                attributes: ["id", "name", "email", "role"],
             },
         ],
     });
