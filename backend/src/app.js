@@ -31,7 +31,7 @@ app.use(passport.initialize());
 
 // Serve static frontend files
 app.use(cors({
-    origin: ['https://jafiai.vercel.app'],
+    origin: ['https://jafiai.vercel.app', 'http://localhost:5173'],
     credentials: true,
 }))
 

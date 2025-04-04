@@ -51,7 +51,7 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
         if (prefix === "ser") {
             const service = await Service.findOne({ where: { id } });
             if (service) {
-                listingName = service.name;
+                listingName = service.service_name;
             } else {
                 throw new Error("Service not found");
             }

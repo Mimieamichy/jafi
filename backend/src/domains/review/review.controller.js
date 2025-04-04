@@ -81,10 +81,11 @@ exports.getReviewById = async (req, res) => {
 
 exports.getReviewsForListings = async (req, res) => {
     try {
-        const { listingId } = req.params;
-        const reviews = await ReviewService.getReviewsForListings(listingId);
+        const { entityId } = req.params;
+        const reviews = await ReviewService.getReviewsForListings(entityId);
         return res.status(200).json({ success: true, reviews });
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ success: false, message: error.message });
     }
 };
