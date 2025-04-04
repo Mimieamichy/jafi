@@ -47,6 +47,7 @@ export default function HiringSignup() {
     category: "",
     countryCode: "+234",
     otp: "",
+    description: "",
   });
 
   const [otpSent, setOtpSent] = useState(false);
@@ -124,6 +125,7 @@ export default function HiringSignup() {
     data.append("address", formData.address);
     data.append("otp", formData.otp);
     data.append("category", formData.category);
+    data.append("description", formData.description);
 
     // Append images
     formData.workSamples.forEach((image) => {
@@ -152,8 +154,6 @@ export default function HiringSignup() {
       localStorage.setItem("serviceId", serviceId);
     } catch (error) {
       console.error("Error submitting form:", error);
-
-     
     }
   };
 
@@ -259,7 +259,19 @@ export default function HiringSignup() {
             />
           </div>
 
-          {/* Password Input with Show/Hide */}
+          <label className="block">
+            <span className="block mb-1 font-medium">
+              Describe your service
+            </span>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Briefly describe the service you offer..."
+              className="w-full p-2 border rounded resize-none h-24"
+              required
+            />
+          </label>
 
           <label className="block">
             <span>Upload up to 5 images of jobs you've done:</span>
@@ -276,7 +288,7 @@ export default function HiringSignup() {
             {formData.workSamples.map((img, index) => (
               <div key={index} className="relative">
                 <img
-                   src={URL.createObjectURL(img)}
+                  src={URL.createObjectURL(img)}
                   alt="Preview"
                   className="w-16 h-16 rounded-md object-cover"
                 />
