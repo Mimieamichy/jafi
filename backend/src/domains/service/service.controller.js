@@ -47,8 +47,9 @@ exports.getAllServices = async (req, res) => {
 exports.updateService = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id 
     const serviceData = req.body;
-    const service = await ServiceService.updateService(id, serviceData);
+    const service = await ServiceService.updateService(id, userId, serviceData);
     res.status(200).json(service);
   } catch (error) {
     res.status(404).json({ error: error.message });

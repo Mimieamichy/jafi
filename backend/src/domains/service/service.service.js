@@ -54,15 +54,18 @@ exports.getAllServices = async () => {
     return service;
 };
 
-exports.updateService = async (serviceId, serviceData, ) => {
+exports.updateService = async (serviceId, userId, serviceData) => {
     const service = await Service.findByPk(serviceId);
     if (!service) throw new Error("Service not found");
-  
+
+    if (service.userId !== userId) throw new Error("Unauthorized to update this service");
+
     service.set(serviceData);
     await service.save();
-  
+
     return service;
-}
+};
+
 
 exports.payForService = async (serviceId, amount, transaction) => {
     const service = await Service.findOne({

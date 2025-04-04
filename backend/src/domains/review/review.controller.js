@@ -16,7 +16,8 @@ exports.googleAuthCallback = async (req, res, next) => {
 
         try {
             const response = await ReviewService.registerReviewerWithGoogle(user);
-            return res.status(200).json({ success: true, token: response.token });
+            console.log(response, process.env.FRONTEND_URL, user);
+            return res.redirect(`${process.env.FRONTEND_URL}/hire/${user.id}?token=${response.token}`);
         } catch (error) {
             return res.status(500).json({ success: false, message: "Internal Server Error" });
         }

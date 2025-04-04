@@ -12,25 +12,33 @@ import {
 import { useSnackbar } from "notistack";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { useNavigate } from "react-router-dom";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
+// ... import statements remain unchanged
+
 export default function HireProfileDetails() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
   const { enqueueSnackbar } = useSnackbar();
 
   const [hire, setHire] = useState(null);
+  const [uniqueId, setUniqueId] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewer, setReviewer] = useState(null);
   const [reviewData, setReviewData] = useState({ rating: 0, comment: "" });
   const [reviews, setReviews] = useState([]);
 
-  // Fetch hire profile
+  // Fetch hire
   useEffect(() => {
     fetch(`${baseUrl}/service/${id}`)
       .then((res) => res.json())
-      .then((data) => setHire(data.service || null))
+      .then((data) => {
+        setHire(data);
+        setUniqueId(data.uniqueId);
+      })
       .catch(() =>
         enqueueSnackbar("Failed to fetch hire profile", { variant: "error" })
       );
@@ -38,19 +46,19 @@ export default function HireProfileDetails() {
 
   // Fetch reviews
   useEffect(() => {
-    fetch(`${baseUrl}/review/${id}`)
+    if (!uniqueId) return;
+    fetch(`${baseUrl}/review/entity/${uniqueId}`)
       .then((res) => res.json())
       .then((data) => setReviews(data.reviews || []))
       .catch(() =>
         enqueueSnackbar("Failed to fetch reviews", { variant: "error" })
       );
-  }, [id, showReviewForm, enqueueSnackbar]);
+  }, [uniqueId, showReviewForm, enqueueSnackbar]);
 
-  // Handle token from redirect
+  // Google Sign-in & token handling
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
-
     if (token) {
       try {
         const decoded = jwtDecode(token);
@@ -80,7 +88,7 @@ export default function HireProfileDetails() {
     const token = localStorage.getItem("reviewerToken");
 
     try {
-      const res = await fetch(`${baseUrl}/review/${id}`, {
+      const res = await fetch(`${baseUrl}/review/${uniqueId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,13 +120,13 @@ export default function HireProfileDetails() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${baseUrl}/auth/google`;
+    window.location.href = `${baseUrl}/review/google`;
   };
 
   if (!hire) return <p className="text-center p-10">Loading...</p>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 relative">
       {/* Carousel */}
       <Slider
         dots
@@ -129,7 +137,7 @@ export default function HireProfileDetails() {
         autoplay
         arrows
       >
-        {hire.workSamples.map((img, i) => (
+        {hire.images?.map((img, i) => (
           <div
             key={i}
             className="w-full h-64 bg-gray-100 flex items-center justify-center"
@@ -137,7 +145,7 @@ export default function HireProfileDetails() {
             <img
               src={img}
               alt={`Work sample ${i + 1}`}
-              className="w-full h-64 object-cover rounded"
+              className="w-full h-64  rounded"
             />
           </div>
         ))}
@@ -145,7 +153,7 @@ export default function HireProfileDetails() {
 
       {/* Info */}
       <div className="mt-6 space-y-3">
-        <h1 className="text-3xl font-bold capitalize">{hire.service}</h1>
+        <h1 className="text-3xl font-bold capitalize">{hire.service_name}</h1>
         <p className="text-lg text-gray-600">{hire.category}</p>
         <p className="flex items-center text-gray-700">
           <FontAwesomeIcon
@@ -156,7 +164,7 @@ export default function HireProfileDetails() {
         </p>
         <p className="flex items-center text-gray-700">
           <FontAwesomeIcon icon={faPhone} className="mr-2 text-blue-500" />
-          {hire.phone}
+          {hire.phone_number}
         </p>
 
         <div className="flex items-center">
@@ -172,9 +180,6 @@ export default function HireProfileDetails() {
               }
             />
           ))}
-          <span className="ml-2 text-sm text-gray-500">
-            ({hire.averageRating?.toFixed(1) || "0.0"})
-          </span>
         </div>
 
         <p className="bg-gray-100 p-4 rounded text-gray-800">
@@ -182,80 +187,101 @@ export default function HireProfileDetails() {
         </p>
       </div>
 
-      {/* Floating Button */}
-      <button
-        onClick={() =>
-          reviewer ? setShowReviewForm(true) : handleGoogleLogin()
-        }
-        className="fixed bottom-6 right-6 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700"
-      >
-        <FontAwesomeIcon icon={faPen} className="mr-2" /> Write a Review
-      </button>
+      {/* Write a Review Button */}
+      <div className="mt-8 flex justify-between items-center flex-wrap gap-4">
+        {/* Go Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 bg-gray-200 text-gray-800 px-5 py-2 rounded-md shadow hover:bg-gray-300 transition"
+        >
+          ← Go Back
+        </button>
 
-      {/* Review Form */}
+        {/* Write a Review Button */}
+        <button
+          onClick={() =>
+            reviewer ? setShowReviewForm(true) : handleGoogleLogin()
+          }
+          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md shadow hover:bg-blue-700 transition"
+        >
+          <FontAwesomeIcon icon={faPen} />
+          Write a Review
+        </button>
+      </div>
+
+      {/* Modal with dimmed background, transition and click-outside close */}
       {showReviewForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md space-y-4"
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center transition-opacity duration-300"
+          onClick={() => setShowReviewForm(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md transform transition-all duration-300 scale-100"
           >
-            <h2 className="text-xl font-bold text-center">Submit a Review</h2>
-            <input
-              type="text"
-              value={hire.service}
-              readOnly
-              className="w-full p-2 border rounded bg-gray-100"
-            />
-            <input
-              type="text"
-              value={reviewer?.name || ""}
-              readOnly
-              className="w-full p-2 border rounded bg-gray-100"
-            />
+            <h2 className="text-xl font-bold mb-4 text-center">
+              Submit a Review
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                value={hire.service_name}
+                readOnly
+                className="w-full p-2 border rounded bg-gray-100"
+              />
+              <input
+                type="text"
+                value={reviewer?.name || ""}
+                readOnly
+                className="w-full p-2 border rounded bg-gray-100"
+              />
 
-            <div className="flex justify-center space-x-2 text-yellow-500">
-              {[...Array(5)].map((_, i) => (
-                <FontAwesomeIcon
-                  key={i}
-                  icon={faStar}
-                  onClick={() => handleRating(i)}
-                  className={`text-2xl cursor-pointer ${
-                    i < reviewData.rating ? "text-yellow-500" : "text-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
+              <div className="flex justify-center space-x-2 text-yellow-500">
+                {[...Array(5)].map((_, i) => (
+                  <FontAwesomeIcon
+                    key={i}
+                    icon={faStar}
+                    onClick={() => handleRating(i)}
+                    className={`text-2xl cursor-pointer ${
+                      i < reviewData.rating
+                        ? "text-yellow-500"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
 
-            <textarea
-              name="comment"
-              rows="4"
-              placeholder="Write your review..."
-              value={reviewData.comment}
-              onChange={handleChange}
-              className="w-full border p-2 rounded"
-              required
-            />
+              <textarea
+                name="comment"
+                rows="4"
+                placeholder="Write your review..."
+                value={reviewData.comment}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+                required
+              />
 
-            <div className="flex justify-between">
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Submit
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowReviewForm(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+              <div className="flex justify-between">
+                <button
+                  type="submit"
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Submit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowReviewForm(false)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* Reviews Section */}
+      {/* Review List */}
       <div className="mt-12">
         <h3 className="text-xl font-semibold mb-4">Reviews</h3>
         {reviews.length > 0 ? (
@@ -274,6 +300,9 @@ export default function HireProfileDetails() {
                 ))}
               </div>
               <p className="mt-1 text-gray-700">{review.comment}</p>
+              <p className="text-sm text-gray-400 mt-1">
+                {new Date(review.createdAt).toLocaleString()}
+              </p>
             </div>
           ))
         ) : (
