@@ -100,7 +100,8 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
     }
   
     return review;
-  };
+  
+};
   
 
 exports.updateReview = async (reviewId, userId, rating, comment) => {
@@ -123,7 +124,7 @@ exports.deleteReview = async (reviewId, userId) => {
 };
 
 exports.getAllReviews = async () => {
-    return await Review.findAll({ include: [{ model: User, attributes: ["id", "email", "name", "role"] }] });
+    return await Review.findAll({ include: [{ model: User, as: "user", attributes: ["id", "email", "name", "role"] }] });
 };
 
 exports.searchReviewsByListingName = async (listingName) => {
