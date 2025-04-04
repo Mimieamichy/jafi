@@ -44,14 +44,6 @@ const Review = sequelize.define(
         max: 5,
       },
     },
-    average_rating: {
-      type: DataTypes.FLOAT,
-      defaultValue: 0,
-      validate: {
-        min: 0,
-        max: 5,
-      },
-    },
   },
   {
     tableName: "reviews",

@@ -60,6 +60,14 @@ const Service = sequelize.define(
       type: DataTypes.ENUM("pending", "verified", "rejected"),
       defaultValue: "pending",
     },
+    average_rating: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+        max: 5,
+      },
+    },
   },
   {
     tableName: "services",
