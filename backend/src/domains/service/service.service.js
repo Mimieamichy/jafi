@@ -51,7 +51,8 @@ exports.getAService = async (serviceId) => {
     if (!service) throw new Error("Service not found");
   
     return service;
-  };
+};
+
 exports.getAllServices = async () => {
     const services = await Service.findAll({
       include: {
@@ -65,7 +66,9 @@ exports.getAllServices = async () => {
     }
   
     return services;
-  };
+};
+
+
 exports.updateService = async (serviceId, userId, serviceData) => {
     const service = await Service.findByPk(serviceId);
     if (!service) throw new Error("Service not found");

@@ -13,7 +13,7 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
         const token = jwt.sign(
-            { id: existingUser.id, email: existingUser.email, name: existingUser.name , role: existingUser.role},
+            { id: existingUser.id, email: existingUser.email, name: existingUser.name, role: existingUser.role },
             process.env.JWT_SECRET,
             { expiresIn: "1h" }
         );
@@ -30,13 +30,15 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
 
     // Generate token
     const token = jwt.sign(
-        { id: newUser.id, email: newUser.email, name: displayName , role: newUser.role},
+        { id: newUser.id, email: newUser.email, name: displayName, role: newUser.role },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
     );
 
     return { message: "Reviewer registered successfully", token };
 };
+
+const { User, Service, Business, Review } = require("../../models");
 
 exports.createReview = async (userId, entityId, rating, comment, user_name) => {
     const user = await User.findByPk(userId);
@@ -46,22 +48,50 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
     let listingName = null;
 
     if (entityId) {
-        const [prefix, id] = entityId.split("_"); 
-        listingId = entityId; 
+        const [prefix, id] = entityId.split("_");
+        listingId = entityId;
+
         if (prefix === "ser") {
             const service = await Service.findOne({ where: { id } });
-            if (service) {
-                listingName = service.service_name;
-            } else {
+            if (!service) {
                 throw new Error("Service not found");
             }
+
+            // Prevent duplicate reviews for the same service by the same user
+            const existingReview = await Review.findOne({
+                where: {
+                    userId,
+                    listingId,
+                },
+            });
+
+            if (existingReview) {
+                throw new Error("You cannot review this service more than once");
+            }
+
+            listingName = service.service_name;
+
         } else if (prefix === "bus") {
             const business = await Business.findOne({ where: { id } });
-            if (business) {
-                listingName = business.name;
-            } else {
+            if (!business) {
                 throw new Error("Business not found");
             }
+
+            // Prevent duplicate reviews for the same business by the same user
+            const existingReview = await Business.findOne({
+                where: {
+                    userId,
+                    listingId,
+                },
+            });
+
+            if (existingReview) {
+                throw new Error("You cannot review this business more than once");
+            }
+
+            listingName = business.name;
+        } else {
+            throw new Error("Invalid entity type");
         }
     }
 
@@ -70,18 +100,19 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
         user_name, // Google Profile Name
         comment,
         star_rating: rating,
-        listingId, 
-        listingName 
+        listingId,
+        listingName,
     });
 
     return review;
 };
 
+
 exports.updateReview = async (reviewId, userId, rating, comment) => {
     const review = await Review.findOne({ where: { id: reviewId, userId } });
     if (!review) throw new Error("Review not found or unauthorized");
 
-    review.comment = comment 
+    review.comment = comment
     review.star_rating = rating;
 
     await review.save();
@@ -97,7 +128,7 @@ exports.deleteReview = async (reviewId, userId) => {
 };
 
 exports.getAllReviews = async () => {
-    return await Review.findAll({ include: [{ model: User, as: "user"}] });
+    return await Review.findAll({ include: [{ model: User, as: "user" }] });
 };
 
 exports.getReviewById = async (reviewId) => {
@@ -112,13 +143,13 @@ exports.getReviewsForListings = async (listingId) => {
         include: [
             {
                 model: User,
-                as: "user", 
-                attributes: ["id", "name", "email"], 
+                as: "user",
+                attributes: ["id", "name", "email"],
             },
         ],
     });
 };
 
 exports.getReviewsByUser = async (userId) => {
-    return await Review.findAll({ where: { userId }});
+    return await Review.findAll({ where: { userId } });
 };
