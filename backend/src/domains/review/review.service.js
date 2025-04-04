@@ -36,9 +36,7 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
     );
 
     return { message: "Reviewer registered successfully", token };
-};
-
-const { User, Service, Business, Review } = require("../../models");
+}
 
 exports.createReview = async (userId, entityId, rating, comment, user_name) => {
     const user = await User.findByPk(userId);
