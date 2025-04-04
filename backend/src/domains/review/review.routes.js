@@ -12,7 +12,7 @@ router.get("/google-callback", googleAuthCallback);
 // Public Routes
 router.get("/", getAllReviews);
 router.get("/:id", getReviewById);
-router.get("/listing/:listingId", getReviewsForListings);
+router.get("/entity/:entityId", getReviewsForListings);
 
 
 // Protected Routes
