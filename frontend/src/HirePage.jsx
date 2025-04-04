@@ -30,6 +30,8 @@ export default function HireProfileDetails() {
   const [reviewer, setReviewer] = useState(null);
   const [reviewData, setReviewData] = useState({ rating: 0, comment: "" });
   const [reviews, setReviews] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const reviewsPerPage = 3;
 
   // Fetch hire
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function HireProfileDetails() {
       .then((res) => res.json())
       .then((data) => {
         setHire(data);
+        console.log(data);
         setUniqueId(data.uniqueId);
       })
       .catch(() =>
@@ -49,7 +52,8 @@ export default function HireProfileDetails() {
     if (!uniqueId) return;
     fetch(`${baseUrl}/review/entity/${uniqueId}`)
       .then((res) => res.json())
-      .then((data) => setReviews(data.reviews || []))
+      .then((data) => console.log(data) || setReviews(data.reviews || []))
+
       .catch(() =>
         enqueueSnackbar("Failed to fetch reviews", { variant: "error" })
       );
@@ -59,19 +63,35 @@ export default function HireProfileDetails() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
-    if (token) {
+    const savedToken = token || localStorage.getItem("reviewerToken");
+
+    if (savedToken) {
       try {
-        const decoded = jwtDecode(token);
-        localStorage.setItem("reviewerToken", token);
-        localStorage.setItem("reviewer", JSON.stringify(decoded));
-        setReviewer(decoded);
-        setShowReviewForm(true);
+        const decoded = jwtDecode(savedToken);
+        const isExpired = decoded.exp * 1000 < Date.now();
+
+        if (isExpired) {
+          // Token expired, redirect to login
+          localStorage.removeItem("reviewerToken");
+          localStorage.removeItem("reviewer");
+          enqueueSnackbar("Session expired. Please sign in again.", {
+            variant: "info",
+          });
+          window.location.href = `${baseUrl}/review/google`;
+        } else {
+          localStorage.setItem("reviewerToken", savedToken);
+          localStorage.setItem("reviewer", JSON.stringify(decoded));
+          setReviewer(decoded);
+          setShowReviewForm(true);
+
+          if (token) {
+            const newUrl = location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+          }
+        }
       } catch {
         enqueueSnackbar("Invalid login token", { variant: "error" });
       }
-    } else {
-      const saved = localStorage.getItem("reviewer");
-      if (saved) setReviewer(JSON.parse(saved));
     }
   }, [location, enqueueSnackbar]);
 
@@ -85,7 +105,27 @@ export default function HireProfileDetails() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+
     const token = localStorage.getItem("reviewerToken");
+    if (!token) {
+      enqueueSnackbar("Please login to submit your review.", {
+        variant: "warning",
+      });
+      window.location.href = `${baseUrl}/review/google`;
+      return;
+    }
+
+    const decoded = jwtDecode(token);
+    if (decoded.exp * 1000 < Date.now()) {
+      enqueueSnackbar("Session expired. Please login again.", {
+        variant: "info",
+      });
+      localStorage.removeItem("reviewerToken");
+      localStorage.removeItem("reviewer");
+      window.location.href = `${baseUrl}/review/google`;
+      return;
+    }
 
     try {
       const res = await fetch(`${baseUrl}/review/${uniqueId}`, {
@@ -117,11 +157,21 @@ export default function HireProfileDetails() {
     } catch {
       enqueueSnackbar("Something went wrong", { variant: "error" });
     }
+    const hasReviewed = reviews.some((r) => r.user?.email === reviewer?.email);
+
+    if (hasReviewed) {
+      enqueueSnackbar("You've already submitted a review for this service.", {
+        variant: "warning",
+      });
+      return;
+    }
   };
 
   const handleGoogleLogin = () => {
     window.location.href = `${baseUrl}/review/google`;
   };
+
+  const totalPages = Math.ceil(reviews.length / reviewsPerPage);
 
   if (!hire) return <p className="text-center p-10">Loading...</p>;
 
@@ -282,31 +332,63 @@ export default function HireProfileDetails() {
       )}
 
       {/* Review List */}
-      <div className="mt-12">
+      <div className="mt-10">
         <h3 className="text-xl font-semibold mb-4">Reviews</h3>
         {reviews.length > 0 ? (
-          reviews.map((review, i) => (
-            <div key={i} className="bg-gray-50 p-4 rounded mb-3 shadow">
-              <p className="font-bold text-gray-800">{review.name}</p>
-              <div className="flex space-x-1 text-yellow-500">
-                {[...Array(5)].map((_, j) => (
-                  <FontAwesomeIcon
-                    key={j}
-                    icon={faStar}
-                    className={
-                      j < review.rating ? "text-yellow-500" : "text-gray-300"
-                    }
-                  />
-                ))}
-              </div>
-              <p className="mt-1 text-gray-700">{review.comment}</p>
-              <p className="text-sm text-gray-400 mt-1">
-                {new Date(review.createdAt).toLocaleString()}
-              </p>
-            </div>
-          ))
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {reviews
+              .slice(
+                (currentPage - 1) * reviewsPerPage,
+                currentPage * reviewsPerPage
+              )
+              .map((review) => (
+                <div
+                  key={review.id}
+                  className="bg-white shadow-md rounded-lg p-4 text-center"
+                >
+                  <h4 className="text-lg font-bold">{review.listingName}</h4>
+                  <p className="text-gray-700">{review.user?.name}</p>
+                  <div className="flex justify-center my-2 text-yellow-500">
+                    {[...Array(5)].map((_, i) => (
+                      <FontAwesomeIcon
+                        key={i}
+                        icon={faStar}
+                        className={
+                          i < review.star_rating
+                            ? "text-yellow-500"
+                            : "text-gray-300"
+                        }
+                      />
+                    ))}
+                  </div>
+                  <p className="text-gray-600">{review.comment}</p>
+                  <p className="text-sm text-gray-500 text-right mt-2">
+                    {new Date(review.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+          </div>
         ) : (
           <p className="text-gray-500">No reviews yet.</p>
+        )}
+
+        {/* PAGINATION */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-6 gap-3">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`px-4 py-2 rounded ${
+                  currentPage === i + 1
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
         )}
       </div>
     </div>
