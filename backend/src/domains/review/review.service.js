@@ -13,9 +13,9 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
         const token = jwt.sign(
-            { id: existingUser.id, email: existingUser.email, name: existingUser.name , role: existingUser.role},
+            { id: existingUser.id, email: existingUser.email, name: existingUser.name, role: existingUser.role },
             process.env.JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "3d" }
         );
         return { message: "Login successful", token };
     }
@@ -30,58 +30,84 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
 
     // Generate token
     const token = jwt.sign(
-        { id: newUser.id, email: newUser.email, name: displayName , role: newUser.role},
+        { id: newUser.id, email: newUser.email, name: displayName, role: newUser.role },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "3d" }
     );
 
     return { message: "Reviewer registered successfully", token };
-};
+}
 
 exports.createReview = async (userId, entityId, rating, comment, user_name) => {
     const user = await User.findByPk(userId);
     if (!user) throw new Error("User not found");
-
+  
     let listingId = null;
     let listingName = null;
-
+    let prefix = null;
+    let id = null;
+  
     if (entityId) {
-        const [prefix, id] = entityId.split("_"); 
-        listingId = entityId; 
-        if (prefix === "ser") {
-            const service = await Service.findOne({ where: { id } });
-            if (service) {
-                listingName = service.service_name;
-            } else {
-                throw new Error("Service not found");
-            }
-        } else if (prefix === "bus") {
-            const business = await Business.findOne({ where: { id } });
-            if (business) {
-                listingName = business.name;
-            } else {
-                throw new Error("Business not found");
-            }
-        }
+      [prefix, id] = entityId.split("_");
+      listingId = entityId;
+  
+      if (prefix === "ser") {
+        const service = await Service.findOne({ where: { id } });
+        if (!service) throw new Error("Service not found");
+  
+        const existingReview = await Review.findOne({ where: { userId, listingId } });
+        if (existingReview) throw new Error("You cannot review this service more than once");
+  
+        listingName = service.service_name;
+  
+      } else if (prefix === "bus") {
+        const business = await Business.findOne({ where: { id } });
+        if (!business) throw new Error("Business not found");
+  
+        const existingReview = await Review.findOne({ where: { userId, listingId } });
+        if (existingReview) throw new Error("You cannot review this business more than once");
+  
+        listingName = business.name;
+  
+      } else {
+        throw new Error("Invalid entity type");
+      }
     }
-
+  
     const review = await Review.create({
-        userId,
-        user_name, // Google Profile Name
-        comment,
-        star_rating: rating,
-        listingId, 
-        listingName 
+      userId,
+      user_name,
+      comment,
+      star_rating: rating,
+      listingId,
+      listingName,
     });
-
+  
+    // Recalculate averageRating and update the parent entity
+    const allReviews = await Review.findAll({ where: { listingId } });
+    const average = allReviews.reduce((sum, r) => sum + r.star_rating, 0) / allReviews.length;
+  
+    if (prefix === "ser") {
+      await Service.update(
+        { averageRating: average.toFixed(1) },
+        { where: { id } }
+      );
+    } else if (prefix === "bus") {
+      await Business.update(
+        { averageRating: average.toFixed(1) },
+        { where: { id } }
+      );
+    }
+  
     return review;
-};
+  };
+  
 
 exports.updateReview = async (reviewId, userId, rating, comment) => {
     const review = await Review.findOne({ where: { id: reviewId, userId } });
     if (!review) throw new Error("Review not found or unauthorized");
 
-    review.comment = comment 
+    review.comment = comment
     review.star_rating = rating;
 
     await review.save();
@@ -97,7 +123,25 @@ exports.deleteReview = async (reviewId, userId) => {
 };
 
 exports.getAllReviews = async () => {
-    return await Review.findAll({ include: [{ model: User, as: "user"}] });
+    return await Review.findAll({ include: [{ model: User, attributes: ["id", "email", "name", "role"] }] });
+};
+
+exports.searchReviewsByListingName = async (listingName) => {
+    const reviews = await Review.findAll({
+        where: Sequelize.where(
+            Sequelize.fn("LOWER", Sequelize.col("listingName")),
+            {
+                [Op.like]: `%${listingName.toLowerCase()}%`,
+            }
+        ),
+        order: [["createdAt", "DESC"]],
+    });
+
+    if (!reviews || reviews.length === 0) {
+        throw new Error("No reviews found for this listing");
+    }
+
+    return reviews;
 };
 
 exports.getReviewById = async (reviewId) => {
@@ -112,13 +156,15 @@ exports.getReviewsForListings = async (listingId) => {
         include: [
             {
                 model: User,
-                as: "user", 
-                attributes: ["id", "name", "email"], 
+                as: "user",
+                attributes: ["id", "name", "email", "role"],
             },
         ],
     });
 };
 
 exports.getReviewsByUser = async (userId) => {
-    return await Review.findAll({ where: { userId }});
+    return await Review.findAll({ where: { userId } });
 };
+
+

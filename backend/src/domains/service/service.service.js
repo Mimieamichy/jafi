@@ -41,18 +41,34 @@ exports.verifyServiceNumber = async (phoneNumber, otp) => {
 };
 
 exports.getAService = async (serviceId) => {
-    const service = await Service.findByPk(serviceId);
+    const service = await Service.findByPk(serviceId, {
+      include: {
+        model: User,
+        attributes: ["id", "name", "email", "role"], 
+      },
+    });
+  
     if (!service) throw new Error("Service not found");
   
     return service;
 };
 
 exports.getAllServices = async () => {
-    const service = await Service.findAll();
-    if (!service) throw new Error("Service not found");
+    const services = await Service.findAll({
+      include: {
+        model: User,
+        attributes: ["id", "name", "email", "role"], 
+      },
+        
+    });
+
+    if (!services || services.length === 0) {
+      throw new Error("No services found");
+    }
   
-    return service;
+    return services;
 };
+
 
 exports.updateService = async (serviceId, userId, serviceData) => {
     const service = await Service.findByPk(serviceId);
