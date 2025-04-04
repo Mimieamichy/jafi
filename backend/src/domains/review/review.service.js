@@ -41,70 +41,67 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
 exports.createReview = async (userId, entityId, rating, comment, user_name) => {
     const user = await User.findByPk(userId);
     if (!user) throw new Error("User not found");
-
+  
     let listingId = null;
     let listingName = null;
-
+    let prefix = null;
+    let id = null;
+  
     if (entityId) {
-        const [prefix, id] = entityId.split("_");
-        listingId = entityId;
-
-        if (prefix === "ser") {
-            const service = await Service.findOne({ where: { id } });
-            if (!service) {
-                throw new Error("Service not found");
-            }
-
-            // Prevent duplicate reviews for the same service by the same user
-            const existingReview = await Review.findOne({
-                where: {
-                    userId,
-                    listingId,
-                },
-            });
-
-            if (existingReview) {
-                throw new Error("You cannot review this service more than once");
-            }
-
-            listingName = service.service_name;
-
-        } else if (prefix === "bus") {
-            const business = await Business.findOne({ where: { id } });
-            if (!business) {
-                throw new Error("Business not found");
-            }
-
-            // Prevent duplicate reviews for the same business by the same user
-            const existingReview = await Business.findOne({
-                where: {
-                    userId,
-                    listingId,
-                },
-            });
-
-            if (existingReview) {
-                throw new Error("You cannot review this business more than once");
-            }
-
-            listingName = business.name;
-        } else {
-            throw new Error("Invalid entity type");
-        }
+      [prefix, id] = entityId.split("_");
+      listingId = entityId;
+  
+      if (prefix === "ser") {
+        const service = await Service.findOne({ where: { id } });
+        if (!service) throw new Error("Service not found");
+  
+        const existingReview = await Review.findOne({ where: { userId, listingId } });
+        if (existingReview) throw new Error("You cannot review this service more than once");
+  
+        listingName = service.service_name;
+  
+      } else if (prefix === "bus") {
+        const business = await Business.findOne({ where: { id } });
+        if (!business) throw new Error("Business not found");
+  
+        const existingReview = await Review.findOne({ where: { userId, listingId } });
+        if (existingReview) throw new Error("You cannot review this business more than once");
+  
+        listingName = business.name;
+  
+      } else {
+        throw new Error("Invalid entity type");
+      }
     }
-
+  
     const review = await Review.create({
-        userId,
-        user_name, // Google Profile Name
-        comment,
-        star_rating: rating,
-        listingId,
-        listingName,
+      userId,
+      user_name,
+      comment,
+      star_rating: rating,
+      listingId,
+      listingName,
     });
-
+  
+    // Recalculate averageRating and update the parent entity
+    const allReviews = await Review.findAll({ where: { listingId } });
+    const average = allReviews.reduce((sum, r) => sum + r.star_rating, 0) / allReviews.length;
+  
+    if (prefix === "ser") {
+      await Service.update(
+        { averageRating: average.toFixed(1) },
+        { where: { id } }
+      );
+    } else if (prefix === "bus") {
+      await Business.update(
+        { averageRating: average.toFixed(1) },
+        { where: { id } }
+      );
+    }
+  
     return review;
-};
-
+  };
+  
 
 exports.updateReview = async (reviewId, userId, rating, comment) => {
     const review = await Review.findOne({ where: { id: reviewId, userId } });
@@ -169,3 +166,5 @@ exports.getReviewsForListings = async (listingId) => {
 exports.getReviewsByUser = async (userId) => {
     return await Review.findAll({ where: { userId } });
 };
+
+
