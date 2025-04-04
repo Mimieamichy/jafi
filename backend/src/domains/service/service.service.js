@@ -59,8 +59,9 @@ exports.getAllServices = async () => {
         model: User,
         attributes: ["id", "name", "email", "role"], 
       },
+        
     });
-  
+
     if (!services || services.length === 0) {
       throw new Error("No services found");
     }

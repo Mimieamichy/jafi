@@ -15,7 +15,7 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
         const token = jwt.sign(
             { id: existingUser.id, email: existingUser.email, name: existingUser.name, role: existingUser.role },
             process.env.JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "3d" }
         );
         return { message: "Login successful", token };
     }
@@ -32,7 +32,7 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
     const token = jwt.sign(
         { id: newUser.id, email: newUser.email, name: displayName, role: newUser.role },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "3d" }
     );
 
     return { message: "Reviewer registered successfully", token };
@@ -126,7 +126,25 @@ exports.deleteReview = async (reviewId, userId) => {
 };
 
 exports.getAllReviews = async () => {
-    return await Review.findAll({ include: [{ model: User, as: "user" }] });
+    return await Review.findAll({ include: [{ model: User, attributes: ["id", "email", "name", "role"] }] });
+};
+
+exports.searchReviewsByListingName = async (listingName) => {
+    const reviews = await Review.findAll({
+        where: Sequelize.where(
+            Sequelize.fn("LOWER", Sequelize.col("listingName")),
+            {
+                [Op.like]: `%${listingName.toLowerCase()}%`,
+            }
+        ),
+        order: [["createdAt", "DESC"]],
+    });
+
+    if (!reviews || reviews.length === 0) {
+        throw new Error("No reviews found for this listing");
+    }
+
+    return reviews;
 };
 
 exports.getReviewById = async (reviewId) => {

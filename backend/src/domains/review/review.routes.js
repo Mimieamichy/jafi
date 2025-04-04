@@ -1,6 +1,6 @@
 const express = require("express");
 const passport = require("passport");
-const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings, getReviewsByUser } = require("../review/review.controller");
+const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings, getReviewsByUser , searchReviewsByListingName} = require("../review/review.controller");
 
 const router = express.Router();
 
@@ -13,6 +13,9 @@ router.get("/google-callback", googleAuthCallback);
 router.get("/", getAllReviews);
 router.get("/:id", getReviewById);
 router.get("/entity/:entityId", getReviewsForListings);
+router.get("/user/:userId", getReviewsByUser);
+router.get("/search/:listingName", searchReviewsByListingName);
+
 
 
 // Protected Routes

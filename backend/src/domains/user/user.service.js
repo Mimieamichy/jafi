@@ -12,7 +12,7 @@ exports.userLogin = async (email, password) => {
     throw new Error("Invalid credentials");
   }
 
-  return jwt.sign({ id: user.id, role: user.role, name: user.name }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  return jwt.sign({ id: user.id, role: user.role, name: user.name }, process.env.JWT_SECRET, { expiresIn: "3d" });
 };
 
 

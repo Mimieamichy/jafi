@@ -18,11 +18,10 @@ exports.googleAuthCallback = async (req, res, next) => {
             const response = await ReviewService.registerReviewerWithGoogle(user);
             return res.redirect(`${process.env.FRONTEND_URL}/hire/${user.id}?token=${response.token}`);
         } catch (error) {
-            return res.status(500).json({ success: false, message: "Internal Server Error" });
+            res.status(error.status || 500).json({ message: error.message });
         }
     })(req, res, next);
 };
-
 
 exports.createReview = async (req, res) => {
     try {
@@ -33,7 +32,7 @@ exports.createReview = async (req, res) => {
         const review = await ReviewService.createReview(userId, entityId, rating, comment, user_name);
         return res.status(201).json({ success: true, review });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        res.status(error.status || 500).json({ message: error.message });
     }
 };
 
@@ -45,7 +44,7 @@ exports.updateReview = async (req, res) => {
         const review = await ReviewService.updateReview(id, userId, rating, comment);
         return res.status(200).json({ success: true, review });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        res.status(error.status || 500).json({ message: error.message });
     }
 };
 
@@ -56,7 +55,7 @@ exports.deleteReview = async (req, res) => {
         await ReviewService.deleteReview(id, userId);
         return res.status(200).json({ success: true, message: "Review deleted successfully" });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        res.status(error.status || 500).json({ message: error.message });
     }
 };
 
@@ -65,7 +64,7 @@ exports.getAllReviews = async (req, res) => {
         const reviews = await ReviewService.getAllReviews();
         return res.status(200).json({ success: true, reviews });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        res.status(error.status || 500).json({ message: error.message });
     }
 };
 
@@ -75,7 +74,7 @@ exports.getReviewById = async (req, res) => {
         const review = await ReviewService.getReviewById(id);
         return res.status(200).json({ success: true, review });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        res.status(error.status || 500).json({ message: error.message });
     }
 };
 
@@ -86,10 +85,9 @@ exports.getReviewsForListings = async (req, res) => {
         return res.status(200).json({ success: true, reviews });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ success: false, message: error.message });
+        res.status(error.status || 500).json({ message: error.message });
     }
 };
-
 
 exports.getReviewsByUser = async (req, res) => {
     try {
@@ -97,8 +95,18 @@ exports.getReviewsByUser = async (req, res) => {
         const reviews = await ReviewService.getReviewsByUser(userId);
         return res.status(200).json({ success: true, reviews });
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
+        res.status(error.status || 500).json({ message: error.message });
     }
 };
+
+exports.searchReviewsByListingName = async (req, res) => {
+    try {
+        const { listingName } = req.query;
+        const reviews = await ReviewService.searchReviewsByListingName(listingName);
+        return res.status(200).json({ success: true, reviews });
+    } catch (error) {
+        res.status(error.status || 500).json({ message: error.message });
+    }
+}
 
   
