@@ -13,7 +13,7 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
         const token = jwt.sign(
-            { id: existingUser.id, email: existingUser.email, displayName: existingUser.name },
+            { id: existingUser.id, email: existingUser.email, name: existingUser.name , role: existingUser.role},
             process.env.JWT_SECRET,
             { expiresIn: "1h" }
         );
@@ -30,7 +30,7 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
 
     // Generate token
     const token = jwt.sign(
-        { id: newUser.id, email: newUser.email, name: displayName },
+        { id: newUser.id, email: newUser.email, name: displayName , role: newUser.role},
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
     );
@@ -118,8 +118,6 @@ exports.getReviewsForListings = async (listingId) => {
         ],
     });
 };
-
-
 
 exports.getReviewsByUser = async (userId) => {
     return await Review.findAll({ where: { userId }});
