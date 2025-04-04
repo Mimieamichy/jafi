@@ -19,7 +19,7 @@ import ReviewersDashboard from "./Reviewer";
 import AdminDashboard from "./Admindashboard";
 import PaymentSuccess from "./PaymentSuccess";
 import NotFound from "./NotFound";
-
+import HireProfileDetails from "./HirePage";
 
 export default function App() {
   return (
@@ -49,6 +49,7 @@ export default function App() {
                 path="/business/:businessName"
                 element={<BusinessPage />}
               />
+              <Route path="/hire/:id" element={<HireProfileDetails />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

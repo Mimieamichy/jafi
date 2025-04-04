@@ -20,6 +20,9 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
+
+const baseUrl = import.meta.env.VITE_BACKEND_URL
+
 export default function BusinessPage() {
   const { businessName } = useParams();
   const [business, setBusiness] = useState(null);
