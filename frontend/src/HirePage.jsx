@@ -7,6 +7,7 @@ import {
   faStar,
   faPhone,
   faMapMarkerAlt,
+  faEnvelope,
   faPen,
 } from "@fortawesome/free-solid-svg-icons";
 import { useSnackbar } from "notistack";
@@ -216,6 +217,10 @@ export default function HireProfileDetails() {
           <FontAwesomeIcon icon={faPhone} className="mr-2 text-blue-500" />
           {hire.phone_number}
         </p>
+        <p className="flex items-center text-gray-700">
+          <FontAwesomeIcon icon={faEnvelope} className="mr-2 text-blue-500" />
+          {hire.email}
+        </p>
 
         <div className="flex items-center">
           <span className="mr-2">Rating:</span>
@@ -275,7 +280,7 @@ export default function HireProfileDetails() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <input
                 type="text"
-                value={hire.service_name}
+                value={hire.name}
                 readOnly
                 className="w-full p-2 border rounded bg-gray-100"
               />
