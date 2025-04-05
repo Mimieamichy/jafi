@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
+const User = require("../user/user.model");
 
 const Business = sequelize.define(
   "Business",
@@ -142,5 +143,10 @@ const Business = sequelize.define(
     },
   }
 );
+
+
+Business.belongsTo(User, {
+  foreignKey: "userId",
+});
 
 module.exports = Business;

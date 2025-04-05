@@ -22,7 +22,7 @@ const Review = sequelize.define(
       },
     },
     listingId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
     },
     listingName: {
@@ -68,11 +68,24 @@ const Review = sequelize.define(
 Review.belongsTo(User, {
   foreignKey: "userId",
 })
+
+
 Review.belongsTo(Business, {
   foreignKey: "listingId",
+  targetKey: "uniqueId", // This tells Sequelize which column in Business to match
+  constraints: false,
+  scope: {
+    listingType: "business"
+  }
 });
+
 Review.belongsTo(Service, {
   foreignKey: "listingId",
+  targetKey: "uniqueId", // This tells Sequelize which column in Service to match
+  constraints: false,
+  scope: {
+    listingType: "service"
+  }
 });
 
 module.exports = Review;

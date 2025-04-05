@@ -91,8 +91,8 @@ exports.updateUser = async (id, data) => {
 }
 
 
-exports.getUserRole = async (id) => {
-  const user = await User.findByPk(id);
+exports.getUserRole = async (email) => {
+  const user = await User.findAll({ where: { email } });
   if (!user) throw new Error("User not found");
 
   return user.role

@@ -45,6 +45,7 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
 
   let listingId = null;
   let listingName = null;
+  let listingType = null;
   let prefix = null;
   let id = null;
 
@@ -60,6 +61,7 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
       if (existingReview) throw new Error("You cannot review this service more than once");
 
       listingName = service.name;
+      listingType = "service";
 
     } else if (prefix === "bus") {
       const business = await Business.findOne({ where: { id } });
@@ -69,6 +71,7 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
       if (existingReview) throw new Error("You cannot review this business more than once");
 
       listingName = business.name;
+      listingType = "business";
 
     } else {
       throw new Error("Invalid entity type");
@@ -82,6 +85,7 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
     star_rating: rating,
     listingId,
     listingName,
+    listingType
   });
 
   // Recalculate averageRating and update the parent entity

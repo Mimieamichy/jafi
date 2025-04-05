@@ -93,8 +93,8 @@ exports.getAllListings = async (req, res) => {
 
 exports.getUserRole = async (req, res) => {
   try {
-    const { id } = req.params;
-    const role = await UserService.getUserRole(id);
+    const { email } = req.params;
+    const role = await UserService.getUserRole(email);
 
     res.status(200).json({ role });
   } catch (error) {
