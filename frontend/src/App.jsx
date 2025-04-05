@@ -23,6 +23,7 @@ import HireProfileDetails from "./HirePage";
 import AllListings from "./AllListings";
 
 export default function App() {
+  
   return (
     <Router>
       <div className="flex flex-col min-h-screen">

@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
 export default function SignIn() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -10,34 +12,67 @@ export default function SignIn() {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-
+  const [error, setError] = useState(""); // Added error state
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-  
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Simulating a user role (In real login, fetch from API)
-    const userData = {
-      email: formData.email,
-      userRole: "Business owner" // Change this based on actual user role
-    };
+    // First, try logging in the user (email/password login for business or service users)
+    try {
+      const loginResponse = await fetch(`${baseUrl}/user/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-    // Save to localStorage
-    localStorage.setItem("userRole", userData.userRole);
-    localStorage.setItem("userData", JSON.stringify(userData));
-    
+      const loginData = await loginResponse.json();
 
-    console.log("User logged in as:", userData.userRole);
-    alert("Sign In Successful! (Static Data Used for Now)");
+      if (!loginResponse.ok) {
+        throw new Error(loginData.message || "Login failed");
+      }
 
-    // Navigate to Dashboard
-    navigate("/bus-dashboard");
-    
+      // If login is successful, fetch the user role using the user email (email as ID)
+      const roleResponse = await fetch(
+        `${baseUrl}/user/role/${formData.email}`
+      );
+      const roleData = await roleResponse.json();
+
+      if (!roleResponse.ok) {
+        throw new Error(roleData.message || "Failed to fetch user role");
+      }
+
+      // Save user data and role in localStorage
+      localStorage.setItem("userRole", roleData.role); // Assuming the role is returned as "role"
+      localStorage.setItem("userData", JSON.stringify(loginData)); // Save the full login data
+
+      alert("Login Successful!");
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get("redirect") || location.pathname;
+
+      // Navigate based on the role
+      if (roleData.role === "reviewer") {
+        window.location.href = `${baseUrl}/review/google?redirect=${redirect}` // Redirect to Google OAuth for reviewer
+      } else if (roleData.role === "business") {
+        navigate("/bus-dashboard");
+      } else if (roleData.role === "service") {
+        navigate("/service-dashboard");
+      }
+    } catch (error) {
+      console.error("Login or role fetch error:", error);
+      setError(
+        error.message || "An error occurred during login. Please try again."
+      );
+    }
   };
 
   return (
@@ -79,6 +114,9 @@ export default function SignIn() {
             )}
           </button>
         </div>
+
+        {/* Error Message */}
+        {error && <p className="text-red-500 mt-4">{error}</p>}
 
         {/* Sign In Button */}
         <button
