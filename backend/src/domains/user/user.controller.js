@@ -80,3 +80,14 @@ exports.updateUser = async (req, res) => {
 } 
 
 
+exports.getAllListings = async (req, res) => {
+  const searchTerm = req.query.searchTerm || '';
+    try {
+        const listings = await UserService.getAllListings(searchTerm);
+        return res.status(200).json({ listings});
+    } catch (error) {
+        console.error(error);
+        res.status(error.status || 500).json({ message: error.message });
+    }
+};
+
