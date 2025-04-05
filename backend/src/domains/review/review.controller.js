@@ -4,7 +4,6 @@ require("../../config/google");
 
 
 exports.googleAuth = async (req, res, next) => {
-    const redirectUrl = req.query.redirect || '/';
     passport.authenticate("google", {
     scope: ["email", "profile"],
     session: false,
@@ -18,7 +17,10 @@ exports.googleAuthCallback = async (req, res, next) => {
 
         try {
             const response = await ReviewService.registerReviewerWithGoogle(user);
-            return res.redirect(`${process.env.FRONTEND_URL}/hire/${user.id}?token=${response.token}`);
+            const redirectUrl = req.query.redirect || '/'; 
+
+            // Redirect the user to the original page, appending the token
+            return res.redirect(`${redirectUrl}?token=${response.token}`);
         } catch (error) {
             res.status(error.status || 500).json({ message: error.message });
         }

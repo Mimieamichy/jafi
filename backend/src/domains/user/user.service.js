@@ -2,7 +2,9 @@ const User = require("./user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-
+const Service = require("../service/service.model");
+const Business = require("../business/business.model");
+const { Op } = require('sequelize');
 
 
 
@@ -96,3 +98,40 @@ exports.getUserRole = async (id) => {
   return user.role
 }
 
+
+exports.getAllListings = async (searchTerm) => {
+    let searchFilter = {};
+
+    // If searchTerm is provided, add the filter conditions for both services and businesses
+    if (searchTerm) {
+        searchFilter = {
+            [Op.or]: [
+                { service_name: { [Op.iLike]: `%${searchTerm}%` } },
+                { name: { [Op.iLike]: `%${searchTerm}%` } },
+            ],
+        };
+    }
+
+    // Fetch services with the optional search filter
+    const services = await Service.findAll({
+        where: searchTerm ? searchFilter : {}, // Apply the filter if searchTerm exists
+        order: [['createdAt', 'DESC']],
+    });
+
+    // Fetch businesses with the optional search filter
+    const businesses = await Business.findAll({
+        where: searchTerm ? searchFilter : {}, // Apply the filter if searchTerm exists
+        order: [['createdAt', 'DESC']],
+    });
+
+    // Combine both services and businesses into one list
+    const combined = [
+        ...services.map(service => ({ type: 'service', ...service.toJSON() })),
+        ...businesses.map(business => ({ type: 'business', ...business.toJSON() }))
+    ];
+
+    // Sort the combined list by creation date (descending)
+    const allListings = combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    return allListings;
+};

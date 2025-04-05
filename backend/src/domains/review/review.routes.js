@@ -21,7 +21,7 @@ router.delete("/:id", passport.authenticate("jwt", { session: false }), deleteRe
 // Public Routes
 router.get("/", getAllReviews);
 router.get("/entity/:entityId", getReviewsForListings);
-router.get("/search/:listingName", searchReviewsByListingName);
+router.get("/search", searchReviewsByListingName);
 router.get("/:id", getReviewById);
 
 

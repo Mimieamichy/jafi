@@ -12,6 +12,7 @@ import Bank from "../assets/bank.jpg";
 import Hospital from "../assets/hospital.jpg";
 import Mall from "../assets/mall.jpg";
 import Hotel from "../assets/hotel.jpg";
+
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 const images = [
@@ -28,56 +29,49 @@ const images = [
 ];
 
 export default function HeroSection() {
-  const [searchTerm, setSearchTerm] = useState(""); // User's search input
-  const [listings, setListings] = useState([]); // All listings fetched from API
-  const [filteredListings, setFilteredListings] = useState([]); // Filtered listings based on search
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Controls dropdown visibility
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [error, setError] = useState(""); // Added error state
   const navigate = useNavigate();
 
-  // Fetch all listings when component mounts
+  // Fetch matching listings based on the search query
   useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const response = await axios.get(`${baseUrl}/user/listings`);
-        setListings(response.data); // Store all listings from the API
-      } catch (error) {
-        console.error("Error fetching listings:", error);
+    const fetchSuggestions = async () => {
+      if (searchQuery) {
+        try {
+          const response = await axios.get(`${baseUrl}/user/listings`, {
+            params: { searchTerm: searchQuery },
+          });
+          setSuggestions(response.data.listings || []);
+          console.log("Data:", response); // Assuming listings are in response.data.listings
+        } catch (error) {
+          console.error("Error fetching listings:", error);
+          setError("Failed to fetch listings. Please try again later.");
+        }
+      } else {
+        setSuggestions([]); // Reset suggestions if search is cleared
       }
     };
 
-    fetchListings();
-  }, []);
+    fetchSuggestions();
+  }, [searchQuery]);
 
-  // Handle search input change and filter listings based on name and category
-  useEffect(() => {
-    if (searchTerm.length > 0) {
-      setIsDropdownOpen(true);
-      setFilteredListings(
-        listings.filter(
-          (listing) =>
-            listing.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            listing.category.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    } else {
-      setIsDropdownOpen(false); // Close the dropdown if the search term is empty
-    }
-  }, [searchTerm, listings]);
-
-  // Handle search input change
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+    setSearchQuery(e.target.value);
   };
 
-  // Navigate to the selected listing's page when clicked
-  const handleListingClick = (listingId) => {
-    setIsDropdownOpen(false); // Close the dropdown
-    navigate(`/listing/${listingId}`); // Navigate to the listing's page
+  const handleListingClick = (listingId, role) => {
+    // Navigate to the appropriate route based on role
+    if (role === "service") {
+      navigate(`/hire/${listingId}`);
+    } else if (role === "business") {
+      navigate(`/bus/${listingId}`);
+    }
   };
 
   return (
     <div className="relative h-screen w-full">
+      {/* Background Image */}
       <Swiper
         modules={[Autoplay, EffectFade]}
         effect="fade"
@@ -106,41 +100,42 @@ export default function HeroSection() {
         </p>
 
         {/* Search Bar */}
-        <div className="relative w-full max-w-lg">
-          <div className="flex items-center gap-4">
-            {/* Search Input */}
-            <input
-              type="text"
-              placeholder="Search Listings"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="px-4 py-2 w-full border-2 border-gray-300 rounded-full text-white bg-black/50 focus:outline-none"
-            />
-
-            {/* Search Icon */}
+        <div className="flex flex-col md:flex-row items-center gap-4 w-full max-w-lg">
+          <div className="relative w-full">
             <FontAwesomeIcon
               icon={faSearch}
-              className="text-white text-lg absolute right-4"
+              className="absolute top-1/2 left-3 transform -translate-y-1/2 text-white"
+            />
+            <input
+              name={searchQuery}
+              type="text"
+              placeholder="Search for a listing"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="px-6 py-3 w-full border border-gray-300 rounded-full text-white pl-12 bg-black/50 focus:outline-none"
             />
           </div>
-
-          {/* Dropdown of matching listings */}
-          {isDropdownOpen && filteredListings.length > 0 && (
-            <div className="absolute w-full bg-white rounded-lg shadow-md mt-2 z-20">
-              <ul>
-                {filteredListings.map((listing) => (
-                  <li
-                    key={listing.id}
-                    onClick={() => handleListingClick(listing.id)}
-                    className="p-3 hover:bg-gray-100 cursor-pointer"
-                  >
-                    {listing.name} - {listing.category}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
+
+        {/* Error Message */}
+        {error && <p className="text-red-500 mt-4">{error}</p>}
+
+        {/* Suggestions Dropdown */}
+        {searchQuery && suggestions.length > 0 && (
+          <div className="absolute mt-2 bg-white rounded-lg shadow-lg w-full max-w-md mx-auto text-black">
+            <ul>
+              {suggestions.map((listing) => (
+                <li
+                  key={listing.id}
+                  onClick={() => handleListingClick(listing.id, listing.role)} // Handle navigation based on role
+                  className="px-4 py-2 cursor-pointer hover:bg-gray-200"
+                >
+                  {listing.name} - {listing.category}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
