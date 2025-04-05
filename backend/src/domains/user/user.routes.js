@@ -1,5 +1,5 @@
 const express = require("express");
-const { login, forgotPassword, verifyResetToken, resetPassword, getAllUsers, getUserById, updateUser, getAllListings } = require("../user/user.controller");
+const { login, forgotPassword, verifyResetToken, resetPassword, getAllUsers, getUserById, updateUser, getAllListings, getUserRole } = require("../user/user.controller");
 const {authenticate} = require("../../application/middlewares/authenticate");
 const { authorize } = require("../../application/middlewares/authorize");
 const router = express.Router();
@@ -13,6 +13,7 @@ router.post("/reset-password", resetPassword);
 router.get("/listings", getAllListings);
 router.get("/", getAllUsers);
 router.get("/:id", getUserById);
+router.get("/role/:id", getUserRole);
 
 
 
