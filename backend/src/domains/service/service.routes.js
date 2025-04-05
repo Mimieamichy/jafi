@@ -6,10 +6,6 @@ const {authenticate} = require('../../application/middlewares/authenticate')
 const {authorize} = require('../../application/middlewares/authorize')
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 1d906130f0dfdc0663385f99f0136fa00f337690
 //public routes
 router.post("/register", uploadMiddleware, registerService);//signup api
 router.post("/verify-service", verifyServiceNumber);
@@ -19,19 +15,11 @@ router.get("/", getAllServices);
 router.get("/:id", getAService);
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 1d906130f0dfdc0663385f99f0136fa00f337690
 // Protected routes - require authentication
 router.use(authenticate, authorize(["service", "admin"]));
 router.put("/:id", updateService);
 router.delete("/:id", deleteService);
 router.get("/user/:id", getServiceByUserId)
-<<<<<<< HEAD
-
-=======
->>>>>>> 1d906130f0dfdc0663385f99f0136fa00f337690
 
 
 
