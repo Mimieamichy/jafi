@@ -44,9 +44,9 @@ exports.createReview = async (req, res) => {
 exports.updateReview = async (req, res) => {
     try {
         const { id } = req.params;
-        const { rating, comment } = req.body;
+        const { comment } = req.body;
         const userId = req.user.id; 
-        const review = await ReviewService.updateReview(id, userId, rating, comment);
+        const review = await ReviewService.updateReview(id, userId, comment);
         return res.status(200).json({ success: true, review });
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
