@@ -41,7 +41,7 @@ export default function ReviewersDashboard() {
   const handleEditReview = async (reviewId, updatedComment) => {
     try {
       const res = await fetch(`${baseUrl}/review/${reviewId}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

@@ -85,25 +85,27 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
   
     // Recalculate averageRating and update the parent entity
     const allReviews = await Review.findAll({ where: { listingId } });
-    const average = allReviews.reduce((sum, r) => sum + r.star_rating, 0) / allReviews.length;
+    const starRatings = allReviews.map(review => review.star_rating);
+    const total = starRatings.reduce((sum, rating) => sum + rating, 0);
+    const average = starRatings.length > 0 ? total / starRatings.length : 0;
+    const averageRating = average.toFixed(1);
   
+
     if (prefix === "ser") {
       await Service.update(
-        { averageRating: average.toFixed(1) },
+        { average_rating: averageRating },
         { where: { id } }
       );
     } else if (prefix === "bus") {
       await Business.update(
-        { averageRating: average.toFixed(1) },
+        { average_rating: averageRating },
         { where: { id } }
       );
     }
   
     return review;
-  
 };
   
-
 exports.updateReview = async (reviewId, userId, rating, comment) => {
     const review = await Review.findOne({ where: { id: reviewId, userId } });
     if (!review) throw new Error("Review not found or unauthorized");
@@ -165,7 +167,11 @@ exports.getReviewsForListings = async (listingId) => {
 };
 
 exports.getReviewsByUser = async (userId) => {
-    return await Review.findAll({ where: { userId } });
+    const userReviews = await Review.findAll({ where: { userId } });
+    if (!userReviews || userReviews.length === 0) {
+        throw new Error("No reviews found for this user");
+    }
+    return userReviews;
 };
 
 

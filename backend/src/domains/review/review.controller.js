@@ -94,8 +94,10 @@ exports.getReviewsByUser = async (req, res) => {
     try {
         const userId  = req.user.id;
         const reviews = await ReviewService.getReviewsByUser(userId);
+        console.log(reviews)
         return res.status(200).json({ success: true, reviews });
     } catch (error) {
+        console.log(error);
         res.status(error.status || 500).json({ message: error.message });
     }
 };

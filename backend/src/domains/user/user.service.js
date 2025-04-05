@@ -65,5 +65,34 @@ exports.userResetPassword = async (token, newPassword) => {
   return { message: "Password reset successful" };
 }
 
+exports.getUserById = async (id) => {
+  const user = await User.findByPk(id);
+  if (!user) throw new Error("User not found");
+  return user;
+};
 
+exports.getAllUsers = async () => {
+  const users = await User.findAll();
+  return users;
+}
+
+exports.updateUser = async (id, data) => {
+  const user = await User.findByPk(id);
+  if (!user) throw new Error("User not found");
+
+  if (data.password) {
+    data.password = await bcrypt.hash(data.password, 10);
+  }
+
+  await user.update(data);
+  return user;
+}
+
+
+exports.getUserRole = async (id) => {
+  const user = await User.findByPk(id);
+  if (!user) throw new Error("User not found");
+
+  return user.role
+}
 

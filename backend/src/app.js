@@ -35,7 +35,6 @@ app.use(cors({
     credentials: true,
 }))
 
-app.use(cors()) // allow all
 
 // Routes
 const serviceRoutes = require("./domains/service/service.routes");

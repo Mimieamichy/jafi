@@ -63,7 +63,8 @@ export default function HireProfileDetails() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
-    const redirect = params.get("redirect") || location.pathname;
+    const currentUrl = window.location.href;
+
     // default to current page
 
     if (token) {
@@ -77,7 +78,9 @@ export default function HireProfileDetails() {
           enqueueSnackbar("Session expired. Please sign in again.", {
             variant: "info",
           });
-          window.location.href = `${baseUrl}/review/google?redirect=${redirect}`;
+          window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(
+            currentUrl
+          )}`;
         } else {
           localStorage.setItem("reviewerToken", token);
           localStorage.setItem("reviewer", JSON.stringify(decoded));
@@ -160,10 +163,14 @@ export default function HireProfileDetails() {
   };
 
   const handleGoogleLogin = () => {
-    const redirectPath = window.location.pathname;
-    window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(redirectPath)}`;
+    // Frontend - Capture the current URL before redirecting to Google login
+    const currentUrl = window.location.href;
+
+    // Send the current URL as a query parameter
+    window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(
+      currentUrl
+    )}`;
   };
-  
 
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
 

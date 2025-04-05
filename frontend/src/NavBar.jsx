@@ -8,7 +8,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [reviewer, setReviewer] = useState(null);
- 
+
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -97,7 +97,10 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   setIsOpen(false);
-                  window.location.href = `${baseUrl}/review/google?redirect=/`;
+                  const currentUrl = window.location.href;
+                  window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(
+                    currentUrl
+                  )}`;
                 }}
                 className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
               >
@@ -105,21 +108,20 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <div
-            ref={dropdownRef}
-              className="relative "
-              
-            >
-              <button onClick={() => setShowDropdown((prev) => !prev)} className="text-gray-800 font-medium bg-gray-100 px-4 py-2 rounded hover:bg-gray-200">
+            <div ref={dropdownRef} className="relative ">
+              <button
+                onClick={() => setShowDropdown((prev) => !prev)}
+                className="text-gray-800 font-medium bg-gray-100 px-4 py-2 rounded hover:bg-gray-200"
+              >
                 {reviewer.name}
               </button>
               {showDropdown && (
                 <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg w-48 z-10">
                   <button
-                  
                     onClick={() => {
                       setShowDropdown(false);
-                      navigate("/reviewer")}}
+                      navigate("/reviewer");
+                    }}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                   >
                     My Reviews
@@ -180,7 +182,11 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   setIsOpen(false);
-                  window.location.href = `${baseUrl}/review/google?redirect=/`;
+                  const currentUrl = window.location.href;
+
+                  window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(
+                    currentUrl
+                  )}`;
                 }}
                 className="block w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md"
               >
