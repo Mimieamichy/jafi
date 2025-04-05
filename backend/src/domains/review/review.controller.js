@@ -33,6 +33,7 @@ exports.createReview = async (req, res) => {
         const review = await ReviewService.createReview(userId, entityId, rating, comment, user_name);
         return res.status(201).json({ success: true, review });
     } catch (error) {
+        console.log(error)
         res.status(error.status || 500).json({ message: error.message });
     }
 };
@@ -65,6 +66,7 @@ exports.getAllReviews = async (req, res) => {
         const reviews = await ReviewService.getAllReviews();
         return res.status(200).json({ success: true, reviews });
     } catch (error) {
+        console.log(error);
         res.status(error.status || 500).json({ message: error.message });
     }
 };

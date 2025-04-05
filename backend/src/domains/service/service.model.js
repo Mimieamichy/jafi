@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
-const User = require("../user/user.model");
 
 const Service = sequelize.define(
   "Service",
@@ -12,12 +11,16 @@ const Service = sequelize.define(
       allowNull: false,
     },
     uniqueId: {
-      type: DataTypes.STRING, 
+      type: DataTypes.STRING,
       unique: true,
     },
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
+      references: {
+        model: "users", // Reference to the 'users' table
+        key: "id",
+      },
     },
     email: {
       type: DataTypes.STRING,
@@ -34,7 +37,7 @@ const Service = sequelize.define(
     },
     description: {
       type: DataTypes.TEXT,
-      allowNull: false,
+      allowNull: true,
     },
     address: {
       type: DataTypes.STRING,
@@ -50,10 +53,6 @@ const Service = sequelize.define(
     },
     images: {
       type: DataTypes.JSON,
-      allowNull: true,
-    },
-    description: {
-      type: DataTypes.TEXT,
       allowNull: true,
     },
     status: {
@@ -72,7 +71,7 @@ const Service = sequelize.define(
   {
     tableName: "services",
     timestamps: true,
-  hooks: {
+    hooks: {
       afterCreate: async (service) => {
         if (!service.uniqueId) {
           service.uniqueId = `ser_${service.id}`;
@@ -80,9 +79,7 @@ const Service = sequelize.define(
         }
       },
     },
-  },
+  }
 );
-
-Service.belongsTo(User, { foreignKey: "userId", as: "user" });
 
 module.exports = Service;

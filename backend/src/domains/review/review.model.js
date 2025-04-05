@@ -1,7 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
 const User = require("../user/user.model");
-
+const Business = require("../business/business.model");
+const Service = require("../service/service.model");
 
 const Review = sequelize.define(
   "Review",
@@ -21,11 +22,15 @@ const Review = sequelize.define(
       },
     },
     listingId: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     listingName: {
       type: DataTypes.STRING,
+      allowNull: false,
+    },
+    listingType: {
+      type: DataTypes.ENUM("business", "service"),
       allowNull: false,
     },
     user_name: {
@@ -44,11 +49,11 @@ const Review = sequelize.define(
         max: 5,
       },
     },
-    replyId: { 
+    replyId: {
       type: DataTypes.INTEGER,
-      allowNull: true, 
+      allowNull: true,
       references: {
-        model: "reviews", 
+        model: "reviews",
         key: "id",
       },
     },
@@ -59,9 +64,15 @@ const Review = sequelize.define(
   }
 );
 
-// Relationships
-Review.belongsTo(User, { foreignKey: "userId", as: "user" });
-Review.belongsTo(Review, { foreignKey: "replyId", as: "reply" });
 
+Review.belongsTo(User, {
+  foreignKey: "userId",
+})
+Review.belongsTo(Business, {
+  foreignKey: "listingId",
+});
+Review.belongsTo(Service, {
+  foreignKey: "listingId",
+});
 
 module.exports = Review;

@@ -30,6 +30,7 @@ exports.registerService = async (email, name, service, phone, address, category,
         const response = await OTPService.sendOTP(newService.phone_number, user.id);
         return { message: "OTP sent successfully", newService, response };
     } catch (error) {
+        console.error("Error in registerService:", error);
         throw error;
     }
 };

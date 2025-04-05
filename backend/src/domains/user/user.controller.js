@@ -91,14 +91,5 @@ exports.getAllListings = async (req, res) => {
     }
 };
 
-exports.deleteUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    await UserService.deleteUser(id);
 
-    res.status(200).json({ message: "User deleted successfully" });
-  } catch (error) {
-    res.status(error.status || 500).json({ message: error.message });
-  }
-}
 

@@ -1,5 +1,5 @@
 const express = require("express");
-const { login, forgotPassword, verifyResetToken, resetPassword, getAllUsers, getUserById, updateUser, getAllListings, deleteUser } = require("../user/user.controller");
+const { login, forgotPassword, verifyResetToken, resetPassword, getAllUsers, getUserById, updateUser, getAllListings } = require("../user/user.controller");
 const {authenticate} = require("../../application/middlewares/authenticate");
 const { authorize } = require("../../application/middlewares/authorize");
 const router = express.Router();
@@ -19,7 +19,7 @@ router.get("/:id", getUserById);
 // Protected routes - require authentication
 router.use(authenticate, authorize(["user", "admin"]));
 router.put("/:id", updateUser);
-router.delete("/:id", deleteUser);
+
 
 
 

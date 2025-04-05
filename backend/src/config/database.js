@@ -24,10 +24,8 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
     await sequelize.authenticate();
     console.log("Database connected successfully");
 
-    // sequelize.sync({ alter: true }).then(() => {
-    //   console.log("DB synced (altered)");
-    // });
-    // console.log("Tables synced successfully");
+    //await sequelize.sync({ alter: true }); 
+    console.log("Tables synced successfully");
   } catch (error) {
     console.error("Database connection error:", error);
   }

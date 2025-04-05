@@ -6,6 +6,12 @@ const {authenticate} = require('../../application/middlewares/authenticate')
 const {authorize} = require('../../application/middlewares/authorize')
 
 
+// Protected routes - require authentication
+router.use(authenticate, authorize(["service", "admin"]));
+router.put("/:id", updateService);
+router.delete("/:id", deleteService);
+router.get("/user/:id", getServiceByUserId)
+
 //public routes
 router.get("/", getAllServices);
 router.get("/:id", getAService);
@@ -16,11 +22,7 @@ router.get("/verify/:pay_ref", verifyServicePayment)
 
 
 
-// Protected routes - require authentication
-router.use(authenticate, authorize(["service", "admin"]));
-router.put("/:id", updateService);
-router.delete("/:id", deleteService);
-router.get("/user/:id", getServiceByUserId)
+
 
 
 
