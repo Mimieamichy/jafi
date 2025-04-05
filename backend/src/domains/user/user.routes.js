@@ -12,7 +12,7 @@ router.post("/reset-password", resetPassword);
 router.get("/", getAllUsers);
 router.get("/:id", getUserById);
 router.put("/:id", updateUser);
-router.get("/listings?searchTerm", getAllListings);
+router.get("/listings", getAllListings);
 
 
 module.exports = router;
