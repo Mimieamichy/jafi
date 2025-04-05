@@ -27,7 +27,7 @@ exports.registerService = async (email, name, service, phone, address, category,
 
         // Send OTP (outside transaction to avoid rollback on failure)
         const response = await OTPService.sendOTP(newService.phone_number, user.id);
-        return { message: "OTP sent successfully", newService, response };
+        return { message: "OTP sent successfully", newService, response, plainPassword };
     } catch (error) {
         console.error("Error in registerService:", error);
         throw error;
