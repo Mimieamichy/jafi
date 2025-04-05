@@ -7,7 +7,7 @@ const PaymentService= require("../payments/payments.service");
 
 
 
-exports.registerService = async (email, name, service, phone, address, category, images, description) => {
+exports.registerService = async (email, name, service_name, phone, address, category, images, description) => {
     try {
         const existingService = await Service.findOne({ where: { email } });
         const existingUser = await User.findOne({ where: { email } });
@@ -23,7 +23,7 @@ exports.registerService = async (email, name, service, phone, address, category,
             { email, password: hashedPassword, role: "service" , name: name});
 
         // Create service inside the transaction
-        const newService = await Service.create({name: service, password: hashedPassword, status: "pending", userId: user.id, address, phone_number: phone, category, images, email, description });
+        const newService = await Service.create({name: service_name, password: hashedPassword, status: "pending", userId: user.id, address, phone_number: phone, category, images, email, description });
         console.log(newService.phone_number)
 
         // Send OTP (outside transaction to avoid rollback on failure)
@@ -46,7 +46,6 @@ exports.getAService = async (serviceId) => {
     const service = await Service.findByPk(serviceId, {
       include: {
         model: User,
-        as: 'user',
         attributes: ["id", "name", "email", "role"], 
       },
     });
@@ -60,12 +59,10 @@ exports.getAllServices = async () => {
     const services = await Service.findAll({
       include: {
         model: User,
-        as: 'user',
         attributes: ["id", "name", "email", "role"], 
       },
         
     });
-
     if (!services || services.length === 0) {
       throw new Error("No services found");
     }
@@ -92,7 +89,7 @@ exports.updateService = async (serviceId, userId, serviceData) => {
 exports.payForService = async (serviceId, amount, transaction) => {
     const service = await Service.findOne({
         where: { id: serviceId },
-        include: [{ model: User, as: 'user' , attributes: ["id", "email", "name", "role"]
+        include: [{ model: User, attributes: ["id", "email", "name", "role"]
         }],
         transaction
     });

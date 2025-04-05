@@ -4,10 +4,10 @@ const sequelize = require("../../config/database");
 
 exports.registerService = async (req, res) => {
   try {
-    const { email, name, service, phone, address, category, description } = req.body;
+    const { email, name, service_name, phone, address, category, description } = req.body;
     const images = req.files["workSamples"] ? req.files["workSamples"].map(file => file.path) : [];
 
-    const response = await ServiceService.registerService(email, name, service, phone, address, category, images, description);
+    const response = await ServiceService.registerService(email, name, service_name, phone, address, category, images, description);
     res.status(201).json(response);
   } catch (error) {
     console.log(error);
@@ -40,6 +40,7 @@ exports.getAllServices = async (req, res) => {
     const services = await ServiceService.getAllServices();
     res.status(200).json(services);
   } catch (error) {
+    console.log(error)
     res.status(404).json({ error: error.message });
   }
 };

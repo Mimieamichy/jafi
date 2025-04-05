@@ -24,11 +24,14 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
     await sequelize.authenticate();
     console.log("Database connected successfully");
 
-    //await sequelize.sync({ alter: true }); 
-    console.log("Tables synced successfully");
+    // Drop all tables in the database
+    //await sequelize.sync({ alter: true });
+    console.log("All tables dropped successfully");
+
   } catch (error) {
     console.error("Database connection error:", error);
   }
 })();
+
 
 module.exports = sequelize;

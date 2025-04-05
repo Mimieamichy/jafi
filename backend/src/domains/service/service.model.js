@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
+const User = require("../user/user.model"); 
 
 const Service = sequelize.define(
   "Service",
@@ -82,4 +83,8 @@ const Service = sequelize.define(
   }
 );
 
+// Define associations 
+Service.belongsTo(User, {
+  foreignKey: "userId",
+});
 module.exports = Service;
