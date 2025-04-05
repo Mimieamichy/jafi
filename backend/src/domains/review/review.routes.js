@@ -13,7 +13,7 @@ router.get("/google-callback", googleAuthCallback);
 
 // Protected Routes
 router.get("/user/", passport.authenticate("jwt", { session: false }), getReviewsByUser );
-router.post("/:entityId", createReview);
+router.post("/:entityId", passport.authenticate("jwt", { session: false }), createReview);
 router.put("/:id", passport.authenticate("jwt", { session: false }), updateReview);
 router.delete("/:id", passport.authenticate("jwt", { session: false }), deleteReview);
 
