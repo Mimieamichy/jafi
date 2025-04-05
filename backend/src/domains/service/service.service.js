@@ -6,6 +6,7 @@ const OTPService = require("../otp/otp.service");
 const PaymentService= require("../payments/payments.service");
 
 
+
 exports.registerService = async (email, name, service, phone, address, category, images, description) => {
     try {
         const existingService = await Service.findOne({ where: { email } });
@@ -22,7 +23,7 @@ exports.registerService = async (email, name, service, phone, address, category,
             { email, password: hashedPassword, role: "service" , name: name});
 
         // Create service inside the transaction
-        const newService = await Service.create({service_name: service, password: hashedPassword, status: "pending", userId: user.id, address, phone_number: phone, category, images, email, description });
+        const newService = await Service.create({name: service, password: hashedPassword, status: "pending", userId: user.id, address, phone_number: phone, category, images, email, description });
         console.log(newService.phone_number)
 
         // Send OTP (outside transaction to avoid rollback on failure)
@@ -71,8 +72,10 @@ exports.getAllServices = async () => {
     return services;
 };
 
-
 exports.updateService = async (serviceId, userId, serviceData) => {
+    if (userId === undefined || userId != req.user.id) {
+        throw new Error("Unauthorized to access this service");
+    }
     const service = await Service.findByPk(serviceId);
     if (!service) throw new Error("Service not found");
 
@@ -115,5 +118,37 @@ exports.verifyPayment = async (paymentReference) => {
     return paymentResponse
 
 }
+
+exports.getServiceByUserId = async (userId) => {
+    if (userId === undefined || userId != req.user.id) {
+        throw new Error("Unauthorized to access this service");
+    }
+    const service = await Service.findOne({ where: { userId } });
+    if (!service) throw new Error("Service not found");
+
+    return service;
+}
+
+exports.deleteService = async (serviceId, userId) => {
+    if (userId === undefined || userId != req.user.id) {
+        throw new Error("Unauthorized to access this service");
+    }
+    const service = await Service.findByPk(serviceId);
+
+    if (!service) throw new Error("Service not found");
+
+    // Check if the user is authorized to delete the service
+    if (service.userId !== userId) throw new Error("Unauthorized to delete this service");
+
+    // Find the corresponding user based on userId
+    const user = await User.findByPk(userId);
+    if (!user) throw new Error("User not found");
+
+    // Delete the service and corresponding user
+    await service.destroy();
+    await user.destroy();
+
+    return { message: "Service deleted successfully" };
+};
 
   

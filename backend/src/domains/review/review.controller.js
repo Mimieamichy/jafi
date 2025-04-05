@@ -17,10 +17,7 @@ exports.googleAuthCallback = async (req, res, next) => {
 
         try {
             const response = await ReviewService.registerReviewerWithGoogle(user);
-            const redirectUrl = req.query.redirect || '/'; 
-
-            // Redirect the user to the original page, appending the token
-            return res.redirect(`${redirectUrl}?token=${response.token}`);
+            return res.redirect(`${process.env.FRONTEND_URL}/?token=${response.token}`);
         } catch (error) {
             res.status(error.status || 500).json({ message: error.message });
         }
@@ -116,3 +113,35 @@ exports.searchReviewsByListingName = async (req, res) => {
 }
 
   
+exports.replyToReview = async (req, res) => {
+    try {
+        const { reviewId } = req.params;
+        const { comment } = req.body;
+        const userId = req.user.id; 
+        const user_name = req.user.name;
+        const reply = await ReviewService.replyToReview(reviewId, userId, user_name, comment);
+        return res.status(201).json({ success: true, reply });
+    } catch (error) {
+        res.status(error.status || 500).json({ message: error.message });
+    }
+}
+
+exports.getAReviewwithReplies = async (req, res) => {
+    try {
+        const { reviewId } = req.params;
+        const replies = await ReviewService.getAReviewwithReplies(reviewId);
+        return res.status(200).json({ success: true, replies });
+    } catch (error) {
+        res.status(error.status || 500).json({ message: error.message });
+    }
+}
+
+
+exports.getAllReviewsWithReplies = async (req, res) => {
+    try {
+        const review = await ReviewService.getAllReviewsWithReplies();
+        return res.status(200).json({ success: true, review });
+    } catch (error) {
+        res.status(error.status || 500).json({ message: error.message });
+    }
+}

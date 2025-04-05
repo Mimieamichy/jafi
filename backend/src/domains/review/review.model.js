@@ -44,6 +44,14 @@ const Review = sequelize.define(
         max: 5,
       },
     },
+    replyId: { 
+      type: DataTypes.INTEGER,
+      allowNull: true, 
+      references: {
+        model: "reviews", 
+        key: "id",
+      },
+    },
   },
   {
     tableName: "reviews",
@@ -53,6 +61,7 @@ const Review = sequelize.define(
 
 // Relationships
 Review.belongsTo(User, { foreignKey: "userId", as: "user" });
+Review.belongsTo(Review, { foreignKey: "replyId", as: "reply" });
 
 
 module.exports = Review;

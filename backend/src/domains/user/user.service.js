@@ -106,8 +106,8 @@ exports.getAllListings = async (searchTerm) => {
     if (searchTerm) {
         searchFilter = {
             [Op.or]: [
-                { service_name: { [Op.iLike]: `%${searchTerm}%` } },
-                { name: { [Op.iLike]: `%${searchTerm}%` } },
+                { name: { [Op.like]: `%${searchTerm}%` } },
+                { category: { [Op.like]: `%${searchTerm}%` } },
             ],
         };
     }
@@ -120,11 +120,11 @@ exports.getAllListings = async (searchTerm) => {
 
     // Fetch businesses with the optional search filter
     const businesses = await Business.findAll({
-        where: searchTerm ? searchFilter : {}, // Apply the filter if searchTerm exists
-        order: [['createdAt', 'DESC']],
-    });
-
-    // Combine both services and businesses into one list
+      where: searchTerm ? searchFilter : {}, // Apply the filter if searchTerm exists
+      order: [['createdAt', 'DESC']],
+  });
+    
+    //Combine both services and businesses into one list
     const combined = [
         ...services.map(service => ({ type: 'service', ...service.toJSON() })),
         ...businesses.map(business => ({ type: 'business', ...business.toJSON() }))
@@ -135,3 +135,12 @@ exports.getAllListings = async (searchTerm) => {
 
     return allListings;
 };
+
+
+exports.deleteUser = async (id) => {  
+  const user = await User.findByPk(id);
+  if (!user) throw new Error("User not found");
+
+  await user.destroy();
+  return { message: "User deleted successfully" };
+}

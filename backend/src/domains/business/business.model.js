@@ -18,10 +18,6 @@ const Business = sequelize.define(
         userId: {
             type: DataTypes.UUID,
             allowNull: false,
-            references: {
-                model: User,
-                key: "id",
-            },
         },
         name: {
             type: DataTypes.STRING,
@@ -64,18 +60,7 @@ const Business = sequelize.define(
             allowNull: true,
         },
         category: {
-            type: DataTypes.ENUM(
-                "Automotives",
-                "Hotel",
-                "Healthcare",
-                "Groceries",
-                "Malls & Supermarket",
-                "Banking & FinTech",
-                "Churches",
-                "Aircraft",
-                "Nigerian Made",
-                "Nightlife & Entertainment"
-            ),
+            type: DataTypes.STRING,
             allowNull: false,
             defaultValue: "Hotel",
         },
@@ -84,7 +69,7 @@ const Business = sequelize.define(
             allowNull: true,
         },
         tags: {
-            type: DataTypes.STRING, // Comma-separated values
+            type: DataTypes.STRING, 
             allowNull: true,
         },
         images: {
@@ -100,7 +85,7 @@ const Business = sequelize.define(
             allowNull: true,
         },
         social_links: {
-            type: DataTypes.JSON, // Store Twitter, Facebook, LinkedIn, etc., as an object
+            type: DataTypes.JSON,
             allowNull: true,
         },
         whatsapp: {
@@ -136,17 +121,28 @@ const Business = sequelize.define(
             type: DataTypes.ENUM("pending", "verified", "rejected"),
             defaultValue: "pending",
         },
+        average_rating: {
+            type: DataTypes.FLOAT,
+            defaultValue: 0,
+            validate: {
+                min: 0,
+                max: 5,
+            },
+        },
+        faqs: {
+            type: DataTypes.JSON,
+            allowNull: true,
+            // Example format: [{ question: "Q1", answer: "A1" }]
+        },
     },
     {
         tableName: "businesses",
         timestamps: true,
         hooks: {
-            beforeCreate: async (business) => {
-                business.uniqueId = `bus_${business.id}`;
-            },
-            beforeSave: async (business) => {
+            afterCreate: async (business) => {
                 if (!business.uniqueId) {
                     business.uniqueId = `bus_${business.id}`;
+                    await business.save();
                 }
             },
         },

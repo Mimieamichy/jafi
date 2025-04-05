@@ -3,6 +3,7 @@ const User = require("../user/user.model");
 const jwt = require("jsonwebtoken");
 const Service = require("../service/service.model");
 const Business = require("../business/business.model");
+const { where } = require("sequelize");
 
 
 
@@ -39,6 +40,9 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
 }
 
 exports.createReview = async (userId, entityId, rating, comment, user_name) => {
+    if (userId === undefined || userId != req.user.id) {
+        throw new Error("Unauthorized to access this review");
+    }
     const user = await User.findByPk(userId);
     if (!user) throw new Error("User not found");
   
@@ -106,7 +110,9 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
     return review;
 };
   
-exports.updateReview = async (reviewId, userId, comment) => {
+exports.updateReview = async (reviewId, userId, comment) => {    if (userId === undefined || userId != req.user.id) {
+        throw new Error("Unauthorized to access this review");
+    }
     const review = await Review.findOne({ where: { id: reviewId, userId } });
     if (!review) throw new Error("Review not found or unauthorized");
 
@@ -116,6 +122,9 @@ exports.updateReview = async (reviewId, userId, comment) => {
 };
 
 exports.deleteReview = async (reviewId, userId) => {
+    if (userId === undefined || userId != req.user.id) {
+        throw new Error("Unauthorized to access this review");
+    }
     const review = await Review.findOne({ where: { id: reviewId, userId } });
     if (!review) throw new Error("Review not found or unauthorized");
 
@@ -124,8 +133,14 @@ exports.deleteReview = async (reviewId, userId) => {
 };
 
 exports.getAllReviews = async () => {
-    return await Review.findAll({ include: [{ model: User, as: "user", attributes: ["id", "email", "name", "role"] }] });
+    return await Review.findAll(
+        { where: { listingId, parentReviewId: null }, 
+        include: [{ model: User, as: "user", attributes: ["id", "email", "name", "role"] }, 
+        {model: Business, as: "business"}, 
+        {model: Service, as: "service"}], 
+    order: [["createdAt", "DESC"]]});
 };
+  
 
 exports.searchReviewsByListingName = async (listingName) => {
     const reviews = await Review.findAll({
@@ -153,7 +168,7 @@ exports.getReviewById = async (reviewId) => {
 
 exports.getReviewsForListings = async (listingId) => {
     return await Review.findAll({
-        where: { listingId },
+        where: { listingId , parentReviewId: null },
         include: [
             {
                 model: User,
@@ -161,10 +176,14 @@ exports.getReviewsForListings = async (listingId) => {
                 attributes: ["id", "name", "email", "role"],
             },
         ],
+        order: [["createdAt", "DESC"]],
     });
 };
 
 exports.getReviewsByUser = async (userId) => {
+    if (userId === undefined || userId != req.user.id) {
+        throw new Error("Unauthorized to access this review");
+    }
     const userReviews = await Review.findAll({ where: { userId } });
     if (!userReviews || userReviews.length === 0) {
         throw new Error("No reviews found for this user");
@@ -173,3 +192,76 @@ exports.getReviewsByUser = async (userId) => {
 };
 
 
+exports.replyToReview = async (reviewId, userId, user_name, comment) => {
+    const originalReview = await Review.findByPk(reviewId);
+  
+    if (!originalReview) throw new Error("Original review not found");
+  
+    // Check if the user is the business owner or the original reviewer
+    const business = await Business.findOne({
+      where: { id: originalReview.listingId, userId: userId },
+    });
+
+    const service = await Service.findOne({
+        where: { id: originalReview.listingId, userId: userId },
+      });
+  
+    if (!business && !service && originalReview.userId !== userId) {
+      throw new Error("You are not authorized to reply to this review");
+    }
+  
+    // Create the reply with `replyId` pointing to the original review
+    const reply = await Review.create({
+      userId,
+      listingId: originalReview.listingId,
+      listingName: originalReview.listingName,
+      user_name: user_name, 
+      comment,
+      star_rating: originalReview.star_rating, 
+      replyId: reviewId, 
+    });
+  
+    return reply;
+};
+
+exports.getAReviewwithReplies = async (reviewId) => {
+    const replies = await Review.findAll({
+      where: { replyId: reviewId }, // Fetch only replies to the given reviewId
+      include: [
+        {
+          model: User,
+          as: "user", // User who made the reply
+        },
+      ],
+      order: [["createdAt", "ASC"]],
+    });
+  
+    return replies;
+  };
+
+  exports.getAllReviewsWithReplies = async () => {
+    const reviews = await Review.findAll({
+      include: [
+        {
+          model: User,
+          as: "user", // Include user who made the review
+        },
+        {
+          model: Review,
+          as: "replies", // Include replies to each review
+          include: [
+            {
+              model: User,
+              as: "user", // User who made the reply
+            },
+          ],
+        },
+      ],
+      order: [["createdAt", "DESC"]], // Order reviews by creation date (descending)
+    });
+  
+    if (!reviews) throw new Error("No reviews found");
+  
+    return reviews;
+  };
+  
