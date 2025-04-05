@@ -1,22 +1,37 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
-export default function AllListings({ searchQuery }) {
+export default function AllListings() {
   const [listings, setListings] = useState([]);
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    
+    const storedSearchQuery = localStorage.getItem("searchQuery");
+    if (storedSearchQuery) {
+      setSearchQuery(storedSearchQuery);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const response = await axios.get(`${baseUrl}/user/listings`, {
-          params: {
-            searchTerm: searchQuery, // Send the search query as a parameter
-          },
-        });
-        setListings(response.data.listings); // Assuming listings are in response.data.listings
+        const response = await fetch(
+          `${baseUrl}/user/listings?searchTerm=${searchQuery}`
+        );
+        const data = await response.json();
+
+        if (response.ok) {
+          setListings(data.listings); // Assuming listings are in data.listings
+        } else {
+          console.error(
+            "Error fetching listings:",
+            data.message || "Unknown error"
+          );
+        }
       } catch (error) {
         console.error("Error fetching listings:", error);
       }

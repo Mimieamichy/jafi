@@ -394,3 +394,5 @@ export default function HireProfileDetails() {
     </div>
   );
 }
+
+

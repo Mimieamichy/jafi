@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SignupModal from "./SignupModal";
-const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+//const baseUrl = import.meta.env.VITE_BACKEND_URL;
 import { jwtDecode } from "jwt-decode";
 
 export default function Navbar() {
@@ -54,11 +55,16 @@ export default function Navbar() {
     localStorage.removeItem("reviewer");
     localStorage.removeItem("reviewerToken");
     setShowDropdown(false);
-    navigate("/");
+    navigate("/");  // Navigate to home page after logout
     window.location.reload();
   };
 
   const handleNavClick = () => setIsOpen(false);
+
+  const handleLoginClick = () => {
+    navigate("/signin"); 
+    setIsOpen(false);// Navigate to SignIn page when Login is clicked
+  };
 
   return (
     <nav className="bg-white shadow-md p-4 fixed top-0 left-0 w-full z-50">
@@ -95,13 +101,7 @@ export default function Navbar() {
           {!reviewer ? (
             <>
               <button
-                onClick={() => {
-                  setIsOpen(false);
-                  const currentUrl = window.location.href;
-                  window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(
-                    currentUrl
-                  )}`;
-                }}
+                onClick={handleLoginClick} // Trigger SignIn component on login click
                 className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
               >
                 Login
@@ -180,14 +180,7 @@ export default function Navbar() {
           {!reviewer ? (
             <>
               <button
-                onClick={() => {
-                  setIsOpen(false);
-                  const currentUrl = window.location.href;
-
-                  window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(
-                    currentUrl
-                  )}`;
-                }}
+                onClick={handleLoginClick} // Trigger SignIn component on login click
                 className="block w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md"
               >
                 Login

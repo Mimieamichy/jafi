@@ -34,6 +34,14 @@ export default function HeroSection() {
   const [error, setError] = useState(""); // Added error state
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Get the searchQuery from localStorage when the component mounts
+    const savedSearchQuery = localStorage.getItem("searchQuery");
+    if (savedSearchQuery) {
+      setSearchQuery(savedSearchQuery);
+    }
+  }, []);
+
   // Fetch matching listings based on the search query
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -57,7 +65,9 @@ export default function HeroSection() {
   }, [searchQuery]);
 
   const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
+    const query = e.target.value;
+    setSearchQuery(query);
+    localStorage.setItem("searchQuery", query); // Store searchQuery in localStorage
   };
 
   const handleListingClick = (listingId, role) => {
