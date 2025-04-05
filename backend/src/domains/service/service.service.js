@@ -8,7 +8,6 @@ const PaymentService= require("../payments/payments.service");
 
 
 exports.registerService = async (email, name, service, phone, address, category, images, description) => {
-    console.log(email, name, service, phone, address, category, description)
     try {
         const existingService = await Service.findOne({ where: { email } });
         const existingUser = await User.findOne({ where: { email } });
@@ -94,11 +93,11 @@ exports.payForService = async (serviceId, amount, transaction) => {
         transaction
     });
 
-    if (!service || !service.user) {
+    if (!service || !service.User) {
         throw new Error("Service not found or does not have an associated user.");
     }
 
-    const userId = service.user.dataValues.id
+    const userId = service.User.id
     const entity_type = 'service';
 
     // Create payment
