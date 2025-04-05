@@ -203,7 +203,7 @@ export default function HireProfileDetails() {
 
       {/* Info */}
       <div className="mt-6 space-y-3">
-        <h1 className="text-3xl font-bold capitalize">{hire.service_name}</h1>
+        <h1 className="text-3xl font-bold capitalize">{hire.name}</h1>
         <p className="text-lg text-gray-600">{hire.category}</p>
         <p className="flex items-center text-gray-700">
           <FontAwesomeIcon
