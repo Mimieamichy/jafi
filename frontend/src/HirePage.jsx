@@ -63,35 +63,36 @@ export default function HireProfileDetails() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
-    const savedToken = token || localStorage.getItem("reviewerToken");
+    const redirect = params.get("redirect") || location.pathname;
+    // default to current page
 
-    if (savedToken) {
+    if (token) {
       try {
-        const decoded = jwtDecode(savedToken);
+        const decoded = jwtDecode(token);
         const isExpired = decoded.exp * 1000 < Date.now();
 
         if (isExpired) {
-          // Token expired, redirect to login
           localStorage.removeItem("reviewerToken");
           localStorage.removeItem("reviewer");
           enqueueSnackbar("Session expired. Please sign in again.", {
             variant: "info",
           });
-          window.location.href = `${baseUrl}/review/google`;
+          window.location.href = `${baseUrl}/review/google?redirect=${redirect}`;
         } else {
-          localStorage.setItem("reviewerToken", savedToken);
+          localStorage.setItem("reviewerToken", token);
           localStorage.setItem("reviewer", JSON.stringify(decoded));
           setReviewer(decoded);
-          setShowReviewForm(true);
 
-          if (token) {
-            const newUrl = location.pathname;
-            window.history.replaceState({}, document.title, newUrl);
-          }
+          // Remove token + redirect param from URL
+          const cleanedUrl = location.pathname;
+          window.history.replaceState({}, document.title, cleanedUrl);
         }
       } catch {
         enqueueSnackbar("Invalid login token", { variant: "error" });
       }
+    } else {
+      const stored = localStorage.getItem("reviewer");
+      if (stored) setReviewer(JSON.parse(stored));
     }
   }, [location, enqueueSnackbar]);
 
@@ -105,7 +106,6 @@ export default function HireProfileDetails() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
 
     const token = localStorage.getItem("reviewerToken");
     if (!token) {
@@ -157,19 +157,13 @@ export default function HireProfileDetails() {
     } catch {
       enqueueSnackbar("Something went wrong", { variant: "error" });
     }
-    const hasReviewed = reviews.some((r) => r.user?.email === reviewer?.email);
-
-    if (hasReviewed) {
-      enqueueSnackbar("You've already submitted a review for this service.", {
-        variant: "warning",
-      });
-      return;
-    }
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${baseUrl}/review/google`;
+    const redirectPath = window.location.pathname;
+    window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(redirectPath)}`;
   };
+  
 
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
 
@@ -224,7 +218,7 @@ export default function HireProfileDetails() {
               key={i}
               icon={faStar}
               className={
-                i < (hire.averageRating || 0)
+                i < (hire.average_rating || 0)
                   ? "text-yellow-400"
                   : "text-gray-300"
               }

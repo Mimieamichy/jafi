@@ -1,12 +1,9 @@
-import { Link, useNavigate,  } from "react-router-dom";
+import { Link, } from "react-router-dom";
 
 
 const SignupModal = ({ isOpen, onClose, onSelect }) => {
-  const navigate = useNavigate();
-  const handleReload = () => {
-    window.location.reload(navigate("/signin"));
-    ; // Reload the page
-  };
+ 
+  
  
   if (!isOpen) return null;
 
@@ -14,7 +11,7 @@ const SignupModal = ({ isOpen, onClose, onSelect }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
-        <h2 className="text-2xl font-bold text-black">Sign Up As</h2>
+        <h2 className="text-2xl font-bold text-black">List As</h2>
 
         <button
           className="mt-4 w-full py-2 bg-blue-600 text-white rounded-lg"
@@ -30,17 +27,7 @@ const SignupModal = ({ isOpen, onClose, onSelect }) => {
           Business Listing
         </button>
 
-        <p className="mt-4 text-center">
-          Already have an account?{" "}
-          <Link to="/signin"
-            
-            className="text-blue-600 hover:underline cursor-pointer"
-            onClick={handleReload}
-            
-          >
-            Sign In
-          </Link>
-        </p>
+        
 
         <button className="mt-4 text-red-500" onClick={onClose}>
           Cancel

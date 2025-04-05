@@ -16,7 +16,8 @@ exports.googleAuthCallback = async (req, res, next) => {
 
         try {
             const response = await ReviewService.registerReviewerWithGoogle(user);
-            return res.redirect(`${process.env.FRONTEND_URL}/hire/${user.id}?token=${response.token}`);
+            const redirectUrl = req.query.redirect || `${process.env.FRONTEND_URL}`
+            return res.redirect(`${redirectUrl}?token=${response.token}`);
         } catch (error) {
             res.status(error.status || 500).json({ message: error.message });
         }
@@ -91,7 +92,7 @@ exports.getReviewsForListings = async (req, res) => {
 
 exports.getReviewsByUser = async (req, res) => {
     try {
-        const { userId } = req.user.id;
+        const userId  = req.user.id;
         const reviews = await ReviewService.getReviewsByUser(userId);
         return res.status(200).json({ success: true, reviews });
     } catch (error) {

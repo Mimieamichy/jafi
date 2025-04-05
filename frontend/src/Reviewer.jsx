@@ -1,66 +1,144 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash, faSave } from "@fortawesome/free-solid-svg-icons";
+import { useSnackbar } from "notistack";
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function ReviewersDashboard() {
+  const { enqueueSnackbar } = useSnackbar();
   const [reviews, setReviews] = useState([]);
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const reviewsPerPage = 3;
+  const token = localStorage.getItem("reviewerToken");
 
-  // Load reviews from localStorage (replace this with API later)
+  const fetchReviews = useCallback(async () => {
+    if (!token) return;
+    try {
+      //const token = jwtDecode(token);
+      const res = await fetch(`${baseUrl}/review/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      console.log(data);
+      if (res.ok) {
+        setReviews(data.reviews || []);
+      } else {
+        enqueueSnackbar(data.message || "Failed to fetch reviews", {
+          variant: "error",
+        });
+      }
+    } catch {
+      enqueueSnackbar("Failed to load reviews.", { variant: "error" });
+    }
+  }, [enqueueSnackbar, token]);
+
   useEffect(() => {
-    const storedReviews =
-      JSON.parse(localStorage.getItem("businessReviews")) || [];
+    fetchReviews();
+  }, [fetchReviews]);
 
-    setReviews(storedReviews);
-  }, []);
+  const handleEditReview = async (reviewId, updatedComment) => {
+    try {
+      const res = await fetch(`${baseUrl}/review/${reviewId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ comment: updatedComment }),
+      });
 
-  // Handle Review Editing
-  const handleEditReview = (index, updatedComment) => {
-    const updatedReviews = [...reviews];
-    updatedReviews[index].comment = updatedComment;
-    setReviews(updatedReviews);
-    localStorage.setItem("businessReviews", JSON.stringify(updatedReviews));
+      const data = await res.json();
+      if (res.ok) {
+        enqueueSnackbar("Review updated", { variant: "success" });
+        fetchReviews();
+      } else {
+        enqueueSnackbar(data.message || "Failed to update", {
+          variant: "error",
+        });
+      }
+    } catch {
+      enqueueSnackbar("Error updating review", { variant: "error" });
+    }
   };
 
-  // Handle Review Deletion
-  const handleDeleteReview = (index) => {
-    const updatedReviews = reviews.filter((_, i) => i !== index);
-    setReviews(updatedReviews);
-    localStorage.setItem( "businessReviews", JSON.stringify(updatedReviews));
-   
+  const handleDeleteReview = async (reviewId) => {
+    try {
+      const res = await fetch(`${baseUrl}/review/${reviewId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        enqueueSnackbar("Review deleted", { variant: "success" });
+        fetchReviews();
+      } else {
+        enqueueSnackbar("Failed to delete review", { variant: "error" });
+      }
+    } catch {
+      enqueueSnackbar("Something went wrong", { variant: "error" });
+    }
   };
+
+  // Pagination
+  const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+  const paginatedReviews = reviews.slice(
+    (currentPage - 1) * reviewsPerPage,
+    currentPage * reviewsPerPage
+  );
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <h2 className="text-3xl font-semibold mb-4 text-center">My Reviews</h2>
+      <h2 className="text-3xl font-semibold mb-6 text-center">My Reviews</h2>
 
       {reviews.length === 0 ? (
-        <p className="text-gray-600 text-center">No reviews written yet.</p>
+        <p className="text-center text-gray-600">No reviews yet.</p>
       ) : (
-        <div className="space-y-4 max-w-3xl mx-auto">
-          {reviews.map((review, index) => (
-            <ReviewCard
-              key={index}
-              index={index}
-              review={review}
-              onEdit={handleEditReview}
-              onDelete={handleDeleteReview}
-            />
-          ))}
-        </div>
+        <>
+          <div className="space-y-4 max-w-3xl mx-auto">
+            {paginatedReviews.map((review) => (
+              <ReviewCard
+                key={review.id}
+                review={review}
+                onEdit={handleEditReview}
+                onDelete={handleDeleteReview}
+              />
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex justify-center mt-6 gap-2">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`px-4 py-2 rounded ${
+                  currentPage === i + 1
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
 }
 
-// Review Card Component
-const ReviewCard = ({ index, review, onEdit, onDelete }) => {
+function ReviewCard({ review, onEdit, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedComment, setEditedComment] = useState(review.comment);
 
   return (
-    <div className="bg-white p-5 rounded shadow-md">
-      <h3 className="text-xl font-semibold">{review.businessName}</h3>
+    <div className="bg-white p-4 rounded shadow">
+      <h3 className="text-xl font-bold">{review.listingName}</h3>
+      <p className="text-sm text-gray-500 mb-1">{review.user_name}</p>
 
       {isEditing ? (
         <textarea
@@ -69,36 +147,32 @@ const ReviewCard = ({ index, review, onEdit, onDelete }) => {
           onChange={(e) => setEditedComment(e.target.value)}
         />
       ) : (
-        <p className="text-gray-700 mt-2">{review.comment}</p>
+        <p className="text-gray-800 mt-2">{review.comment}</p>
       )}
 
-      <div className="flex items-center space-x-3 mt-3">
+      <div className="flex justify-between items-center mt-3">
         {isEditing ? (
           <button
-            className="text-green-600 flex items-center"
             onClick={() => {
-              onEdit(index, editedComment);
+              onEdit(review.id, editedComment);
               setIsEditing(false);
             }}
+            className="text-green-600"
           >
-            <FontAwesomeIcon icon={faSave} className="mr-1" /> Save
+            <FontAwesomeIcon icon={faSave} className="mr-1" />
+            Save
           </button>
         ) : (
-          <button
-            className="text-blue-600 flex items-center"
-            onClick={() => setIsEditing(true)}
-          >
-            <FontAwesomeIcon icon={faEdit} className="mr-1" /> Edit
+          <button onClick={() => setIsEditing(true)} className="text-blue-600">
+            <FontAwesomeIcon icon={faEdit} className="mr-1" />
+            Edit
           </button>
         )}
-
-        <button
-          className="text-red-600 flex items-center"
-          onClick={() => onDelete(index)}
-        >
-          <FontAwesomeIcon icon={faTrash} className="mr-1" /> Delete
+        <button onClick={() => onDelete(review.id)} className="text-red-600">
+          <FontAwesomeIcon icon={faTrash} className="mr-1" />
+          Delete
         </button>
       </div>
     </div>
   );
-};
+}
