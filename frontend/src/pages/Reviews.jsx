@@ -1,27 +1,39 @@
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
-import { useReviews } from "../context/reviewContext";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import { useNavigate } from "react-router-dom";
 
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
 const CustomerReviews = () => {
-  const { reviews } = useReviews();
-  const [allReviews, setAllReviews] = useState(reviews);
+  const [reviews, setReviews] = useState([]);
+ 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedReviews =
-      JSON.parse(localStorage.getItem("businessReviews")) || [];
-    setAllReviews([...reviews, ...storedReviews]);
-  }, [reviews]);
+    const fetchReviews = async () => {
+      try {
+        const res = await fetch(`${baseUrl}/review/`);
+        const data = await res.json();
+        const sorted = (data.reviews || [])
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 10);
+        setReviews(sorted);
+      } catch (err) {
+        console.error("Failed to fetch reviews", err);
+      }
+    };
 
-  const handleNavigate = () => {
-    navigate("/bus-profile");
-  };
+    fetchReviews();
+  }, []);
+
+ 
+
+  const handleNavigate = () => navigate("/all-listing");
 
   return (
     <section className="bg-gray-100 py-12 px-6">
@@ -43,25 +55,32 @@ const CustomerReviews = () => {
           }}
           className="mt-8"
         >
-          {allReviews.map((review, index) => (
+          {reviews.map((review) => (
             <SwiperSlide
-              key={index}
-              className="bg-white p-10 rounded-lg shadow-md h-64 flex flex-col justify-between"
+              key={review.id}
+              className="bg-white p-10 rounded-lg shadow-md h-64 flex flex-col items-center justify-center text-center"
             >
+              <h3 className="text-lg font-semibold text-black capitalize">
+                {review.listingName || review.companyName}
+              </h3>
+              <p className="text-gray-700 capitalize">
+                {review.user?.name || review.name}
+              </p>
 
-              <h3 className="text-lg font-semibold text-black capitalize">{review.companyName}</h3>
-              <p className="text-gray-700 capitalize">{review.name}</p>
               <div className="flex justify-center text-yellow-500 mt-2">
                 {[...Array(5)].map((_, i) => (
                   <FontAwesomeIcon
                     icon={faStar}
                     key={i}
                     className={
-                      i < review.rating ? "text-yellow-500" : "text-gray-300"
+                      i < (review.star_rating || review.rating)
+                        ? "text-yellow-500"
+                        : "text-gray-300"
                     }
                   />
                 ))}
               </div>
+
               <p className="text-gray-600 mt-3 break-words overflow-hidden text-ellipsis max-w-full">
                 {review.comment.length > 25
                   ? review.comment.substring(0, 25) + "..."
@@ -75,7 +94,7 @@ const CustomerReviews = () => {
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleNavigate}
-            className="px-6 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-md hover:bg-blue-700 transition cursor-pointer"
+            className="px-6 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-md hover:bg-blue-700 transition"
           >
             Write a Review
           </button>

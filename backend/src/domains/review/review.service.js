@@ -106,13 +106,11 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
     return review;
 };
   
-exports.updateReview = async (reviewId, userId, rating, comment) => {
+exports.updateReview = async (reviewId, userId, comment) => {
     const review = await Review.findOne({ where: { id: reviewId, userId } });
     if (!review) throw new Error("Review not found or unauthorized");
 
     review.comment = comment
-    review.star_rating = rating;
-
     await review.save();
     return review;
 };

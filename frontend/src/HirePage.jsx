@@ -63,8 +63,7 @@ export default function HireProfileDetails() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
-    const currentUrl = window.location.href;
-
+    const redirect = params.get("redirect") || location.pathname;
     // default to current page
 
     if (token) {
@@ -78,9 +77,8 @@ export default function HireProfileDetails() {
           enqueueSnackbar("Session expired. Please sign in again.", {
             variant: "info",
           });
-          window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(
-            currentUrl
-          )}`;
+          window.location.href = `${baseUrl}/review/google?redirect=${redirect}`;
+          
         } else {
           localStorage.setItem("reviewerToken", token);
           localStorage.setItem("reviewer", JSON.stringify(decoded));
@@ -89,6 +87,7 @@ export default function HireProfileDetails() {
           // Remove token + redirect param from URL
           const cleanedUrl = location.pathname;
           window.history.replaceState({}, document.title, cleanedUrl);
+          window.location.reload();
         }
       } catch {
         enqueueSnackbar("Invalid login token", { variant: "error" });

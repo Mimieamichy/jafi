@@ -3,10 +3,12 @@ const passport = require("passport");
 require("../../config/google");
 
 
-exports.googleAuth = passport.authenticate("google", {
+exports.googleAuth = async (req, res, next) => {
+    const redirectUrl = req.query.redirect || '/';
+    passport.authenticate("google", {
     scope: ["email", "profile"],
     session: false,
-});
+})(req, res, next)};
   
 exports.googleAuthCallback = async (req, res, next) => {
     passport.authenticate("google", { session: false, failureRedirect: '/' }, async (err, user) => {
@@ -16,8 +18,7 @@ exports.googleAuthCallback = async (req, res, next) => {
 
         try {
             const response = await ReviewService.registerReviewerWithGoogle(user);
-            const redirectUrl = req.query.redirect || `${process.env.FRONTEND_URL}`
-            return res.redirect(`${redirectUrl}?token=${response.token}`);
+            return res.redirect(`${process.env.FRONTEND_URL}/hire/${user.id}?token=${response.token}`);
         } catch (error) {
             res.status(error.status || 500).json({ message: error.message });
         }
@@ -40,9 +41,9 @@ exports.createReview = async (req, res) => {
 exports.updateReview = async (req, res) => {
     try {
         const { id } = req.params;
-        const { rating, comment } = req.body;
+        const { comment } = req.body;
         const userId = req.user.id; 
-        const review = await ReviewService.updateReview(id, userId, rating, comment);
+        const review = await ReviewService.updateReview(id, userId, comment);
         return res.status(200).json({ success: true, review });
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
