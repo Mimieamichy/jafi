@@ -129,34 +129,81 @@ exports.deleteReview = async (reviewId, userId) => {
 };
 
 exports.getAllReviews = async () => {
-  return await Review.findAll(
-    {
-      where: { replyId: null },
-      include: [{ model: User, attributes: ["id", "email", "name", "role"] },
-      { model: Business},
-      { model: Service}],
-      order: [["createdAt", "DESC"]]
-    });
-};
-
-
-exports.searchReviewsByListingName = async (listingName) => {
   const reviews = await Review.findAll({
-    where: Sequelize.where(
-      Sequelize.fn("LOWER", Sequelize.col("listingName")),
+    where: { replyId: null },
+    include: [
       {
-        [Op.like]: `%${listingName.toLowerCase()}%`,
-      }
-    ),
+        model: User,
+        attributes: ["id", "email", "name", "role"],
+      },
+    ],
     order: [["createdAt", "DESC"]],
+    raw: false, // so we can use instance methods
+    nest: true,
   });
 
-  if (!reviews || reviews.length === 0) {
-    throw new Error("No reviews found for this listing");
-  }
+  // Manually attach the correct listing (either Business or Service)
+  const enrichedReviews = await Promise.all(
+    reviews.map(async (review) => {
+      if (review.listingType === "business") {
+        review.dataValues.listing = await Business.findOne({
+          where: { uniqueId: review.listingId },
+        });
+      } else if (review.listingType === "service") {
+        review.dataValues.listing = await Service.findOne({
+          where: { uniqueId: review.listingId },
+        });
+      }
+      return review;
+    })
+  );
 
-  return reviews;
+  return enrichedReviews;
 };
+
+
+exports.searchReviews = async (searchQuery) => {
+    let serviceIds = [];
+    let businessIds = [];
+
+    if (searchQuery) {
+        const serviceResults = await Service.findAll({
+            where: {
+                [Op.or]: [
+                    { name: { [Op.like]: `%${searchQuery}%` } },
+                    { category: { [Op.like]: `%${searchQuery}%` } },
+                ],
+            },
+            attributes: ['id'],
+        });
+
+        const businessResults = await Business.findAll({
+            where: {
+                [Op.or]: [
+                    { name: { [Op.like]: `%${searchQuery}%` } },
+                    { category: { [Op.like]: `%${searchQuery}%` } },
+                ],
+            },
+            attributes: ['id'],
+        });
+
+        serviceIds = serviceResults.map(s => s.id);
+        businessIds = businessResults.map(b => b.id);
+    }
+
+    const reviews = await Review.findAll({
+        where: {
+            [Op.or]: [
+                { listingType: 'service', listingId: { [Op.in]: serviceIds } },
+                { listingType: 'business', listingId: { [Op.in]: businessIds } },
+            ],
+        },
+        order: [['createdAt', 'DESC']],
+    });
+
+    return reviews;
+};
+
 
 exports.getReviewById = async (reviewId) => {
   const review = await Review.findByPk(reviewId);

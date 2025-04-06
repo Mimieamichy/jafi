@@ -1,6 +1,6 @@
 const express = require("express");
 const passport = require("passport");
-const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, searchReviewsByListingName, getAReviewwithReplies, getAllReviewsWithReplies, replyToReview} = require("../review/review.controller");
+const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, searchReviews, getAReviewwithReplies, getAllReviewsWithReplies, replyToReview} = require("../review/review.controller");
 
 const router = express.Router();
 
@@ -22,10 +22,11 @@ router.delete("/:id", passport.authenticate("jwt", { session: false }), deleteRe
 // Public Routes
 router.get("/", getAllReviews);
 router.get("/entity/:entityId", getReviewsForListings);
-router.get("/search", searchReviewsByListingName);
+router.get("/search", searchReviews);
 router.get("/:id", getReviewById);
 router.get("/replies/:reviewId", getAReviewwithReplies);
 router.get("/reply", getAllReviewsWithReplies);
+router.post("/reply/:reviewId", passport.authenticate("jwt", { session: false }), replyToReview);
 
 
 

@@ -104,10 +104,10 @@ exports.getReviewsByUser = async (req, res) => {
     }
 };
 
-exports.searchReviewsByListingName = async (req, res) => {
+exports.searchReviews = async (req, res) => {
     try {
-        const { listingName } = req.query;
-        const reviews = await ReviewService.searchReviewsByListingName(listingName);
+        const { searchQuery } = req.query;
+        const reviews = await ReviewService.searchReviews(searchQuery);
         return res.status(200).json({ success: true, reviews });
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
