@@ -87,9 +87,13 @@ exports.verifyServicePayment = async (req, res) => {
 exports.getServiceByUserId = async (req, res) => {
   try {
       const { id } = req.params;
+      if (id === undefined || id != req.user.id) {
+        throw new Error("Unauthorized to access this service");
+    }
       const user = await ServiceService.getServiceByUserId(id);
       res.status(200).json({ user });
   } catch (error) {
+      console.log(error)
       res.status(error.status || 500).json({ message: error.message });
   }
 }

@@ -117,10 +117,7 @@ exports.verifyPayment = async (paymentReference) => {
 }
 
 exports.getServiceByUserId = async (userId) => {
-    if (userId === undefined || userId != req.user.id) {
-        throw new Error("Unauthorized to access this service");
-    }
-    const service = await Service.findOne({ where: { userId } });
+   const service = await Service.findOne({ where: { userId } });
     if (!service) throw new Error("Service not found");
 
     return service;
