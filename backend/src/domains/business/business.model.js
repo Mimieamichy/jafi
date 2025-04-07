@@ -53,7 +53,7 @@ const Business = sequelize.define(
     },
     phone_number1: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
     phone_number2: {
       type: DataTypes.STRING,
@@ -62,6 +62,10 @@ const Business = sequelize.define(
     website: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    proof: {
+      type: DataTypes.STRING,
+      allowNull: false
     },
     category: {
       type: DataTypes.STRING,
@@ -82,10 +86,6 @@ const Business = sequelize.define(
     },
     social_links: {
       type: DataTypes.JSON,
-      allowNull: true,
-    },
-    whatsapp: {
-      type: DataTypes.STRING,
       allowNull: true,
     },
     businessType: {
@@ -128,6 +128,10 @@ const Business = sequelize.define(
     faqs: {
       type: DataTypes.JSON,
       allowNull: true,
+    },
+    claimed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false
     },
   },
   {

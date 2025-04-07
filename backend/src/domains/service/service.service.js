@@ -8,30 +8,56 @@ const PaymentService= require("../payments/payments.service");
 
 
 exports.registerService = async (email, name, service, phone, address, category, images, description) => {
-    try {
         const existingService = await Service.findOne({ where: { email } });
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser || existingService) throw new Error("User already exists");
-
 
         // Generate random password
         const plainPassword = crypto.randomBytes(6).toString("hex");
         const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-        // Create user inside the transaction
-        const user = await User.create(
-            { email, password: hashedPassword, role: "service" , name: name});
+        // Use transaction to ensure data consistency
+        const result = await sequelize.transaction(async (t) => {
+            // Create user inside the transaction
+            const user = await User.create(
+                { 
+                    email, 
+                    password: hashedPassword, 
+                    role: "service", 
+                    name: name
+                }, 
+                { transaction: t }
+            );
 
-        // Create service inside the transaction
-        const newService = await Service.create({name: service, password: hashedPassword, status: "pending", userId: user.id, address, phone_number: phone, category, images, email, description });
+            // Create service inside the transaction
+            const newService = await Service.create(
+                {
+                    name: service, 
+                    password: hashedPassword, 
+                    status: "pending", 
+                    userId: user.id, 
+                    address, 
+                    phone_number: phone, 
+                    category, 
+                    images, 
+                    email, 
+                    description 
+                }, 
+                { transaction: t }
+            );
+
+            return { user, newService };
+        });
 
         // Send OTP (outside transaction to avoid rollback on failure)
-        const response = await OTPService.sendOTP(newService.phone_number, user.id);
-        return { message: "OTP sent successfully", newService, response, plainPassword };
-    } catch (error) {
-        console.error("Error in registerService:", error);
-        throw error;
-    }
+        const response = await OTPService.sendOTP(result.newService.phone_number, result.user.id);
+        
+        return { 
+            message: "OTP sent successfully", 
+            newService: result.newService, 
+            response, 
+            plainPassword 
+        };
 };
 
 exports.verifyServiceNumber = async (phoneNumber, otp) => {
@@ -70,9 +96,6 @@ exports.getAllServices = async () => {
 };
 
 exports.updateService = async (serviceId, userId, serviceData) => {
-    if (userId === undefined || userId != req.user.id) {
-        throw new Error("Unauthorized to access this service");
-    }
     const service = await Service.findByPk(serviceId);
     if (!service) throw new Error("Service not found");
 

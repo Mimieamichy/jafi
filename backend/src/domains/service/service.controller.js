@@ -105,6 +105,6 @@ exports.deleteService = async (req, res) => {
     const service = await ServiceService.deleteService(id, userId);
     res.status(200).json(service);
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message });
   }
 }

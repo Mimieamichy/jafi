@@ -16,7 +16,7 @@ router.get("/:id", getAService);
 
 
 // Protected routes - require authentication
-router.use(authenticate, authorize(["service", "admin"]));
+router.use(authenticate, authorize(["service", "admin", "superadmin"]));
 router.put("/:id", updateService);
 router.delete("/:id", deleteService);
 router.get("/user/:id", getServiceByUserId)

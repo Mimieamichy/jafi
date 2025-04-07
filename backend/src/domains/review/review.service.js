@@ -78,37 +78,55 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
     }
   }
 
-  const review = await Review.create({
-    userId,
-    user_name,
-    comment,
-    star_rating: rating,
-    listingId,
-    listingName,
-    listingType
+  // Start transaction
+  const result = await sequelize.transaction(async (t) => {
+    // Create review inside transaction
+    const review = await Review.create(
+      {
+        userId,
+        user_name,
+        comment,
+        star_rating: rating,
+        listingId,
+        listingName,
+        listingType
+      },
+      { transaction: t }
+    );
+
+    // Recalculate averageRating and update the parent entity
+    const allReviews = await Review.findAll({ 
+      where: { listingId },
+      transaction: t 
+    });
+    
+    const starRatings = allReviews.map(review => review.star_rating);
+    const total = starRatings.reduce((sum, rating) => sum + rating, 0);
+    const average = starRatings.length > 0 ? total / starRatings.length : 0;
+    const averageRating = average.toFixed(1);
+
+    if (prefix === "ser") {
+      await Service.update(
+        { average_rating: averageRating },
+        { 
+          where: { id },
+          transaction: t 
+        }
+      );
+    } else if (prefix === "bus") {
+      await Business.update(
+        { average_rating: averageRating },
+        { 
+          where: { id },
+          transaction: t 
+        }
+      );
+    }
+
+    return review;
   });
 
-  // Recalculate averageRating and update the parent entity
-  const allReviews = await Review.findAll({ where: { listingId } });
-  const starRatings = allReviews.map(review => review.star_rating);
-  const total = starRatings.reduce((sum, rating) => sum + rating, 0);
-  const average = starRatings.length > 0 ? total / starRatings.length : 0;
-  const averageRating = average.toFixed(1);
-
-
-  if (prefix === "ser") {
-    await Service.update(
-      { average_rating: averageRating },
-      { where: { id } }
-    );
-  } else if (prefix === "bus") {
-    await Business.update(
-      { average_rating: averageRating },
-      { where: { id } }
-    );
-  }
-
-  return review;
+  return result;
 };
 
 exports.updateReview = async (reviewId, userId, comment) => {
