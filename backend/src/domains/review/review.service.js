@@ -20,7 +20,7 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
     );
     return { message: "Login successful", token };
   } else if (existingUser && existingUser.role !== "reviewer") {
-    throw new Error("User already exists with a different role");
+    return {message: "User already exists with a different role"}
   }
 
   // Register new user
@@ -181,7 +181,6 @@ exports.getAllReviews = async () => {
   return enrichedReviews;
 };
 
-
 exports.searchReviews = async (searchQuery) => {
     let serviceIds = [];
     let businessIds = [];
@@ -223,7 +222,6 @@ exports.searchReviews = async (searchQuery) => {
 
     return reviews;
 };
-
 
 exports.getReviewById = async (reviewId) => {
   const review = await Review.findByPk(reviewId);
