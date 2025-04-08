@@ -1,12 +1,17 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { faGoogle } from "@fortawesome/free-brands-svg-icons";
+import { useSnackbar } from "notistack"; 
+import { jwtDecode } from "jwt-decode"; 
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function SignIn() {
+  const { enqueueSnackbar } = useSnackbar(); // Use Snackbar for notifications
   const navigate = useNavigate();
+  const location = useLocation();  // To get the 'redirect' URL parameter
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -22,8 +27,8 @@ export default function SignIn() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // First, try logging in the user (email/password login for business or service users)
     try {
+      // Attempt login with email and password for listing
       const loginResponse = await fetch(`${baseUrl}/user/login`, {
         method: "POST",
         headers: {
@@ -41,101 +46,109 @@ export default function SignIn() {
         throw new Error(loginData.message || "Login failed");
       }
 
-      // If login is successful, fetch the user role using the user email (email as ID)
-      const roleResponse = await fetch(
-        `${baseUrl}/user/role/${formData.email}`
-      );
-      const roleData = await roleResponse.json();
+      const token = loginData.token;  
+      localStorage.setItem("userToken", token);  
 
-      if (!roleResponse.ok) {
-        throw new Error(roleData.message || "Failed to fetch user role");
-      }
+      const decodedToken = jwtDecode(token); 
+      const role = decodedToken.role;  
+      localStorage.setItem("userRole", role);
+      localStorage.setItem("userData", JSON.stringify(decodedToken)); 
+      enqueueSnackbar("Login Successful!", { variant: "success" });
 
-      // Save user data and role in localStorage
-      localStorage.setItem("userRole", roleData.role); // Assuming the role is returned as "role"
-      localStorage.setItem("userData", JSON.stringify(loginData)); // Save the full login data
-
-      alert("Login Successful!");
       const params = new URLSearchParams(location.search);
       const redirect = params.get("redirect") || location.pathname;
 
-      // Navigate based on the role
-      if (roleData.role === "reviewer") {
-        window.location.href = `${baseUrl}/review/google?redirect=${redirect}` // Redirect to Google OAuth for reviewer
-      } else if (roleData.role === "business") {
-        navigate("/bus-dashboard");
-      } else if (roleData.role === "service") {
-        navigate("/service-dashboard");
+      if (role === "business") {
+        navigate("/bus-dashboard"); 
+      } else if (role === "service") {
+        navigate("/hiring-dashboard"); 
       }
     } catch (error) {
       console.error("Login or role fetch error:", error);
-      setError(
-        error.message || "An error occurred during login. Please try again."
-      );
+      enqueueSnackbar(error.message || "An error occurred during login. Please try again.", { variant: "error" }); // Error Notification
     }
   };
 
+  const handleGoogleLogin = () => {
+    // Redirect to Google login for Reviewer
+    const redirectUrl = new URL(window.location.href);
+    redirectUrl.searchParams.set("redirect", location.pathname); // Include the current page as a redirect
+    window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(redirectUrl)}`;
+  };
+
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-4 text-center">Sign In</h2>
+    <div className="max-w-md mx-auto mt-10 p-6 bg-black text-white shadow-md rounded-lg">
+      <h2 className="text-3xl font-bold mb-4 text-center">Sign In</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email/Phone Input */}
+        {/* Email Input */}
         <input
-          type="text"
+          type="email"
           name="email"
           value={formData.email}
           onChange={handleChange}
-          placeholder="Email or Phone Number"
-          className="w-full p-2 border rounded"
+          placeholder="Enter email address"
+          className="w-full p-3 bg-gray-700 border rounded-lg text-white placeholder-gray-400"
           required
         />
 
-        {/* Password Input with Show/Hide */}
+        {/* Password Input */}
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
             name="password"
-            placeholder="Password"
-            className="w-full p-2 border rounded-md pr-10"
             value={formData.password}
             onChange={handleChange}
+            placeholder="Enter password"
+            className="w-full p-3 bg-gray-700 border rounded-lg text-white placeholder-gray-400 pr-10"
             required
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-2 text-gray-500 cursor-pointer"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
           >
-            {showPassword ? (
-              <FontAwesomeIcon icon={faEye} />
-            ) : (
-              <FontAwesomeIcon icon={faEyeSlash} />
-            )}
+            {showPassword ? <FontAwesomeIcon icon={faEye} /> : <FontAwesomeIcon icon={faEyeSlash} />}
           </button>
         </div>
 
         {/* Error Message */}
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+        {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
 
-        {/* Sign In Button */}
+        {/* Login Button */}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded-lg cursor-pointer"
+          className="w-full bg-green-500 text-white p-3 rounded-lg cursor-pointer hover:bg-green-400"
         >
-          Sign In
+          Login
         </button>
-
-        {/* Forgot Password & Sign Up Link */}
-        <div className="text-center mt-3">
-          <Link
-            to="/forgot-password"
-            className="text-blue-600 hover:underline cursor-pointer"
-          >
-            Forgot Password?
-          </Link>
-        </div>
       </form>
+
+      {/* Forgot Password Link */}
+      <div className="text-center mt-4">
+        <Link
+          to="/forgot-password"
+          className="text-gray-400 hover:text-white text-sm"
+        >
+          Forgot Password?
+        </Link>
+      </div>
+
+      {/* Or Sign in as Reviewer */}
+      <div className="mt-4 text-center text-gray-400">
+        <p>or sign in as reviewer</p>
+      </div>
+
+      {/* Sign In with Google */}
+      <div className="mt-4 text-center">
+        <button
+          onClick={handleGoogleLogin}
+          className="w-full bg-gray-800 text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-700"
+        >
+          <FontAwesomeIcon icon={faGoogle} />
+          <span>Sign in with Google</span>
+        </button>
+      </div>
     </div>
   );
 }

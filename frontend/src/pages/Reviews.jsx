@@ -64,7 +64,7 @@ const CustomerReviews = () => {
                 {review.listingName || review.companyName}
               </h3>
               <p className="text-gray-700 capitalize">
-                {review.user?.name || review.name}
+                {review.user?.user_name || review.user_name}
               </p>
 
               <div className="flex justify-center text-yellow-500 mt-2">

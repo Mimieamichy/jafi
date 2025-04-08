@@ -1,15 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SignupModal from "./SignupModal";
-
-//const baseUrl = import.meta.env.VITE_BACKEND_URL;
 import { jwtDecode } from "jwt-decode";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [reviewer, setReviewer] = useState(null);
-
+  const [userRole, setUserRole] = useState(null);  // Track if user is Reviewer, Business, or Service
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -27,34 +25,38 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
+    // Fetch user role directly from localStorage
+    const token = localStorage.getItem("reviewerToken");
+    const role = localStorage.getItem("userRole");
+    setUserRole(role);
+    console.log("User Role:", role)
+    console.log("Token:", token);
+    
+    
 
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        localStorage.setItem("reviewerToken", token);
-        localStorage.setItem("reviewer", JSON.stringify(decoded));
-        setReviewer(decoded);
+    if (token ) {
+      const decodedToken = jwtDecode(token);
+      localStorage.setItem("reviewerToken", token);
+      console.log(decodedToken);
+      
+      localStorage.setItem("reviewer", JSON.stringify(decodedToken));
+      setReviewer(decodedToken);
 
-        // Remove token from the URL after processing
-        const newUrl = window.location.pathname + window.location.hash;
-        window.history.replaceState({}, document.title, newUrl);
-      } catch (err) {
-        console.error("Token decoding failed", err);
-      }
-    } else {
-      const saved = localStorage.getItem("reviewer");
-      if (saved) {
-        setReviewer(JSON.parse(saved));
-      }
+      // Get the user role from localStorage
+      
+      ;  // Log the user role
+      
+       // Set the role of the logged-in user
     }
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("reviewer");
     localStorage.removeItem("reviewerToken");
+    localStorage.removeItem("userRole");  // Clear the role from localStorage
     setShowDropdown(false);
+    setUserRole(null); // Reset user role on logout
+    setReviewer(null); // Reset reviewer data
     navigate("/");  // Navigate to home page after logout
     window.location.reload();
   };
@@ -63,7 +65,7 @@ export default function Navbar() {
 
   const handleLoginClick = () => {
     navigate("/signin"); 
-    setIsOpen(false);// Navigate to SignIn page when Login is clicked
+    setIsOpen(false); // Navigate to SignIn page when Login is clicked
   };
 
   return (
@@ -97,18 +99,30 @@ export default function Navbar() {
           >
             Services
           </Link>
+          {userRole &&(
+          <Link
+          to={userRole?.role === "business" ? "/bus-dashboard" : "/hiring-dashboard"}
+          onClick={handleNavClick}
+          className="text-gray-600 hover:text-black"
+        >
+          Dashboard
+        </Link>)
+          }
 
-          {!reviewer ? (
+          {/* Conditional Rendering based on the user role */}
+          {!reviewer && userRole === null ? (
             <>
+              {/* Display Login button if no reviewer is logged in */}
               <button
-                onClick={handleLoginClick} // Trigger SignIn component on login click
+                onClick={handleLoginClick} 
                 className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
               >
                 Login
               </button>
             </>
-          ) : (
-            <div ref={dropdownRef} className="relative ">
+          ) : reviewer ? (
+            <div  ref={dropdownRef} className="relative ">
+              {/* Display reviewer name and dropdown for "My Reviews" and "Logout" */}
               <button
                 onClick={() => setShowDropdown((prev) => !prev)}
                 className="text-gray-800 font-medium bg-gray-100 px-4 py-2 rounded hover:bg-gray-200"
@@ -135,13 +149,26 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+          ) : (
+            <p></p>
           )}
-          <button
-            onClick={() => setShowSignupModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition"
-          >
-            For Listings
-          </button>
+
+          {/* Conditional rendering for "For Listing" / "Logout" button */}
+          {userRole && (userRole === "service" || userRole === "business") ? (
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-400 transition"
+            >
+              Logout
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowSignupModal(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition"
+            >
+              For Listings
+            </button>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -177,16 +204,16 @@ export default function Navbar() {
           >
             Services
           </Link>
-          {!reviewer ? (
+          {!reviewer && userRole === null ? (
             <>
               <button
-                onClick={handleLoginClick} // Trigger SignIn component on login click
+                onClick={handleLoginClick} 
                 className="block w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md"
               >
                 Login
               </button>
             </>
-          ) : (
+          ) : reviewer ? (
             <div>
               <button
                 onClick={() => {
@@ -207,6 +234,8 @@ export default function Navbar() {
                 Logout
               </button>
             </div>
+          ) : (
+            <p></p>
           )}
           <button
             onClick={() => {

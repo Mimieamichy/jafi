@@ -1,31 +1,33 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPhone,
+  faMapMarkerAlt,
+  faBriefcase,
+  faSearch
+} from "@fortawesome/free-solid-svg-icons";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function AllListings() {
-  const [listings, setListings] = useState([]);
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    
-    const storedSearchQuery = localStorage.getItem("searchQuery");
-    if (storedSearchQuery) {
-      setSearchQuery(storedSearchQuery);
-    }
-  }, []);
+  const [listings, setListings] = useState([]); // State to store the listings
+  const [filteredListings, setFilteredListings] = useState([]); // State to store filtered listings based on search query
+  const [searchQuery, setSearchQuery] = useState(""); // Search query for filtering
+  const [currentPage, setCurrentPage] = useState(1); // Current page for pagination
+  const [listingsPerPage] = useState(6); // Number of listings per page
+  const navigate = useNavigate(); // For navigation when a listing is clicked
 
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const response = await fetch(
-          `${baseUrl}/user/listings?searchTerm=${searchQuery}`
-        );
+        const response = await fetch(`${baseUrl}/user/listings`);
         const data = await response.json();
+        console.log("Fetched listings:", data); // Log the fetched listings for debugging
 
         if (response.ok) {
           setListings(data.listings); // Assuming listings are in data.listings
+          setFilteredListings(data.listings); // Initialize filtered listings
         } else {
           console.error(
             "Error fetching listings:",
@@ -37,39 +39,128 @@ export default function AllListings() {
       }
     };
 
-    if (searchQuery) {
-      fetchListings();
-    } else {
-      setListings([]); // Reset listings if search query is empty
-    }
-  }, [searchQuery]);
+    fetchListings();
+  }, []);
 
-  const handleListingClick = (listingId, role) => {
-    // Navigate to the appropriate route based on role
-    if (role === "service") {
-      navigate(`/hire/${listingId}`);
-    } else if (role === "business") {
-      navigate(`/bus/${listingId}`);
+  // Handle Search Query
+  useEffect(() => {
+    if (searchQuery) {
+      const filtered = listings.filter(
+        (listing) =>
+          listing.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          listing.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredListings(filtered); // Update the filtered listings based on search
+    } else {
+      setFilteredListings(listings); // Show all listings if no search query
+    }
+  }, [searchQuery, listings]);
+
+  // Pagination Logic
+  const indexOfLastListing = currentPage * listingsPerPage;
+  const indexOfFirstListing = indexOfLastListing - listingsPerPage;
+  const currentListings = filteredListings.slice(
+    indexOfFirstListing,
+    indexOfLastListing
+  );
+
+  const totalPages = Math.ceil(filteredListings.length / listingsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber); // Change the current page
+  };
+
+  const handleListingClick = (id, type) => {
+    // Navigate to the appropriate route based on type (either service or business)
+    if (type === "service") {
+      navigate(`/hire/${id}`);
+    } else if (type === "business") {
+      navigate(`/bus/${id}`);
     }
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-      {listings.map((listing) => (
-        <div
-          key={listing.id}
-          className="bg-white p-4 rounded shadow cursor-pointer"
-          onClick={() => handleListingClick(listing.id, listing.role)} // Handle navigation based on role
+    <div className="p-6">
+      {/* Search Bar */}
+      <div className="relative w-72">
+        {" "}
+        {/* Reduced width of search bar */}
+        <input
+          type="text"
+          placeholder="Search by name or category"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="p-2 pl-10 w-full border border-gray-300 rounded-lg" // Adjust padding and width
+        />
+        <FontAwesomeIcon
+          icon={faSearch}
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" // Positioned inside the input
+        />
+      </div>
+
+      {/* Displaying the Listings */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {currentListings.map((listing) => (
+          <div
+            key={listing.id}
+            className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:scale-105 transform transition-all"
+            onClick={() => handleListingClick(listing.id, listing.type)} // Handle navigation based on role
+          >
+            <img
+              src={listing.images[0]} // Assuming each listing has an image
+              alt={listing.name}
+              className="w-full h-48 object-cover rounded-md"
+            />
+            <div className="mt-4">
+              <h3 className="text-xl font-semibold">{listing.name}</h3>
+              <p className="text-gray-600">
+                <FontAwesomeIcon
+                  icon={faBriefcase}
+                  className="mr-2 text-green-500"
+                />
+                {listing.category}
+              </p>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  <FontAwesomeIcon
+                    icon={faPhone}
+                    className="mr-2 text-blue-500"
+                  />{" "}
+                  {listing.phone_number}
+                </p>
+                <p className="text-sm text-gray-500">
+                  <FontAwesomeIcon
+                    icon={faMapMarkerAlt}
+                    className="mr-2 text-red-500"
+                  />{" "}
+                  {listing.address}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="mt-6 flex justify-center space-x-4">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
         >
-          <img
-            src={listing.image} // Assuming each listing has an image
-            alt={listing.name}
-            className="w-full h-48 object-cover rounded-md"
-          />
-          <h3 className="text-xl font-semibold mt-4">{listing.name}</h3>
-          <p className="text-gray-600">{listing.category}</p>
-        </div>
-      ))}
+          Prev
+        </button>
+        <span className="self-center text-lg">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

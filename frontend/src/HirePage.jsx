@@ -24,7 +24,7 @@ export default function HireProfileDetails() {
   const { id } = useParams();
   const location = useLocation();
   const { enqueueSnackbar } = useSnackbar();
-
+console.log("Location:", id); // Log the location object for debugging
   const [hire, setHire] = useState(null);
   const [uniqueId, setUniqueId] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -111,6 +111,8 @@ export default function HireProfileDetails() {
     e.preventDefault();
 
     const token = localStorage.getItem("reviewerToken");
+    console.log("Token:", token); // Log the token for debugging
+    
     if (!token) {
       enqueueSnackbar("Please login to submit your review.", {
         variant: "warning",
@@ -352,7 +354,7 @@ export default function HireProfileDetails() {
                   className="bg-white shadow-md rounded-lg p-4 text-center"
                 >
                   <h4 className="text-lg font-bold">{review.listingName}</h4>
-                  <p className="text-gray-700">{review.user?.name}</p>
+                  <p className="text-gray-700">{review.user_name}</p>
                   <div className="flex justify-center my-2 text-yellow-500">
                     {[...Array(5)].map((_, i) => (
                       <FontAwesomeIcon

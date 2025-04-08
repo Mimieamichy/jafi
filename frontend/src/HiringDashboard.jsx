@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
+import { formatDistanceToNow } from "date-fns";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEye,
@@ -7,9 +8,11 @@ import {
   faBell,
   faBars,
   faTimes,
+  faStar,
 } from "@fortawesome/free-solid-svg-icons";
-import { useParams, useLocation } from "react-router-dom"; // Import useParams and useLocation
-import queryString from "query-string";
+// Import useParams and useLocation
+
+import { jwtDecode } from "jwt-decode";
 
 export default function HiringDashboard() {
   const [formData, setFormData] = useState(null);
@@ -20,54 +23,130 @@ export default function HiringDashboard() {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newReviewNotification, setNewReviewNotification] = useState(false);
-  const [activeSection, setActiveSection] = useState("dashboard"); // Tracks the active section
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // For mobile sidebar
-  const [serviceId, setServiceId] = useState(null); // Assuming you have a serviceId to delete
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [serviceId, setServiceId] = useState(null);
+  const [id, setId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [reviewsPerPage, setReviewsPerPage] = useState(8);
+
   const { enqueueSnackbar } = useSnackbar();
-  const baseUrl = import.meta.env.VITE_BACKEND_URL; // Replace with your base URL
+
+  const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+  // Parse query string
+  const authToken = localStorage.getItem("userToken");
+  const decodedToken = jwtDecode(authToken);
+  const userId = decodedToken.id;
 
   useEffect(() => {
-    const userId = "userId"; // Get the user ID dynamically
+    if (!authToken) {
+      enqueueSnackbar("You need to be logged in to view this page.", {
+        variant: "info",
+      });
+      return;
+    }
 
     // Fetch service data
-    fetch(`${baseUrl}/service/user/${userId}`)
+    fetch(`${baseUrl}/service/user/${userId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
-        setFormData(data);
-        setWorkSampleImages(data.workSamples || []);
-        setServiceId(data.serviceId); 
+        console.log("Service data:", data);
+        if (data) {
+          setFormData(data.user); // Set all the data correctly
+          setWorkSampleImages(data.user.images || []); // Set images from data
+          setServiceId(data.user.uniqueId);
+          setId(data.user.id); // Set the ID from the data
+        }
       });
 
     // Fetch reviews
-    fetch(`${baseUrl}/review/entity/${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setReviews(data.reviews);
-        // Check for new reviews
-        const newReviews = data.reviews.filter((review) => review.isNew);
-        if (newReviews.length > 0) setNewReviewNotification(true);
-      });
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch(
+          `${baseUrl}/review/entity/${serviceId}?page=${currentPage}&limit=${reviewsPerPage}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Fetched reviews:", data); // Log the fetched reviews for debugging
+
+        if (response.ok) {
+          setReviews(data.reviews);
+          const newReviews = data.reviews.filter((review) => review.isNew);
+          if (newReviews.length > 0) setNewReviewNotification(true);
+
+          const totalReviews = data.reviews.length;
+          setTotalPages(Math.ceil(totalReviews / reviewsPerPage)); // Assuming totalCount is in the response
+        } else {
+          enqueueSnackbar("Failed to fetch reviews.", { variant: "error" });
+        }
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+        enqueueSnackbar("An error occurred while fetching reviews.", {
+          variant: "error",
+        });
+      }
+    };
+
+    fetchReviews();
+  }, [
+    authToken,
+    enqueueSnackbar,
+    baseUrl,
+    id,
+    serviceId,
+    userId,
+    currentPage,
+    reviewsPerPage,
+  ]);
+
+  
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setReviewsPerPage(4); // Set to 4 reviews per page for mobile
+      } else {
+        setReviewsPerPage(8); // Set to 8 reviews per page for desktop
+      }
+    };
+
+    handleResize(); // Call initially to set the right reviews per page
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
-  const { userId } = useParams();
 
-  // Get query parameters (including the token) from the URL using useLocation()
-  const location = useLocation();
-  const queryParams = queryString.parse(location.search); // Parse query string
-  const authToken = queryParams.token; // Extract the token from query parameters
-
-  // Ensure that the authToken exists
-  if (!authToken) {
-    enqueueSnackbar("You need to be logged in to update your profile.", {
-      variant: "info",
-    });
-
-    return;
-  }
-
+  // Handle save functionality
   const handleSave = () => {
-    // Get the auth token from localStorage (or sessionStorage)
-
-    // Validate that all necessary fields are filled in (optional)
     if (workSampleImages.length > 5) {
       enqueueSnackbar("Please upload exactly five images.", {
         variant: "warning",
@@ -75,25 +154,22 @@ export default function HiringDashboard() {
       return;
     }
 
-    // Prepare the updated data
     const formDataObj = new FormData();
+    formDataObj.append("name", formData.name || "");
+    formDataObj.append("email", formData.email || "");
+    formDataObj.append("phone", formData.phone_number || "");
+    formDataObj.append("address", formData.address || "");
+    formDataObj.append("category", formData.category || "");
 
-    // Append regular fields (like name, email, etc.)
-    formDataObj.append("name", formData.name);
-    formDataObj.append("email", formData.email);
-    formDataObj.append("phone", formData.phone);
-    formDataObj.append("address", formData.address);
-    formDataObj.append("category", formData.category);
-
-    // Append images (work samples) to the form data
+    // Append work sample images
     workSampleImages.forEach((file, index) => {
-      formDataObj.append(`workSampleImage_${index}`, file); // Adding image files to the FormData
+      formDataObj.append(`workSampleImage_${index}`, file);
     });
 
-    fetch(`${baseUrl}/service/${userId}`, {
+    // PUT request to update service details
+    fetch(`${baseUrl}/service/${id}`, {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${authToken}`,
       },
       body: formDataObj,
@@ -104,9 +180,7 @@ export default function HiringDashboard() {
           enqueueSnackbar("Profile updated successfully!", {
             variant: "success",
           });
-
-          setIsEditing(false); // Hide the edit mode
-          // Optionally, you can update the form data with the new values returned from the API
+          setIsEditing(false);
         } else {
           enqueueSnackbar("Failed to update profile. Please try again.", {
             variant: "error",
@@ -114,17 +188,15 @@ export default function HiringDashboard() {
         }
       })
       .catch((error) => {
-        console.error("Error updating profile:", error);
-
-        enqueueSnackbar("There was an error updating your profile.", {
+        enqueueSnackbar(`${error}, There was an error updating your profile.`, {
           variant: "error",
         });
       });
   };
 
+  // Handle delete account
   const handleDeleteAccount = () => {
     if (serviceId) {
-      // Make the DELETE request to delete the account
       fetch(`${baseUrl}/service/${serviceId}`, {
         method: "DELETE",
       })
@@ -134,7 +206,7 @@ export default function HiringDashboard() {
             enqueueSnackbar("Account deleted successfully!", {
               variant: "success",
             });
-            setActiveSection("dashboard"); // Redirect to the dashboard or reset the UI
+            setActiveSection("dashboard"); // Reset to dashboard or redirect
           } else {
             enqueueSnackbar("Failed to delete the account. Please try again.", {
               variant: "error",
@@ -142,35 +214,27 @@ export default function HiringDashboard() {
           }
         })
         .catch((error) => {
-          console.error("Error deleting account:", error);
-
-          enqueueSnackbar("There was an error deleting the account.", {
+          enqueueSnackbar(`${error} There was an error deleting the account.`, {
             variant: "error",
           });
         });
     } else {
       enqueueSnackbar("Service ID not found.", { variant: "info" });
     }
-    setShowDeleteModal(false); // Close the delete modal
+    setShowDeleteModal(false);
   };
 
+  // Handle file upload
   const handleWorkSampleUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 5) {
-      enqueueSnackbar("You must upload not more than five images.", {
+      enqueueSnackbar("You must upload no more than five images.", {
         variant: "warning",
       });
       return;
     }
 
     const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-    if (imageFiles.length > 5) {
-      enqueueSnackbar("You must upload not more than five images.", {
-        variant: "warning",
-      });
-      return;
-    }
-
     const readers = imageFiles.map((file) => {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -204,7 +268,7 @@ export default function HiringDashboard() {
             className="cursor-pointer mb-2"
             onClick={() => setActiveSection("settings")}
           >
-            Settingss
+            Settings
           </li>
           <li
             className="cursor-pointer mb-2"
@@ -251,7 +315,7 @@ export default function HiringDashboard() {
 
         {/* Mobile Sidebar Content */}
         {isSidebarOpen && (
-          <div className="md:hidden fixed top-0 left-0 w-64 bg-gray-800 text-white p-6">
+          <div className="md:hidden m-3 fixed top-0 left-0 w-64 bg-gray-800 text-white p-6">
             <h2 className="text-xl font-semibold mb-4">Dashboard</h2>
             <ul>
               <li
@@ -439,20 +503,65 @@ export default function HiringDashboard() {
         )}
 
         {activeSection === "reviews" && (
-          <div className="mt-6">
-            <h2 className="text-2xl font-bold">Reviews</h2>
-            <div>
-              {reviews.length === 0 ? (
-                <p>No reviews yet</p>
-              ) : (
-                reviews.map((review, index) => (
-                  <div key={index} className="bg-gray-100 p-4 rounded-lg mt-2">
-                    <p>
-                      <strong>{review.userName}</strong>: {review.comment}
-                    </p>
+          <div className="min-h-screen p-6">
+            <h2 className="text-2xl font-bold mb-4">All Reviews</h2>
+
+            {/* Reviews Grid (Responsive) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {reviews.map((review, index) => (
+                <div key={index} className="bg-white p-4 rounded-lg shadow-md">
+                  {/* Reviewer Name */}
+                  <div className="flex items-center justify-center">
+                    <p className="font-semibold text-lg">{review.user_name}</p>
                   </div>
-                ))
-              )}
+
+                  {/* Rating */}
+                  <div className="flex justify-center text-yellow-500 mt-2">
+                    {[...Array(5)].map((_, i) => (
+                      <FontAwesomeIcon
+                        key={i}
+                        icon={faStar}
+                        className={`text-xl ${
+                          i < review.star_rating
+                            ? "text-yellow-500"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Review Comment */}
+                  <p className="mt-2 text-center text-gray-600">
+                    {review.comment}
+                  </p>
+
+                  {/* Time */}
+                  <p className="text-sm text-gray-500 mt-2 text-center">
+                    {new Date(review.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="mt-4 flex justify-center items-center space-x-4">
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className="bg-gray-500 text-white p-2 rounded-md disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="bg-gray-500 text-white p-2 rounded-md disabled:opacity-50"
+              >
+                Next
+              </button>
             </div>
           </div>
         )}
