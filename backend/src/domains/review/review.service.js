@@ -12,15 +12,24 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
 
   // Check if user exists
   const existingUser = await User.findOne({ where: { email } });
-  if (existingUser && existingUser.role === "reviewer") {
+
+  if (existingUser) {
+    if (existingUser.role !== "reviewer") {
+      return { message: "User already exists with a different role" };
+    }
+
     const token = jwt.sign(
-      { id: existingUser.id, email: existingUser.email, name: existingUser.name, role: existingUser.role },
+      {
+        id: existingUser.id,
+        email: existingUser.email,
+        name: existingUser.name,
+        role: existingUser.role,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "3d" }
     );
+
     return { message: "Login successful", token };
-  } else if (existingUser && existingUser.role !== "reviewer") {
-    return {message: "User already exists with a different role"}
   }
 
   // Register new user
@@ -31,15 +40,19 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
     name: displayName,
   });
 
-  // Generate token
   const token = jwt.sign(
-    { id: newUser.id, email: newUser.email, name: displayName, role: newUser.role },
+    {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role,
+    },
     process.env.JWT_SECRET,
     { expiresIn: "3d" }
   );
-
   return { message: "Reviewer registered successfully", token };
-}
+};
+
 
 exports.createReview = async (userId, entityId, rating, comment, user_name) => {
   const user = await User.findByPk(userId);
