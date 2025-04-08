@@ -12,7 +12,6 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
 
   // Check if user exists
   const existingUser = await User.findOne({ where: { email } });
-  console.log("Existing User:", existingUser);
 
   if (existingUser) {
     if (existingUser.role !== "reviewer") {

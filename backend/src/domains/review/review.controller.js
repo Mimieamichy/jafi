@@ -17,7 +17,8 @@ exports.googleAuthCallback = async (req, res, next) => {
 
         try {
             const response = await ReviewService.registerReviewerWithGoogle(user);
-            return res.redirect(`${process.env.FRONTEND_URL}/?token=${response.token}`);
+            const redirectUrl = req.query.redirect || process.env.FRONTEND_URL;
+            return res.redirect(`${redirectUrl}/?token=${response.token}`);
         } catch (error) {
             res.status(error.status || 500).json({ message: error.message });
         }
