@@ -29,9 +29,10 @@ const images = [
 ];
 
 export default function HeroSection() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
-  const [error, setError] = useState(""); // Added error state
+  const [searchQuery, setSearchQuery] = useState("");  // User search query
+  const [suggestions, setSuggestions] = useState([]); // List of suggestions based on search
+  const [error, setError] = useState("");             // Error state
+  const [loading, setLoading] = useState(false);      // Loading state to track when fetching is happening
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export default function HeroSection() {
     const savedSearchQuery = localStorage.getItem("searchQuery");
     if (savedSearchQuery) {
       setSearchQuery(savedSearchQuery);
+      setSearchQuery("");
     }
   }, []);
 
@@ -46,15 +48,18 @@ export default function HeroSection() {
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (searchQuery) {
+        setLoading(true); // Set loading to true while fetching results
         try {
           const response = await axios.get(`${baseUrl}/user/listings`, {
             params: { searchTerm: searchQuery },
           });
           setSuggestions(response.data.listings || []);
-          console.log("Data:", response); // Assuming listings are in response.data.listings
         } catch (error) {
           console.error("Error fetching listings:", error);
           setError("Failed to fetch listings. Please try again later.");
+        } finally {
+          setLoading(false); // Set loading to false after fetching is complete
+           // Clear the input field after fetching results
         }
       } else {
         setSuggestions([]); // Reset suggestions if search is cleared
@@ -70,12 +75,12 @@ export default function HeroSection() {
     localStorage.setItem("searchQuery", query); // Store searchQuery in localStorage
   };
 
-  const handleListingClick = (listingId, role) => {
-    // Navigate to the appropriate route based on role
-    if (role === "service") {
-      navigate(`/hire/${listingId}`);
-    } else if (role === "business") {
-      navigate(`/bus/${listingId}`);
+  const handleListingClick = (id, type) => {
+    // Navigate to the appropriate route based on type
+    if (type === "service") {
+      navigate(`/hire/${id}`);
+    } else if (type === "business") {
+      navigate(`/bus/${id}`);
     }
   };
 
@@ -131,20 +136,25 @@ export default function HeroSection() {
         {error && <p className="text-red-500 mt-4">{error}</p>}
 
         {/* Suggestions Dropdown */}
-        {searchQuery && suggestions.length > 0 && (
-          <div className="absolute mt-2 bg-white rounded-lg shadow-lg w-full max-w-md mx-auto text-black">
-            <ul>
-              {suggestions.map((listing) => (
-                <li
-                  key={listing.id}
-                  onClick={() => handleListingClick(listing.id, listing.role)} // Handle navigation based on role
-                  className="px-4 py-2 cursor-pointer hover:bg-gray-200"
-                >
-                  {listing.name} - {listing.category}
-                </li>
-              ))}
-            </ul>
-          </div>
+        {loading ? (
+          <p>Loading...</p> // Display loading text while results are being fetched
+        ) : (
+          searchQuery &&
+          suggestions.length > 0 && (
+            <div className="absolute mt-2 bg-white rounded-lg shadow-lg w-full max-w-md mx-auto text-black">
+              <ul>
+                {suggestions.map((listing) => (
+                  <li
+                    key={listing.id}
+                    onClick={() => handleListingClick(listing.id, listing.type)} // Handle navigation based on role
+                    className="px-4 py-2 cursor-pointer hover:bg-gray-200"
+                  >
+                    {listing.name} - {listing.category}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
         )}
       </div>
     </div>
