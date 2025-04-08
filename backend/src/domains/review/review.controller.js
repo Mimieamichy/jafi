@@ -16,19 +16,33 @@ exports.googleAuth = async (req, res, next) => {
 })(req, res, next)};
   
 exports.googleAuthCallback = async (req, res, next) => {
-    passport.authenticate("google", { session: false, failureRedirect: '/' }, async (err, user) => {
+    passport.authenticate("google", { session: false, failureRedirect: '/' }, async (err, user, info) => {
         if (err || !user) {
-            console.log(err)
+            console.error("Google authentication error:", err);
             return res.status(401).json({ success: false, message: "Authentication failed" });
         }
 
         try {
+            // Generate JWT token for the user
             const response = await ReviewService.registerReviewerWithGoogle(user);
-            const redirectUrl = req.query.redirect || "/";
+            
+            // Parse the state parameter to get the redirect URL
+            let redirectState = {};
+            try {
+                if (req.query.state) {
+                    redirectState = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
+                }
+            } catch (e) {
+                console.error("Failed to parse state:", e);
+            }
+            
+            const redirectUrl = redirectState.redirect || "/";
+            console.log("Redirecting to:", `${process.env.FRONTEND_URL}${redirectUrl}?token=${response.token}`);
 
-            // Redirect back to frontend with token and redirect
+            // Redirect back to frontend with token
             return res.redirect(`${process.env.FRONTEND_URL}${redirectUrl}?token=${response.token}`);
         } catch (error) {
+            console.error("Error in Google callback:", error);
             res.status(error.status || 500).json({ message: error.message });
         }
     })(req, res, next);

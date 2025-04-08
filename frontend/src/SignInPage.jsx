@@ -65,15 +65,20 @@ export default function SignIn() {
       }
     } catch (error) {
       console.error("Login or role fetch error:", error);
+      setError(error.message || "An error occurred during login. Please try again.");
       enqueueSnackbar(error.message || "An error occurred during login. Please try again.", { variant: "error" }); // Error Notification
     }
   };
 
   const handleGoogleLogin = () => {
-    // Redirect to Google login for Reviewer
-    const redirectUrl = new URL(window.location.href);
-    redirectUrl.searchParams.set("redirect", location.pathname); // Include the current page as a redirect
-    window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(redirectUrl)}`;
+    // FIX: Use a simpler approach to handle redirects
+    // Get the intended redirect destination after login
+    const params = new URLSearchParams(location.search);
+    const redirectPath = params.get("redirect") || "/"; // Default to home if no redirect specified
+    
+    // Create the Google auth URL with proper redirect parameter
+    // This fixes the encoding issue that was causing the TokenError
+    window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(redirectPath)}`;
   };
 
   return (
