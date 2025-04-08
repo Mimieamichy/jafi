@@ -3,6 +3,7 @@ const User = require("../user/user.model");
 const jwt = require("jsonwebtoken");
 const Service = require("../service/service.model");
 const Business = require("../business/business.model");
+const sequelize = require("../../config/database");
 
 
 
