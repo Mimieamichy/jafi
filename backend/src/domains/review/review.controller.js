@@ -4,21 +4,30 @@ require("../../config/google");
 
 
 exports.googleAuth = async (req, res, next) => {
+    const redirect = req.query.redirect || "/";
+    const state = Buffer.from(JSON.stringify({ redirect })).toString("base64");
+
+    console.log(req.query)
+
     passport.authenticate("google", {
     scope: ["email", "profile"],
     session: false,
+    state
 })(req, res, next)};
   
 exports.googleAuthCallback = async (req, res, next) => {
     passport.authenticate("google", { session: false, failureRedirect: '/' }, async (err, user) => {
         if (err || !user) {
+            console.log(err)
             return res.status(401).json({ success: false, message: "Authentication failed" });
         }
 
         try {
             const response = await ReviewService.registerReviewerWithGoogle(user);
-            const redirectUrl = req.query.redirect || process.env.FRONTEND_URL;
-            return res.redirect(`${redirectUrl}/?token=${response.token}`);
+            const redirectUrl = req.query.redirect || "/";
+
+            // Redirect back to frontend with token and redirect
+            return res.redirect(`${process.env.FRONTEND_URL}${redirectUrl}?token=${response.token}`);
         } catch (error) {
             res.status(error.status || 500).json({ message: error.message });
         }
