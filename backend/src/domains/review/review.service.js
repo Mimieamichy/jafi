@@ -12,10 +12,11 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
 
   // Check if user exists
   const existingUser = await User.findOne({ where: { email } });
+  console.log("Existing User:", existingUser);
 
   if (existingUser) {
     if (existingUser.role !== "reviewer") {
-      return { message: "User already exists with a different role" };
+      return {message: "User already exists with a different role"}
     }
 
     const token = jwt.sign(
