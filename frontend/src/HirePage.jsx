@@ -220,8 +220,8 @@ export default function HireProfileDetails() {
           >
             <img
               src={img}
-              alt={`Worksample ${i + 1}`}
-              className="w-full h-64 rounded"
+              alt={`Work sample ${i + 1}`}
+              className="w-full h-64  rounded"
             />
           </div>
         ))}

@@ -171,7 +171,7 @@ function UserCard({ user, onClick }) {
       )}
 
       <div className="p-6 text-center">
-        <h2 className="text-xl font-bold capitalize">{user.service_name}</h2>
+        <h2 className="text-xl font-bold capitalize">{user.name}</h2>
         <p className="flex items-center justify-center text-gray-600 mt-2">
           <FontAwesomeIcon icon={faBriefcase} className="mr-2 text-green-500" />
           {user.category}
