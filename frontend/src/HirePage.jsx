@@ -17,14 +17,12 @@ import { useNavigate } from "react-router-dom";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
-// ... import statements remain unchanged
-
 export default function HireProfileDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
   const { enqueueSnackbar } = useSnackbar();
-console.log("Location:", id); // Log the location object for debugging
+  
   const [hire, setHire] = useState(null);
   const [uniqueId, setUniqueId] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -40,12 +38,13 @@ console.log("Location:", id); // Log the location object for debugging
       .then((res) => res.json())
       .then((data) => {
         setHire(data);
-        console.log(data);
+        console.log("Service data:", data);
         setUniqueId(data.uniqueId);
       })
-      .catch(() =>
-        enqueueSnackbar("Failed to fetch hire profile", { variant: "error" })
-      );
+      .catch((err) => {
+        console.error("Failed to fetch service:", err);
+        enqueueSnackbar("Failed to fetch hire profile", { variant: "error" });
+      });
   }, [id, enqueueSnackbar]);
 
   // Fetch reviews
@@ -53,49 +52,71 @@ console.log("Location:", id); // Log the location object for debugging
     if (!uniqueId) return;
     fetch(`${baseUrl}/review/entity/${uniqueId}`)
       .then((res) => res.json())
-      .then((data) => console.log(data) || setReviews(data.reviews || []))
-
-      .catch(() =>
-        enqueueSnackbar("Failed to fetch reviews", { variant: "error" })
-      );
+      .then((data) => {
+        console.log("Reviews data:", data);
+        setReviews(data.reviews || []);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch reviews:", err);
+        enqueueSnackbar("Failed to fetch reviews", { variant: "error" });
+      });
   }, [uniqueId, showReviewForm, enqueueSnackbar]);
 
   // Google Sign-in & token handling
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
+    // Check for token in URL parameters (from Google login redirect)
+    const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-    const redirect = params.get("redirect") || location.pathname;
-    // default to current page
-
+    
     if (token) {
       try {
+        // Decode and validate token
         const decoded = jwtDecode(token);
         const isExpired = decoded.exp * 1000 < Date.now();
 
         if (isExpired) {
+          // Handle expired token
           localStorage.removeItem("reviewerToken");
           localStorage.removeItem("reviewer");
           enqueueSnackbar("Session expired. Please sign in again.", {
             variant: "info",
           });
-          window.location.href = `${baseUrl}/review/google?redirect=${redirect}`;
-          
+          // Redirect to Google login with current page as redirect target
+          const currentPath = encodeURIComponent(location.pathname);
+          window.location.href = `${baseUrl}/review/google?redirect=${currentPath}`;
         } else {
+          // Store valid token and user data
           localStorage.setItem("reviewerToken", token);
           localStorage.setItem("reviewer", JSON.stringify(decoded));
           setReviewer(decoded);
-
-          // Remove token + redirect param from URL
+          console.log("User authenticated:", decoded);
+          
+          // Clean URL by removing token parameter
           const cleanedUrl = location.pathname;
           window.history.replaceState({}, document.title, cleanedUrl);
-          window.location.reload();
         }
-      } catch {
+      } catch (error) {
+        console.error("Token decode error:", error);
         enqueueSnackbar("Invalid login token", { variant: "error" });
       }
     } else {
+      // Check for existing token in localStorage
+      const storedToken = localStorage.getItem("reviewerToken");
       const stored = localStorage.getItem("reviewer");
-      if (stored) setReviewer(JSON.parse(stored));
+      
+      if (storedToken && stored) {
+        const decoded = jwtDecode(storedToken);
+        // Check if token is expired
+        if (decoded.exp * 1000 < Date.now()) {
+          localStorage.removeItem("reviewerToken");
+          localStorage.removeItem("reviewer");
+          enqueueSnackbar("Session expired. Please sign in again to write a review.", {
+            variant: "info",
+          });
+        } else {
+          setReviewer(JSON.parse(stored));
+        }
+      }
     }
   }, [location, enqueueSnackbar]);
 
@@ -111,13 +132,15 @@ console.log("Location:", id); // Log the location object for debugging
     e.preventDefault();
 
     const token = localStorage.getItem("reviewerToken");
-    console.log("Token:", token); // Log the token for debugging
+    console.log("Submitting review with token:", token);
     
     if (!token) {
       enqueueSnackbar("Please login to submit your review.", {
         variant: "warning",
       });
-      window.location.href = `${baseUrl}/review/google`;
+      // Save current URL for redirect after login
+      const currentUrl = encodeURIComponent(window.location.pathname);
+      window.location.href = `${baseUrl}/review/google?redirect=${currentUrl}`;
       return;
     }
 
@@ -128,7 +151,8 @@ console.log("Location:", id); // Log the location object for debugging
       });
       localStorage.removeItem("reviewerToken");
       localStorage.removeItem("reviewer");
-      window.location.href = `${baseUrl}/review/google`;
+      const currentUrl = encodeURIComponent(window.location.pathname);
+      window.location.href = `${baseUrl}/review/google?redirect=${currentUrl}`;
       return;
     }
 
@@ -159,19 +183,17 @@ console.log("Location:", id); // Log the location object for debugging
           variant: "error",
         });
       }
-    } catch {
+    } catch (error) {
+      console.error("Review submission error:", error);
       enqueueSnackbar("Something went wrong", { variant: "error" });
     }
   };
 
   const handleGoogleLogin = () => {
-    // Frontend - Capture the current URL before redirecting to Google login
-    const currentUrl = window.location.href;
-
-    // Send the current URL as a query parameter
-    window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(
-      currentUrl
-    )}`;
+    // Capture the current URL for redirect after login
+    const currentUrl = encodeURIComponent(window.location.pathname);
+    console.log("Redirecting to Google login with redirect:", currentUrl);
+    window.location.href = `${baseUrl}/review/google?redirect=${currentUrl}`;
   };
 
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
@@ -180,6 +202,7 @@ console.log("Location:", id); // Log the location object for debugging
 
   return (
     <div className="max-w-4xl mx-auto p-6 relative">
+      {/* Rest of component remains unchanged */}
       {/* Carousel */}
       <Slider
         dots
@@ -197,8 +220,8 @@ console.log("Location:", id); // Log the location object for debugging
           >
             <img
               src={img}
-              alt={`Work sample ${i + 1}`}
-              className="w-full h-64  rounded"
+              alt={`Worksample ${i + 1}`}
+              className="w-full h-64 rounded"
             />
           </div>
         ))}
@@ -401,5 +424,3 @@ console.log("Location:", id); // Log the location object for debugging
     </div>
   );
 }
-
-
