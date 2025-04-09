@@ -55,8 +55,8 @@ export default function SignIn() {
       localStorage.setItem("userData", JSON.stringify(decodedToken)); 
       enqueueSnackbar("Login Successful!", { variant: "success" });
 
-      const params = new URLSearchParams(location.search);
-      const redirect = params.get("redirect") || location.pathname;
+      // const params = new URLSearchParams(location.search);
+      // const redirect = params.get("redirect") || location.pathname;
 
       if (role === "business") {
         navigate("/bus-dashboard"); 
@@ -82,7 +82,7 @@ export default function SignIn() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-black text-white shadow-md rounded-lg">
+    <div className="max-w-md mx-auto my-5 p-6 bg-gray-900 text-white shadow-md rounded-lg">
       <h2 className="text-3xl font-bold mb-4 text-center">Sign In</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">

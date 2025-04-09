@@ -30,13 +30,13 @@ export default function Navbar() {
     // Check URL parameters for token (from Google login redirect)
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-    
+
     // If token is in URL, process it
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
         const isExpired = decodedToken.exp * 1000 < Date.now();
-        
+
         if (isExpired) {
           // Handle expired token
           localStorage.removeItem("reviewerToken");
@@ -48,7 +48,7 @@ export default function Navbar() {
           localStorage.setItem("reviewer", JSON.stringify(decodedToken));
           setReviewer(decodedToken);
           console.log("Reviewer authenticated:", decodedToken);
-          
+
           // Clean URL by removing token parameter
           const cleanedUrl = location.pathname;
           window.history.replaceState({}, document.title, cleanedUrl);
@@ -60,12 +60,12 @@ export default function Navbar() {
       // Check localStorage for existing token
       const storedToken = localStorage.getItem("reviewerToken");
       const storedRole = localStorage.getItem("userRole");
-      
+
       if (storedToken) {
         try {
           const decodedToken = jwtDecode(storedToken);
           const isExpired = decodedToken.exp * 1000 < Date.now();
-          
+
           if (isExpired) {
             localStorage.removeItem("reviewerToken");
             localStorage.removeItem("reviewer");
@@ -80,7 +80,7 @@ export default function Navbar() {
           localStorage.removeItem("reviewer");
         }
       }
-      
+
       // Set user role from localStorage
       if (storedRole) {
         setUserRole(storedRole);
@@ -140,7 +140,9 @@ export default function Navbar() {
           </Link>
           {userRole && (
             <Link
-              to={userRole === "business" ? "/bus-dashboard" : "/hiring-dashboard"}
+              to={
+                userRole === "business" ? "/bus-dashboard" : "/hiring-dashboard"
+              }
               onClick={handleNavClick}
               className="text-gray-600 hover:text-black"
             >
@@ -153,7 +155,7 @@ export default function Navbar() {
             <>
               {/* Display Login button if no user is logged in */}
               <button
-                onClick={handleLoginClick} 
+                onClick={handleLoginClick}
                 className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
               >
                 Login
@@ -241,10 +243,22 @@ export default function Navbar() {
           >
             Services
           </Link>
+          {userRole && (
+            <Link
+              to={
+                userRole === "business" ? "/bus-dashboard" : "/hiring-dashboard"
+              }
+              onClick={handleNavClick}
+              className="block text-black hover:text-gray-600"
+            >
+              Dashboard
+            </Link>
+          )}
+
           {!reviewer && userRole === null ? (
             <>
               <button
-                onClick={handleLoginClick} 
+                onClick={handleLoginClick}
                 className="block w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md"
               >
                 Login
@@ -272,15 +286,28 @@ export default function Navbar() {
               </button>
             </div>
           ) : null}
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              setShowSignupModal(true);
-            }}
-            className="block w-full bg-blue-500 text-white px-4 py-2 rounded-md"
-          >
-            For Listings
-          </button>
+
+          {userRole ? (
+            <button
+              onClick={() => {
+                handleLogout();
+                setIsOpen(false);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+            >
+              Logout
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                setShowSignupModal(true);
+              }}
+              className="block w-full bg-blue-500 text-white px-4 py-2 rounded-md"
+            >
+              For Listings
+            </button>
+          )}
         </div>
       )}
 

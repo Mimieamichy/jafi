@@ -47,7 +47,6 @@ exports.googleAuthCallback = async (req, res, next) => {
         }
     })(req, res, next);
 };
-
 exports.createReview = async (req, res) => {
     try {
         const { rating, comment } = req.body;

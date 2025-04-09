@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
-import { formatDistanceToNow } from "date-fns";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEye,
@@ -10,9 +9,8 @@ import {
   faTimes,
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
-// Import useParams and useLocation
-
 import { jwtDecode } from "jwt-decode";
+import { formatDistanceToNow } from "date-fns";
 
 export default function HiringDashboard() {
   const [formData, setFormData] = useState(null);
@@ -30,6 +28,8 @@ export default function HiringDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [reviewsPerPage, setReviewsPerPage] = useState(8);
+  const [newReviewCount, setNewReviewCount] = useState(0);
+  const [profileImage, setProfileImage] = useState(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -63,6 +63,11 @@ export default function HiringDashboard() {
           setWorkSampleImages(data.user.images || []); // Set images from data
           setServiceId(data.user.uniqueId);
           setId(data.user.id); // Set the ID from the data
+
+          // Set the first image as profile image if available
+          if (data.user.images && data.user.images.length > 0) {
+            setProfileImage(data.user.images[0]);
+          }
         }
       });
 
@@ -82,15 +87,29 @@ export default function HiringDashboard() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log("Fetched reviews:", data); // Log the fetched reviews for debugging
+        console.log("Fetched reviews:", data);
 
         if (response.ok) {
           setReviews(data.reviews);
-          const newReviews = data.reviews.filter((review) => review.isNew);
-          if (newReviews.length > 0) setNewReviewNotification(true);
+          const currentTime = Date.now();
+          const oneDayInMs = 24 * 60 * 60 * 1000;
+
+          const newReviews = data.reviews.filter((review) => {
+            const reviewCreatedTime = new Date(review.createdAt).getTime();
+            return currentTime - reviewCreatedTime <= oneDayInMs;
+          });
+          setNewReviewCount(newReviews.length);
+          if (newReviews.length > 0) {
+            enqueueSnackbar(`You have ${newReviews.length} new reviews!`, {
+              variant: "info",
+            });
+            setNewReviewNotification(true); // Show the notification badge
+          } else {
+            setNewReviewNotification(false); // Hide the notification badge
+          }
 
           const totalReviews = data.reviews.length;
-          setTotalPages(Math.ceil(totalReviews / reviewsPerPage)); // Assuming totalCount is in the response
+          setTotalPages(Math.ceil(totalReviews / reviewsPerPage));
         } else {
           enqueueSnackbar("Failed to fetch reviews.", { variant: "error" });
         }
@@ -113,8 +132,6 @@ export default function HiringDashboard() {
     currentPage,
     reviewsPerPage,
   ]);
-
-  
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -155,11 +172,11 @@ export default function HiringDashboard() {
     }
 
     const formDataObj = new FormData();
-    formDataObj.append("name", formData.name || "");
+
     formDataObj.append("email", formData.email || "");
-    formDataObj.append("phone", formData.phone_number || "");
     formDataObj.append("address", formData.address || "");
-    formDataObj.append("category", formData.category || "");
+    formDataObj.append("password", formData.password || "");
+    formDataObj.append("description", formData.description || "");
 
     // Append work sample images
     workSampleImages.forEach((file, index) => {
@@ -245,6 +262,10 @@ export default function HiringDashboard() {
 
     Promise.all(readers).then((imageURLs) => {
       setWorkSampleImages(imageURLs);
+      // Set first image as profile image
+      if (imageURLs.length > 0) {
+        setProfileImage(imageURLs[0]);
+      }
     });
   };
 
@@ -254,30 +275,36 @@ export default function HiringDashboard() {
       <div
         className={`bg-gray-800 text-white w-64 p-6 hidden transition-all transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-64"
-        } md:block fixed md:relative  md:flex-none md:w-64 md:translate-x-0`}
+        } md:block fixed md:relative md:flex-none md:w-64 md:translate-x-0`}
       >
         <h2 className="text-xl font-semibold mb-4">Dashboard</h2>
         <ul>
           <li
-            className="cursor-pointer mb-2"
+            className={`cursor-pointer mb-2 p-2 rounded ${
+              activeSection === "dashboard" ? "bg-gray-700" : ""
+            }`}
             onClick={() => setActiveSection("dashboard")}
           >
             My Dashboard
           </li>
           <li
-            className="cursor-pointer mb-2"
+            className={`cursor-pointer mb-2 p-2 rounded ${
+              activeSection === "settings" ? "bg-gray-700" : ""
+            }`}
             onClick={() => setActiveSection("settings")}
           >
             Settings
           </li>
           <li
-            className="cursor-pointer mb-2"
+            className={`cursor-pointer mb-2 p-2 rounded ${
+              activeSection === "reviews" ? "bg-gray-700" : ""
+            }`}
             onClick={() => setActiveSection("reviews")}
           >
             Reviews
           </li>
           <li
-            className="cursor-pointer text-red-500"
+            className="cursor-pointer text-red-500 p-2 rounded hover:bg-gray-700"
             onClick={() => setShowDeleteModal(true)}
           >
             Delete Account
@@ -288,303 +315,363 @@ export default function HiringDashboard() {
       {/* Main content */}
       <div className="flex-1 p-6">
         {/* Burger Menu (Mobile) */}
-        <div className="md:hidden flex justify-between items-center">
-          {/* Burger Icon */}
+        <div className="md:hidden flex justify-between items-center mb-4">
           <FontAwesomeIcon
             icon={faBars}
             className="text-black text-2xl"
             onClick={() => setIsSidebarOpen(true)}
           />
-          {newReviewNotification && (
-            <div className="relative">
-              <FontAwesomeIcon icon={faBell} className="text-red-500" />
-              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-            </div>
-          )}
-        </div>
-
-        {/* Notification Bell (Desktop) */}
-        <div className="hidden md:block absolute top-4 right-4">
-          {newReviewNotification && (
-            <div className="relative">
-              <FontAwesomeIcon icon={faBell} className="text-red-500" />
-              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-            </div>
-          )}
         </div>
 
         {/* Mobile Sidebar Content */}
         {isSidebarOpen && (
-          <div className="md:hidden m-3 fixed top-0 left-0 w-64 bg-gray-800 text-white p-6">
-            <h2 className="text-xl font-semibold mb-4">Dashboard</h2>
-            <ul>
-              <li
-                className="cursor-pointer mb-2"
-                onClick={() => {
-                  setActiveSection("dashboard");
-                  setIsSidebarOpen(false);
-                }}
-              >
-                My Dashboard
-              </li>
-              <li
-                className="cursor-pointer mb-2"
-                onClick={() => {
-                  setActiveSection("settings");
-                  setIsSidebarOpen(false);
-                }}
-              >
-                Settings
-              </li>
-              <li
-                className="cursor-pointer mb-2"
-                onClick={() => {
-                  setActiveSection("reviews");
-                  setIsSidebarOpen(false);
-                }}
-              >
-                Reviews
-              </li>
-              <li
-                className="cursor-pointer text-red-500"
-                onClick={() => {
-                  setShowDeleteModal(true);
-                  setIsSidebarOpen(false);
-                }}
-              >
-                Delete Account
-              </li>
-            </ul>
-
-            <FontAwesomeIcon
-              icon={faTimes}
-              className="absolute top-4 right-4 text-white text-2xl"
-              onClick={() => setIsSidebarOpen(false)}
-            />
+          <div className="md:hidden fixed inset-0 z-50 bg-gray-800 bg-opacity-50">
+            <div className="w-64 bg-gray-800 text-white p-6 h-full">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Dashboard</h2>
+                <FontAwesomeIcon
+                  icon={faTimes}
+                  className="text-white text-2xl cursor-pointer"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              </div>
+              <ul>
+                <li
+                  className={`cursor-pointer mb-2 p-2 rounded ${
+                    activeSection === "dashboard" ? "bg-gray-700" : ""
+                  }`}
+                  onClick={() => {
+                    setActiveSection("dashboard");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  My Dashboard
+                </li>
+                <li
+                  className={`cursor-pointer mb-2 p-2 rounded ${
+                    activeSection === "settings" ? "bg-gray-700" : ""
+                  }`}
+                  onClick={() => {
+                    setActiveSection("settings");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  Settings
+                </li>
+                <li
+                  className={`cursor-pointer mb-2 p-2 rounded ${
+                    activeSection === "reviews" ? "bg-gray-700" : ""
+                  }`}
+                  onClick={() => {
+                    setActiveSection("reviews");
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  Reviews
+                </li>
+                <li
+                  className="cursor-pointer text-red-500 p-2 rounded hover:bg-gray-700"
+                  onClick={() => {
+                    setShowDeleteModal(true);
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  Delete Account
+                </li>
+              </ul>
+            </div>
           </div>
         )}
 
         {/* Render different sections based on activeSection */}
         {activeSection === "dashboard" && (
           <div className="mt-6">
-            <h2 className="text-2xl font-bold">My Dashboard</h2>
             {formData ? (
-              <div className="bg-gray-100 p-6 rounded-lg shadow-md">
-                <div className="space-y-4">
-                  <p>
-                    <strong>Name:</strong> {formData.name}
+              <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+                {/* Top Green Bar */}
+                <div className="h-12 bg-blue-600"></div>
+
+                <div className="p-6">
+                  {/* Notification Icon */}
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
+                      {newReviewNotification ? (
+                        <div className="flex items-center">
+                          <FontAwesomeIcon icon={faBell} className="mr-1" />
+                          <span>{newReviewCount} new</span>
+                        </div>
+                      ) : (
+                        <FontAwesomeIcon icon={faBell} />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Profile Image */}
+                  <div className="flex justify-center mb-4">
+                    <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+                      {profileImage ? (
+                        <img
+                          src={profileImage}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-2xl font-bold text-gray-600">
+                          {formData.name ? formData.name.charAt(0) : "?"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Service Name (was Alexis Hill) */}
+                  <h2 className="text-center text-2xl font-bold text-gray-800 mb-1">
+                    {formData.service_name || formData.name || "Service Name"}
+                  </h2>
+
+                  {/* Name (was Product Designer) */}
+                  <h3 className="text-center text-lg text-gray-600 mb-2">
+                    {formData.email || "Email"}
+                  </h3>
+
+                  {/* Category (was email) */}
+                  <p className="text-center text-gray-500 mb-6">
+                    {formData.category || "Category"}
                   </p>
-                  <p>
-                    <strong>Email:</strong> {formData.email}
-                  </p>
-                  <p>
-                    <strong>Category:</strong> {formData.category}
-                  </p>
+
+                  {/* Total Reviews Button (was Diventa PRO) */}
+                  <div className="bg-gray-900 text-white rounded-md py-3 px-4 flex justify-center items-center">
+                    <span className="mr-2">Total Reviews</span>
+                    <span className="bg-blue-600 text-white px-2 py-0.5 text-xs rounded">
+                      {reviews.length || 0}
+                    </span>
+                  </div>
                 </div>
               </div>
             ) : (
-              <p>Loading...</p>
+              <div className="flex justify-center items-center h-64">
+                <p className="text-gray-500">Loading dashboard data...</p>
+              </div>
             )}
           </div>
         )}
 
         {activeSection === "settings" && (
           <div className="mt-6">
-            <h2 className="text-2xl font-bold">Settings</h2>
-            <div className="space-y-4">
-              {/* Settings Inputs */}
-              <input
-                type="text"
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                placeholder="Address"
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                placeholder="Email"
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="text"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                placeholder="Phone"
-                className="w-full p-2 border rounded"
-              />
-
-              {/* Password Fields */}
+            <h2 className="text-2xl font-bold mb-6 text-center">Settings</h2>
+            <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="space-y-4">
-                <div className="relative">
+                {/* Settings Inputs */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Address
+                  </label>
                   <input
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
+                    type="text"
+                    value={formData?.address || ""}
                     onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
+                      setFormData({ ...formData, address: e.target.value })
                     }
-                    placeholder="New Password"
-                    className="w-full p-2 border rounded pr-10"
+                    placeholder="Address"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-2 text-gray-500"
-                  >
-                    <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
-                  </button>
                 </div>
 
-                <div className="relative">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
                   <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={formData.confirmPassword}
+                    type="email"
+                    value={formData?.email || ""}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        confirmPassword: e.target.value,
-                      })
+                      setFormData({ ...formData, email: e.target.value })
                     }
-                    placeholder="Confirm Password"
-                    className="w-full p-2 border rounded pr-10"
+                    placeholder="Email"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-2 top-2 text-gray-500"
-                  >
-                    <FontAwesomeIcon
-                      icon={showConfirmPassword ? faEye : faEyeSlash}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+
+                  <textarea
+                    type="text"
+                    value={formData?.description || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    className="w-full p-2 border rounded resize-none h-24"
+                  />
+                </div>
+
+                {/* Password Fields */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={formData?.password || ""}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      placeholder="New Password"
+                      className="w-full p-2 border rounded pr-10 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-2 text-gray-500"
+                    >
+                      <FontAwesomeIcon
+                        icon={showPassword ? faEye : faEyeSlash}
+                      />
+                    </button>
+                  </div>
                 </div>
-              </div>
-              {/* Work Samples Upload */}
-              <div className="mt-4">
-                <label className="block">
-                  Work Samples (5 images required)
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleWorkSampleUpload}
-                  className="w-full p-2 border rounded mt-2"
-                />
-              </div>
 
-              {/* Work Samples Preview */}
-              <div className="grid grid-cols-5 gap-2 mt-2">
-                {workSampleImages.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`Work Sample ${index + 1}`}
-                    className="w-20 h-20 object-cover rounded border"
+                {/* Work Samples Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Work Samples (5 images required)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleWorkSampleUpload}
+                    className="w-full p-2 border rounded mt-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   />
-                ))}
-              </div>
+                </div>
 
-              <button
-                onClick={handleSave}
-                className="bg-blue-500 text-white p-2 rounded-lg mt-4"
-              >
-                Save Changes
-              </button>
+                {/* Work Samples Preview */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
+                  {workSampleImages.map((image, index) => (
+                    <img
+                      key={index}
+                      src={image}
+                      alt={`Work Sample ${index + 1}`}
+                      className="w-full h-20 object-cover rounded border"
+                    />
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleSave}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg mt-4 font-medium transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {activeSection === "reviews" && (
-          <div className="min-h-screen p-6">
-            <h2 className="text-2xl font-bold mb-4">All Reviews</h2>
+          <div>
+            <h2 className="text-2xl font-bold mb-6 text-center">All Reviews</h2>
 
             {/* Reviews Grid (Responsive) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {reviews.map((review, index) => (
-                <div key={index} className="bg-white p-4 rounded-lg shadow-md">
-                  {/* Reviewer Name */}
-                  <div className="flex items-center justify-center">
-                    <p className="font-semibold text-lg">{review.user_name}</p>
+              {reviews.length > 0 ? (
+                reviews.map((review, index) => (
+                  <div
+                    key={index}
+                    className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                  >
+                    {/* Reviewer Name */}
+                    <div className="flex items-center justify-center">
+                      <p className="font-semibold text-lg">
+                        {review.user_name}
+                      </p>
+                    </div>
+
+                    {/* Rating */}
+                    <div className="flex justify-center text-yellow-500 mt-2">
+                      {[...Array(5)].map((_, i) => (
+                        <FontAwesomeIcon
+                          key={i}
+                          icon={faStar}
+                          className={`text-xl ${
+                            i < review.star_rating
+                              ? "text-yellow-500"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Review Comment */}
+                    <p className="mt-2 text-center text-gray-600 line-clamp-3">
+                      {review.comment}
+                    </p>
+
+                    {/* Time */}
+                    <p className="text-sm text-gray-500 mt-2 text-center">
+                      {formatDistanceToNow(new Date(review.createdAt), {
+                        addSuffix: true,
+                      })}
+                    </p>
                   </div>
-
-                  {/* Rating */}
-                  <div className="flex justify-center text-yellow-500 mt-2">
-                    {[...Array(5)].map((_, i) => (
-                      <FontAwesomeIcon
-                        key={i}
-                        icon={faStar}
-                        className={`text-xl ${
-                          i < review.star_rating
-                            ? "text-yellow-500"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Review Comment */}
-                  <p className="mt-2 text-center text-gray-600">
-                    {review.comment}
-                  </p>
-
-                  {/* Time */}
-                  <p className="text-sm text-gray-500 mt-2 text-center">
-                    {new Date(review.createdAt).toLocaleString()}
-                  </p>
+                ))
+              ) : (
+                <div className="col-span-full flex justify-center items-center h-64">
+                  <p className="text-gray-500">No reviews yet.</p>
                 </div>
-              ))}
+              )}
             </div>
 
             {/* Pagination */}
-            <div className="mt-4 flex justify-center items-center space-x-4">
-              <button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                className="bg-gray-500 text-white p-2 rounded-md disabled:opacity-50"
-              >
-                Prev
-              </button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className="bg-gray-500 text-white p-2 rounded-md disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
+            {reviews.length > 0 && (
+              <div className="mt-6 flex justify-center items-center space-x-4">
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-blue-700 transition-colors"
+                >
+                  Previous
+                </button>
+                <span className="font-medium">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-blue-700 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )}
 
         {/* Delete Account Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-lg">
-              <h3 className="text-xl font-bold mb-4">
-                Are you sure you want to delete your account?
+          <div className="fixed inset-0 bg-gray-800 bg-opacity-70 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold mb-4 text-gray-800">
+                Delete Account?
               </h3>
-              <div className="space-x-4">
-                <button
-                  onClick={handleDeleteAccount}
-                  className="bg-red-500 text-white p-2 rounded-lg"
-                >
-                  Yes, Delete Account
-                </button>
+              <p className="text-gray-600 mb-6">
+                This action cannot be undone. All your data, including reviews
+                and service information, will be permanently deleted.
+              </p>
+              <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="bg-gray-500 text-white p-2 rounded-lg"
+                  className="order-2 sm:order-1 bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  className="order-1 sm:order-2 bg-red-500 text-white font-medium py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Yes, Delete Account
                 </button>
               </div>
             </div>
