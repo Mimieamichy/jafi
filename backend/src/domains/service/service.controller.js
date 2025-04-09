@@ -50,6 +50,8 @@ exports.updateService = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id 
     const serviceData = req.body;
+    const images = req.files["workSamples"] ? req.files["workSamples"].map(file => file.path) : [];
+    serviceData.images = images
     const service = await ServiceService.updateService(id, userId, serviceData);
     res.status(200).json(service);
   } catch (error) {

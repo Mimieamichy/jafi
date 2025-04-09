@@ -1,6 +1,6 @@
 const express = require("express");
 const passport = require("passport");
-const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, searchReviews, getAReviewwithReplies, getAllReviewsWithReplies, replyToReview} = require("../review/review.controller");
+const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, searchReviews, getAReviewwithReplies, getAllReviewsWithReplies, replyToReview, acknowledgeReview} = require("../review/review.controller");
 
 const router = express.Router();
 
@@ -18,7 +18,6 @@ router.put("/:id", passport.authenticate("jwt", { session: false }), updateRevie
 router.delete("/:id", passport.authenticate("jwt", { session: false }), deleteReview);
 
 
-
 // Public Routes
 router.get("/", getAllReviews);
 router.get("/entity/:entityId", getReviewsForListings);
@@ -27,6 +26,7 @@ router.get("/:id", getReviewById);
 router.get("/replies/:reviewId", getAReviewwithReplies);
 router.get("/reply", getAllReviewsWithReplies);
 router.post("/reply/:reviewId", passport.authenticate("jwt", { session: false }), replyToReview);
+router.patch('acknowledge/:reviewId', passport.authenticate("jwt", { session: false }), acknowledgeReview)
 
 
 

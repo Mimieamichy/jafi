@@ -49,6 +49,11 @@ const Review = sequelize.define(
         max: 5,
       },
     },
+    isNew: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
     replyId: {
       type: DataTypes.INTEGER,
       allowNull: true,

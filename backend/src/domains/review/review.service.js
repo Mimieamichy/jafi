@@ -333,3 +333,20 @@ exports.getAllReviewsWithReplies = async () => {
 
   return reviews;
 };
+
+
+exports.acknowledgeReview = async (reviewId) => {
+  try {
+      const review = await Review.findById(reviewId);
+
+      if (review && review.isNew) {
+          review.isNew = false;
+          await review.save();
+      }
+
+      res.status(200).json({ message: 'Review acknowledged and marked as not new' });
+  } catch (error) {
+      console.error('Error acknowledging review', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+};

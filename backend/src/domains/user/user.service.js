@@ -35,7 +35,7 @@ exports.userForgotPassword = async (email) => {
   const mailOptions = {
     to: email,
     subject: "Jafi App Password Reset",
-    text: `Use this token to reset your password: ${resetToken}`,
+    text: `Follow this link to reset your password: ${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`,
   };
 
   await transporter.sendMail(mailOptions);
@@ -120,9 +120,11 @@ exports.getAllListings = async (searchTerm) => {
 
     // Fetch businesses with the optional search filter
     const businesses = await Business.findAll({
-      where: searchTerm ? searchFilter : {}, // Apply the filter if searchTerm exists
+      where: searchTerm ? searchFilter : {},
+      attributes: { exclude: ['proof'] },
       order: [['createdAt', 'DESC']],
-  });
+    });
+    
     
     //Combine both services and businesses into one list
     const combined = [
