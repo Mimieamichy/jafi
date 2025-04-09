@@ -1,4 +1,5 @@
 const { Sequelize } = require("sequelize");
+
 require("dotenv").config();
 
 // const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
@@ -25,14 +26,9 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
     console.log("Database connected successfully");
 
     // Drop all tables in the database
-  //   sequelize.sync({ alter: true })
-  // .then(() => {
-  //   console.log("All tables altered successfully");
-  // })
-  // .catch((error) => {
-  //   console.error("Error while altering tables:", error);
-  // });
-
+    // sequelize.query('ALTER TABLE `businesses` MODIFY `day` JSON;')
+    // .then(() => console.log('Day column changed to JSON type'))
+    // .catch((error) => console.error('Error changing day column type:', error));
 
   } catch (error) {
     console.error("Database connection error:", error);

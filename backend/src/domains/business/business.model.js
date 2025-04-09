@@ -27,7 +27,7 @@ const Business = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    tagline: {
+    email: {
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -64,7 +64,7 @@ const Business = sequelize.define(
       allowNull: true,
     },
     proof: {
-      type: DataTypes.STRING,
+      type: DataTypes.JSON,
       allowNull: false
     },
     category: {
@@ -94,15 +94,7 @@ const Business = sequelize.define(
       defaultValue: "standard",
     },
     day: {
-      type: DataTypes.ENUM(
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday"
-      ),
+      type: DataTypes.JSON,
       allowNull: false,
     },
     start: {
