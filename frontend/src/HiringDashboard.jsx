@@ -16,7 +16,7 @@ export default function HiringDashboard() {
   const [formData, setFormData] = useState(null);
   const [workSampleImages, setWorkSampleImages] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [reviews, setReviews] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);

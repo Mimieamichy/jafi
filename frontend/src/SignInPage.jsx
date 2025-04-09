@@ -123,7 +123,7 @@ export default function SignIn() {
         {/* Login Button */}
         <button
           type="submit"
-          className="w-full bg-green-500 text-white p-3 rounded-lg cursor-pointer hover:bg-green-400"
+          className="w-full bg-blue-600 text-white p-3 rounded-lg cursor-pointer hover:bg-blue-700"
         >
           Login
         </button>
@@ -141,7 +141,7 @@ export default function SignIn() {
 
       {/* Or Sign in as Reviewer */}
       <div className="mt-4 text-center text-gray-400">
-        <p>or sign in as reviewer</p>
+        <p className="capitalize">or sign in as reviewer</p>
       </div>
 
       {/* Sign In with Google */}
@@ -151,7 +151,7 @@ export default function SignIn() {
           className="w-full bg-gray-800 text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-700"
         >
           <FontAwesomeIcon icon={faGoogle} />
-          <span>Sign in with Google</span>
+          <span>with Google</span>
         </button>
       </div>
     </div>

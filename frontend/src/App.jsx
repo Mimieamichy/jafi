@@ -21,6 +21,8 @@ import PaymentSuccess from "./PaymentSuccess";
 import NotFound from "./NotFound";
 import HireProfileDetails from "./HirePage";
 import AllListings from "./AllListings";
+import ForgotPassword from "./ForgotPassword";
+import ResetPassword from "./ResetPassword";
 
 export default function App() {
   
@@ -48,6 +50,9 @@ export default function App() {
               <Route path="/admin/*" element={<AdminDashboard />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/all-listing" element={<AllListings />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+
               <Route
                 path="/business/:businessName"
                 element={<BusinessPage />}

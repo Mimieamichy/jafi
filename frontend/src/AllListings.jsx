@@ -11,23 +11,22 @@ import {
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function AllListings() {
-  const [listings, setListings] = useState([]); // State to store the listings
-  const [filteredListings, setFilteredListings] = useState([]); // State to store filtered listings based on search query
-  const [searchQuery, setSearchQuery] = useState(""); // Search query for filtering
-  const [currentPage, setCurrentPage] = useState(1); // Current page for pagination
-  const [listingsPerPage] = useState(6); // Number of listings per page
-  const navigate = useNavigate(); // For navigation when a listing is clicked
-
+  const [listings, setListings] = useState([]); 
+  const [filteredListings, setFilteredListings] = useState([]); 
+  const [searchQuery, setSearchQuery] = useState(""); 
+  const [currentPage, setCurrentPage] = useState(1); 
+  const [listingsPerPage] = useState(6); 
+  const navigate = useNavigate(); 
   useEffect(() => {
     const fetchListings = async () => {
       try {
         const response = await fetch(`${baseUrl}/user/listings`);
         const data = await response.json();
-        console.log("Fetched listings:", data); // Log the fetched listings for debugging
+        console.log("Fetched listings:", data); 
 
         if (response.ok) {
-          setListings(data.listings); // Assuming listings are in data.listings
-          setFilteredListings(data.listings); // Initialize filtered listings
+          setListings(data.listings); 
+          setFilteredListings(data.listings); 
         } else {
           console.error(
             "Error fetching listings:",
@@ -50,9 +49,9 @@ export default function AllListings() {
           listing.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           listing.category.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      setFilteredListings(filtered); // Update the filtered listings based on search
+      setFilteredListings(filtered); 
     } else {
-      setFilteredListings(listings); // Show all listings if no search query
+      setFilteredListings(listings);
     }
   }, [searchQuery, listings]);
 
@@ -67,7 +66,7 @@ export default function AllListings() {
   const totalPages = Math.ceil(filteredListings.length / listingsPerPage);
 
   const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber); // Change the current page
+    setCurrentPage(pageNumber);
   };
 
   const handleListingClick = (id, type) => {
@@ -82,7 +81,7 @@ export default function AllListings() {
   return (
     <div className="p-6">
       {/* Search Bar */}
-      <div className="relative w-72">
+      <div className="relative w-72 mb-5">
         {" "}
         {/* Reduced width of search bar */}
         <input
