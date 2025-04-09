@@ -24,16 +24,11 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   try {
     await sequelize.authenticate();
     console.log("Database connected successfully");
-
-    // Drop all tables in the database
-    // sequelize.query('ALTER TABLE `businesses` MODIFY `day` JSON;')
-    // .then(() => console.log('Day column changed to JSON type'))
-    // .catch((error) => console.error('Error changing day column type:', error));
-
-  } catch (error) {
-    console.error("Database connection error:", error);
-  }
-})();
+    
+    } catch (error) {
+      console.error("Database connection error:", error);
+    }
+  })()   
 
 
 module.exports = sequelize;

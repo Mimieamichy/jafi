@@ -2,7 +2,6 @@ const Business = require("./business.model");
 const User = require("../user/user.model");
 const PaymentService = require("../payments/payments.service");
 const crypto = require("crypto");
-const sequelize = require('../../config/database')
 const bcrypt = require("bcryptjs");
 
 exports.registerBusiness = async (businessData) => {
@@ -24,7 +23,7 @@ exports.registerBusiness = async (businessData) => {
                         claimed: true
                     });
 
-                    return {user, newBusiness}
+                    return {user, newBusiness, plainPassword}
                 }
                 
             } else {

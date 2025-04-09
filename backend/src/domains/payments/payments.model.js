@@ -2,6 +2,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
 const Service = require("../service/service.model");
 const User = require("../user/user.model");
+const Business = require("../business/business.model");
 
 const Payment = sequelize.define("Payment", {
     id: {
@@ -41,6 +42,7 @@ const Payment = sequelize.define("Payment", {
 });
 
 Payment.belongsTo(User, { foreignKey: "userId", as: "user" });
-Payment.belongsTo(Service, { foreignKey: "entity_id", as: "entity" });
+Payment.belongsTo(Service, { foreignKey: "entity_id", as: "ser_entity" });
+Payment.belongsTo(Business, { foreignKey: "entity_id", as: "bus_entity" });
 
 module.exports = Payment;
