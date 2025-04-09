@@ -1,58 +1,69 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useSnackbar } from "notistack";
 
 export default function Pricing() {
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
+  const location = useLocation();
+  const busId = location.state?.serviceId || localStorage.getItem("busId");
+  const busIdNum = parseInt(busId);
+  const baseUrl = import.meta.env.VITE_BACKEND_URL;
+  console.log(busIdNum);
+  console.log(busId);
+  
+  
 
-  const handlePayment = (plan) => {
-    alert(`Payment successful for: ${plan}`);
-    setPaymentSuccess(true);
+  const plan = { price: 150 };
+
+  const handlePayment = async () => {
+    if (!busIdNum) {
+      enqueueSnackbar("Business ID not found.", { variant: "error" });
+      return;
+    }
+
+    try {
+      const response = await fetch(`${baseUrl}/business/pay/${busIdNum}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ amount: plan.price }),
+      });
+
+      const result = await response.json();
+      console.log("Payment result:", result);
+      const paystackUrl = result?.data?.paymentDetails?.data?.authorization_url;
+
+      if (response.ok && paystackUrl) {
+        window.location.href = paystackUrl; // ✅ Redirect to Paystack
+      } else {
+        enqueueSnackbar(
+          `Payment failed: ${result.message || "No redirect link received"}`,
+          {
+            variant: "info",
+          }
+        );
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+
+      enqueueSnackbar("Something went wrong while initiating payment.", {
+        variant: "error",
+      });
+    }
   };
-
-  const plans = [
-    { duration: "1 Month", price: "$150" },
-    { duration: "3 Months", price: "$400" },
-    { duration: "6 Months", price: "$750" },
-  ];
 
   return (
     <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-      {!paymentSuccess ? (
-        <>
-          <h2 className="text-2xl font-bold mb-4 text-center">Choose a Plan</h2>
-          <div className="space-y-4">
-            {plans.map((plan, index) => (
-              <div key={index} className="p-4 border rounded-md text-center">
-                <h3 className="text-xl font-semibold">{plan.duration}</h3>
-                <p className="text-lg font-bold">{plan.price}</p>
-                <button
-                  onClick={() => handlePayment(plan.duration)}
-                  className="bg-blue-600 text-white py-2 px-4 rounded-lg mt-2"
-                >
-                  Pay Now
-                </button>
-              </div>
-            ))}
-          </div>
-        </>
-      ) : (
-        <div className="text-center w-[10em] mx-auto mb-10">
-          <h2 className="text-2xl font-bold text-green-600">
-            Payment Successful!
-          </h2>
-          <p className="text-gray-700 mt-2">
-            Your account is undergoing approval, which will take 1-2 working
-            days. An email of confirmation will be sent to you. Thank you
-          </p>
-          <button
-            onClick={() => navigate("/bus-dashboard")}
-            className="bg-blue-600 text-white p-3 rounded-lg mt-4"
-          >
-            Go to Dashboard
-          </button>
-        </div>
-      )}
+      <h2 className="text-2xl font-bold mb-4 text-center">Make Payment</h2>
+      <div className="p-4 border rounded-md text-center">
+        <p className="text-lg font-bold">${plan.price}</p>
+        <button
+          onClick={handlePayment}
+          className="bg-blue-600 text-white py-2 px-4 rounded-lg mt-2"
+        >
+          Pay Now
+        </button>
+      </div>
     </div>
   );
 }

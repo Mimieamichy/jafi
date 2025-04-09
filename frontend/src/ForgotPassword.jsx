@@ -7,7 +7,6 @@ const baseUrl = import.meta.env.VITE_BACKEND_URL;
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(""); // Added state for message display
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
 
@@ -27,7 +26,7 @@ export default function ForgotPassword() {
 
     try {
       setLoading(true);
-      const response = await fetch(`${baseUrl}/user/forgot-password`, {
+      const response = await fetch(`${baseUrl}/user/forget-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,21 +38,21 @@ export default function ForgotPassword() {
       console.log("Response from server:", result); // Log the response for debugging
 
       if (response.ok) {
-        setMessage("Password reset link has been sent to your email."); // Set success message
+       ; // Set success message
         enqueueSnackbar("Password reset link sent to your email.", {
           variant: "success",
         });
-        navigate("/reset-password"); 
+        navigate("/"); 
         // Optionally redirect to the SignIn page or elsewhere after a timeout
       } else {
-        setMessage(result.message || "Error sending email");
+        
         enqueueSnackbar(result.message || "Error sending email", {
           variant: "error",
         });
       }
     } catch (error) {
       console.error("Error sending password reset email:", error);
-      setMessage("An error occurred. Please try again later.");
+     
       enqueueSnackbar("An error occurred. Please try again later.", {
         variant: "error",
       });
@@ -67,7 +66,7 @@ export default function ForgotPassword() {
       <h2 className="text-3xl font-bold mb-4 text-center">Forgot Password</h2>
 
       {/* Display message after email submission */}
-      {message && <p className="text-center text-blue-600 mb-4">{message}</p>}
+    
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
