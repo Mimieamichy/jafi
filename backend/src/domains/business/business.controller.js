@@ -50,6 +50,10 @@ exports.updateBusiness = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
     const businessData = req.body;
+    const images = req.files["workSamples"] ? req.files["workSamples"].map(file => file.path) : [];
+    const proof = req.files["pob"] ? req.files["pob"].map(file => file.path) : [];
+    businessData.images = images
+    businessData.proof = proof
     const business = await BusinessService.updateBusiness(id, userId, businessData);
     res.status(200).json(business);
   } catch (error) {

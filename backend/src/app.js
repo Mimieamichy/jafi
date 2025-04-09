@@ -41,12 +41,14 @@ const serviceRoutes = require("./domains/service/service.routes");
 const userRoutes = require("./domains/user/user.routes");
 const otpRoutes = require("./domains/otp/otp.routes");
 const reviewRoutes = require("./domains/review/review.routes");
+const businessRoutes = require("./domains/business/business.routes")
 
 
 app.use(`${app_url}/service`, serviceRoutes);
 app.use(`${app_url}/user`, userRoutes);
 app.use(`${app_url}/otp`, otpRoutes);
 app.use(`${app_url}/review`, reviewRoutes);
+app.use(`${app_url}/business`, businessRoutes);
 
 
 // Error Handling Middleware

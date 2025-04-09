@@ -20,8 +20,8 @@ exports.registerBusiness = async (businessData) => {
                     const newBusiness = await Business.create({
                         ...businessData,
                         userId: user.id,
-                        status: "verified",
-                        claimed: false
+                        status: "pending",
+                        claimed: true
                     });
 
                     return {user, newBusiness}
@@ -44,8 +44,8 @@ exports.registerBusiness = async (businessData) => {
             const newBusiness = await Business.create({
                 ...businessData,
                 userId: user.id,
-                status: "pending",
-                claimed: true
+                status: "verified",
+                claimed: false
             }, { transaction: t });
         
             return { 
