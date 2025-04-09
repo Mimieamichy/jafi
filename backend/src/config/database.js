@@ -25,13 +25,13 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
     console.log("Database connected successfully");
 
     // Drop all tables in the database
-    sequelize.sync({ alter: true })
-  .then(() => {
-    console.log("All tables altered successfully");
-  })
-  .catch((error) => {
-    console.error("Error while altering tables:", error);
-  });
+  //   sequelize.sync({ alter: true })
+  // .then(() => {
+  //   console.log("All tables altered successfully");
+  // })
+  // .catch((error) => {
+  //   console.error("Error while altering tables:", error);
+  // });
 
 
   } catch (error) {

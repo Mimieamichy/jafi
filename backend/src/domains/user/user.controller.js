@@ -16,7 +16,10 @@ exports.login = async (req, res) => {
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    console.log(email)
     const response = await UserService.userForgotPassword(email);
+
+    console.log(response)
 
     res.status(200).json({response })
   } catch (error) {
@@ -78,7 +81,6 @@ exports.updateUser = async (req, res) => {
     res.status(error.status || 500).json({ message: error.message });
   }
 } 
-
 
 exports.getAllListings = async (req, res) => {
   const searchTerm = req.query.searchTerm || '';

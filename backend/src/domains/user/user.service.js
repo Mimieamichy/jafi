@@ -14,6 +14,10 @@ exports.userLogin = async (email, password) => {
     throw new Error("Invalid credentials");
   }
 
+  if (user.role == 'reviewer') {
+    throw new Error("You are registered as a reviewer, sign in with Google");
+  }
+
   return jwt.sign({ id: user.id, role: user.role, name: user.name }, process.env.JWT_SECRET, { expiresIn: "3d" });
 };
 
