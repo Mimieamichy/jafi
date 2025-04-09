@@ -27,28 +27,65 @@ export default function Navbar() {
 
   // Check for token and reviewer status on mount and URL changes
   useEffect(() => {
-    // Fetch user role directly from localStorage
-    const token = localStorage.getItem("reviewerToken");
-    const role = localStorage.getItem("userRole");
-    setUserRole(role);
-    console.log("User Role:", role)
-    console.log("Token:", token);
-    
-    
+    // Check URL parameters for token (from Google login redirect)
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
 
-    if (token ) {
-      const decodedToken = jwtDecode(token);
-      localStorage.setItem("reviewerToken", token);
-      console.log(decodedToken);
-      
-      localStorage.setItem("reviewer", JSON.stringify(decodedToken));
-      setReviewer(decodedToken);
+    // If token is in URL, process it
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        const isExpired = decodedToken.exp * 1000 < Date.now();
 
-      // Get the user role from localStorage
-      
-      ;  // Log the user role
-      
-       // Set the role of the logged-in user
+        if (isExpired) {
+          // Handle expired token
+          localStorage.removeItem("reviewerToken");
+          localStorage.removeItem("reviewer");
+          console.log("Token expired");
+        } else {
+          // Store valid token and data
+          localStorage.setItem("reviewerToken", token);
+          localStorage.setItem("reviewer", JSON.stringify(decodedToken));
+          setReviewer(decodedToken);
+          console.log("Reviewer authenticated:", decodedToken);
+
+          // Clean URL by removing token parameter
+          const cleanedUrl = location.pathname;
+          window.history.replaceState({}, document.title, cleanedUrl);
+        }
+      } catch (error) {
+        console.error("Error decoding token:", error);
+      }
+    } else {
+      // Check localStorage for existing token
+      const storedToken = localStorage.getItem("reviewerToken");
+      const storedRole = localStorage.getItem("userRole");
+
+      if (storedToken) {
+        try {
+          const decodedToken = jwtDecode(storedToken);
+          const isExpired = decodedToken.exp * 1000 < Date.now();
+
+          if (isExpired) {
+            localStorage.removeItem("reviewerToken");
+            localStorage.removeItem("reviewer");
+            console.log("Stored token expired");
+          } else {
+            setReviewer(JSON.parse(localStorage.getItem("reviewer") || "null"));
+            console.log("Using stored reviewer data");
+          }
+        } catch (error) {
+          console.error("Error with stored token:", error);
+          localStorage.removeItem("reviewerToken");
+          localStorage.removeItem("reviewer");
+        }
+      }
+
+      // Set user role from localStorage
+      if (storedRole) {
+        setUserRole(storedRole);
+        console.log("User role:", storedRole);
+      }
     }
   }, [location]);
 
@@ -101,15 +138,17 @@ export default function Navbar() {
           >
             Services
           </Link>
-          {userRole &&(
-          <Link
-          to={userRole?.role === "business" ? "/bus-dashboard" : "/hiring-dashboard"}
-          onClick={handleNavClick}
-          className="text-gray-600 hover:text-black"
-        >
-          Dashboard
-        </Link>)
-          }
+          {userRole && (
+            <Link
+              to={
+                userRole === "business" ? "/bus-dashboard" : "/hiring-dashboard"
+              }
+              onClick={handleNavClick}
+              className="text-gray-600 hover:text-black"
+            >
+              Dashboard
+            </Link>
+          )}
 
           {/* Conditional Rendering based on authentication status */}
           {!reviewer && userRole === null ? (
@@ -204,6 +243,18 @@ export default function Navbar() {
           >
             Services
           </Link>
+          {userRole && (
+            <Link
+              to={
+                userRole === "business" ? "/bus-dashboard" : "/hiring-dashboard"
+              }
+              onClick={handleNavClick}
+              className="block text-black hover:text-gray-600"
+            >
+              Dashboard
+            </Link>
+          )}
+
           {!reviewer && userRole === null ? (
             <>
               <button
@@ -235,15 +286,28 @@ export default function Navbar() {
               </button>
             </div>
           ) : null}
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              setShowSignupModal(true);
-            }}
-            className="block w-full bg-blue-500 text-white px-4 py-2 rounded-md"
-          >
-            For Listings
-          </button>
+
+          {userRole ? (
+            <button
+              onClick={() => {
+                handleLogout();
+                setIsOpen(false);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+            >
+              Logout
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                setShowSignupModal(true);
+              }}
+              className="block w-full bg-blue-500 text-white px-4 py-2 rounded-md"
+            >
+              For Listings
+            </button>
+          )}
         </div>
       )}
 

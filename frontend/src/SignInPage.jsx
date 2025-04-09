@@ -82,7 +82,7 @@ export default function SignIn() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-black text-white shadow-md rounded-lg">
+    <div className="max-w-md mx-auto my-5 p-6 bg-gray-900 text-white shadow-md rounded-lg">
       <h2 className="text-3xl font-bold mb-4 text-center">Sign In</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -141,7 +141,7 @@ export default function SignIn() {
 
       {/* Or Sign in as Reviewer */}
       <div className="mt-4 text-center text-gray-400">
-        <p className="capitalize" >or sign in as reviewer</p>
+        <p>or sign in as reviewer</p>
       </div>
 
       {/* Sign In with Google */}
@@ -151,7 +151,7 @@ export default function SignIn() {
           className="w-full bg-gray-800 text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-700"
         >
           <FontAwesomeIcon icon={faGoogle} />
-          <span>with Google</span>
+          <span>Sign in with Google</span>
         </button>
       </div>
     </div>
