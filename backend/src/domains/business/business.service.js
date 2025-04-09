@@ -6,64 +6,71 @@ const sequelize = require('../../config/database')
 const bcrypt = require("bcryptjs");
 
 exports.registerBusiness = async (businessData) => {
-    const existingBusiness = await Business.findOne({ where: { email: businessData.email } });
-        const existingUser = await User.findOne({ where: { email: businessData.email } });
-        
-        if (existingBusiness) throw new Error("Business already exists with this email");
-        
-        let user;
-        
-        // Use transaction to ensure data consistency
-        const result = await sequelize.transaction(async (t) => {
-            // Check if the user exists and is an admin or superadmin
-            if (existingUser) {
-                if (existingUser.role !== "admin" && existingUser.role !== "superadmin") {
-                    user = existingUser
-                    const newBusiness = await Business.create({
-                        ...businessData,
-                        userId: user.id,
-                        status: "pending",
-                        claimed: true
-                    });
-
-                    return {user, newBusiness}
-                }
-                
-            } else {
-                // Create new user with role "business"
-                const plainPassword = crypto.randomBytes(6).toString("hex");
-                const hashedPassword = await bcrypt.hash(plainPassword, 10);
-                
-                user = await User.create({ 
-                    email: businessData.email, 
-                    password: hashedPassword, 
-                    role: "business", 
-                    name: businessData.name 
-                }, { transaction: t });
-                
-
-            // Create business inside the transaction
-            const newBusiness = await Business.create({
-                ...businessData,
-                userId: user.id,
-                status: "verified",
-                claimed: false
-            }, { transaction: t });
-        
-            return { 
-                user, 
-                newBusiness, 
-                plainPassword: !existingUser ? plainPassword : existingUser.password
-            };
+    const result = await sequelize.transaction(async (t) => {
+      // Lock and check existing business
+      const existingBusiness = await Business.findOne({
+        where: { email: businessData.email },
+        transaction: t,
+        lock: t.LOCK.UPDATE
+      });
+  
+      if (existingBusiness) throw new Error("Business already exists with this email");
+  
+      // Lock and check existing user
+      const existingUser = await User.findOne({
+        where: { email: businessData.email },
+        transaction: t,
+        lock: t.LOCK.UPDATE
+      });
+  
+      let user;
+      let plainPassword;
+  
+      if (existingUser) {
+        if (["admin", "superadmin"].includes(existingUser.role)) {
+          throw new Error("User is not eligible to claim business");
         }
-        });
-
-        return { 
-            message: "Business created successfully", 
-            newBusiness: result.newBusiness,
-            plainPassword: result.plainPassword
-        };
-};
+  
+        user = existingUser;
+  
+        const newBusiness = await Business.create({
+          ...businessData,
+          userId: user.id,
+          status: "pending",
+          claimed: true
+        }, { transaction: t });
+  
+        return { user, newBusiness };
+      }
+  
+      // Create new user with role "business"
+      plainPassword = crypto.randomBytes(6).toString("hex");
+      const hashedPassword = await bcrypt.hash(plainPassword, 10);
+  
+      user = await User.create({
+        email: businessData.email,
+        password: hashedPassword,
+        role: "business",
+        name: businessData.name
+      }, { transaction: t });
+  
+      const newBusiness = await Business.create({
+        ...businessData,
+        userId: user.id,
+        status: "verified",
+        claimed: false
+      }, { transaction: t });
+  
+      return { user, newBusiness, plainPassword };
+    });
+  
+    return {
+      message: "Business created successfully",
+      newBusiness: result.newBusiness,
+      plainPassword: result.plainPassword
+    };
+  };
+  
 
 exports.getABusiness = async (businessId) => {
     const business = await Business.findByPk(businessId, {
