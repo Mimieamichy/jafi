@@ -91,12 +91,11 @@ export default function HiringDashboard() {
 
         if (response.ok) {
           setReviews(data.reviews);
-          
 
-          const newReviews = data.reviews.filter(review => review.isnew);
+          const newReviews = data.reviews.filter((review) => review.isnew);
 
           console.log("New reviews:", newReviews);
-           // Assuming `isNew` to filter new reviews
+          // Assuming `isNew` to filter new reviews
           setNewReviewCount(newReviews.length);
           setNewReviewNotification(newReviews.length > 0);
 
@@ -176,32 +175,45 @@ export default function HiringDashboard() {
       enqueueSnackbar("Notifications acknowledged.", { variant: "success" });
     } catch (error) {
       console.error("Error acknowledging reviews:", error);
-      enqueueSnackbar("Failed to acknowledge notifications.", { variant: "error" });
+      enqueueSnackbar("Failed to acknowledge notifications.", {
+        variant: "error",
+      });
     }
   };
 
   // Handle save functionality
   const handleSave = () => {
     if (workSampleImages.length > 5) {
-      enqueueSnackbar("Please upload exactly five images.", {
+      enqueueSnackbar("Please upload no more than five images.", {
         variant: "warning",
       });
       return;
     }
 
     const formDataObj = new FormData();
-
     formDataObj.append("email", formData.email || "");
     formDataObj.append("address", formData.address || "");
     formDataObj.append("password", formData.password || "");
     formDataObj.append("description", formData.description || "");
 
-    // Append work sample images
-    workSampleImages.forEach((file, index) => {
-      formDataObj.append(`workSampleImage_${index}`, file);
+    // Separate new images (File objects) from existing image URLs (strings)
+    const newImages = [];
+    const existingImages = [];
+    workSampleImages.forEach((item) => {
+      if (item instanceof Blob) {
+        newImages.push(item);
+      } else if (typeof item === "string") {
+        existingImages.push(item);
+      }
     });
 
-    // PUT request to update service details
+    // Append new images (as files) with key "workSamplesNew"
+    newImages.forEach((file) => {
+      formDataObj.append("workSamplesNew", file, file.name);
+    });
+    // Append existing images (URLs) as JSON string
+    formDataObj.append("existingWorkSamples", JSON.stringify(existingImages));
+
     fetch(`${baseUrl}/service/${id}`, {
       method: "PUT",
       headers: {
@@ -223,7 +235,7 @@ export default function HiringDashboard() {
         }
       })
       .catch((error) => {
-        enqueueSnackbar(`${error}, There was an error updating your profile.`, {
+        enqueueSnackbar(`${error} There was an error updating your profile.`, {
           variant: "error",
         });
       });
@@ -262,29 +274,21 @@ export default function HiringDashboard() {
   // Handle file upload
   const handleWorkSampleUpload = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length > 5) {
+    if (files.length + workSampleImages.length > 5) {
       enqueueSnackbar("You must upload no more than five images.", {
         variant: "warning",
       });
       return;
     }
-
+    // Filter image files
     const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-    const readers = imageFiles.map((file) => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-      });
-    });
+    // Append new File objects
+    setWorkSampleImages((prev) => [...prev, ...imageFiles]);
+    setProfileImage(imageFiles[0]); // Set the first image as profile image
+  };
 
-    Promise.all(readers).then((imageURLs) => {
-      setWorkSampleImages(imageURLs);
-      // Set first image as profile image
-      if (imageURLs.length > 0) {
-        setProfileImage(imageURLs[0]);
-      }
-    });
+  const removeImage = (index) => {
+    setWorkSampleImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -415,9 +419,11 @@ export default function HiringDashboard() {
                     <div className="bg-blue-100 text-blue-600 px-3 py-1 hover:bg-blue-600 hover:text-blue-100 rounded-full text-sm font-medium">
                       {newReviewNotification ? (
                         <div className="flex items-center">
-                          <FontAwesomeIcon icon={faBell}
-                           onClick={handleNotificationClick}
-                           className="mr-1" />
+                          <FontAwesomeIcon
+                            icon={faBell}
+                            onClick={handleNotificationClick}
+                            className="mr-1"
+                          />
                           <span>{newReviewCount} new</span>
                         </div>
                       ) : (
@@ -569,14 +575,29 @@ export default function HiringDashboard() {
 
                 {/* Work Samples Preview */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
-                  {workSampleImages.map((image, index) => (
-                    <img
-                      key={index}
-                      src={image}
-                      alt={`Work Sample ${index + 1}`}
-                      className="w-full h-20 object-cover rounded border"
-                    />
-                  ))}
+                  {workSampleImages.map((item, index) => {
+                    // Check type: if it's a File (instance of Blob) or a string (URL)
+                    const src =
+                      typeof item === "string"
+                        ? item
+                        : URL.createObjectURL(item);
+                    return (
+                      <div key={index} className="relative">
+                        <img
+                          src={src}
+                          alt="Preview"
+                          className="w-16 h-16 rounded-md object-cover"
+                        />
+                        <button
+                          type="button"
+                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+                          onClick={() => removeImage(index)}
+                        >
+                          <FontAwesomeIcon icon={faTimes} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <button
