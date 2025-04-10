@@ -1,4 +1,4 @@
-const claimService = require("../services/claim.service");
+const claimService = require("./claim.service");
 
 
 exports.createClaim = async (req, res) => {

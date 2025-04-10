@@ -1,3 +1,4 @@
+require("dotenv").config();
 const User = require("../user/user.model");
 const Business = require("../business/business.model");
 const Service = require("../service/service.model");
@@ -72,7 +73,7 @@ exports.approveBusiness = async (businessId) => {
     // Send an email notification to the business owner
     const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
           <div style="text-align: center; margin-bottom: 20px;">
-              <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1742304644/justVkey%20product%20Images/logo/logo2_ozx7fe.jpg" alt="JAFIAI Logo" style="max-width: 150px;">
+              <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1744291750/jafi_logo_2_png_ktsfqn.png" alt="JAFIAI Logo" style="max-width: 150px;">
           </div>
           <h2 style="color: #333; text-align: center;">Business Approved - Login Details</h2>
           <p style="font-size: 16px; color: #555; text-align: center;">
@@ -139,7 +140,7 @@ exports.approveAService = async (serviceId) => {
     // Send an email notification to the service owner
     const mailContent =  `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
     <div style="text-align: center; margin-bottom: 20px;">
-        <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1742304644/justVkey%20product%20Images/logo/logo2_ozx7fe.jpg" alt="JAFIAI Logo" style="max-width: 150px;">
+        <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1744291750/jafi_logo_2_png_ktsfqn.png" alt="JAFIAI Logo" style="max-width: 150px;">
     </div>
     <h2 style="color: #333; text-align: center;">Service Approved - Login Details</h2>
     <p style="font-size: 16px; color: #555; text-align: center;">
@@ -207,7 +208,7 @@ exports.approveClaim = async (claimId) => {
     // Send an email notification to the CLAIMED business owner
     const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
           <div style="text-align: center; margin-bottom: 20px;">
-              <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1742304644/justVkey%20product%20Images/logo/logo2_ozx7fe.jpg" alt="JAFIAI Logo" style="max-width: 150px;">
+              <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1744291750/jafi_logo_2_png_ktsfqn.png" alt="JAFIAI Logo" style="max-width: 150px;">
           </div>
           <h2 style="color: #333; text-align: center;">Claim Approved - Login Details</h2>
           <p style="font-size: 16px; color: #555; text-align: center;">

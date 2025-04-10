@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const {createClaim, getClaims, getAClaim, payForClaim, verifyClaimPayment} = require('../controllers/claim.controller');
+const {
+  createClaim,
+  getClaims,
+  getAClaim,
+  payForClaim,
+  verifyClaimPayment,
+} = require("./claim.controller");
 
 //public routes
 router.post('/:businessId', createClaim)

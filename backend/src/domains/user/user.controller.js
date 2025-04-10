@@ -16,10 +16,7 @@ exports.login = async (req, res) => {
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log(email)
     const response = await UserService.userForgotPassword(email);
-
-    console.log(response)
 
     res.status(200).json({response })
   } catch (error) {
@@ -30,9 +27,11 @@ exports.forgotPassword = async (req, res) => {
 exports.verifyResetToken = async (req, res) => {
   try {
     const { token } = req.params;
-    const email = await UserService.verifyResetToken(token);
+    await UserService.verifyResetToken(token);
+    res.redirect(
+      `${process.env.FRONTEND_URL}/reset-password`
+    );
 
-    res.status(200).json({ message: "Token is valid", email });
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }

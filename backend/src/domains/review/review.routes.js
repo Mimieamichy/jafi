@@ -26,7 +26,7 @@ router.get("/:id", getReviewById);
 router.get("/replies/:reviewId", getAReviewwithReplies);
 router.get("/reply", getAllReviewsWithReplies);
 router.post("/reply/:reviewId", passport.authenticate("jwt", { session: false }), replyToReview);
-router.patch('acknowledge/:reviewId', passport.authenticate("jwt", { session: false }), acknowledgeReview)
+router.put('/acknowledge/:reviewId', passport.authenticate("jwt", { session: false }), acknowledgeReview)
 
 
 
