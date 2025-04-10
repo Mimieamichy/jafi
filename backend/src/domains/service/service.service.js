@@ -1,9 +1,8 @@
 const Service = require("./service.model");
 const User = require("../user/user.model");
-const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
 const OTPService = require("../otp/otp.service");
 const PaymentService= require("../payments/payments.service");
+const {generatePassword} = require("../../utils/generatePassword")
 
 
 
@@ -13,8 +12,7 @@ exports.registerService = async (email, name, service, phone, address, category,
         if (existingUser || existingService) throw new Error("User already exists");
 
         // Generate random password
-        const plainPassword = crypto.randomBytes(6).toString("hex");
-        const hashedPassword = await bcrypt.hash(plainPassword, 10);
+        const {plainPassword, hashedPassword} = generatePassword()
 
         // Use transaction to ensure data consistency
         const result = await sequelize.transaction(async (t) => {

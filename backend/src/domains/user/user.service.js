@@ -5,6 +5,7 @@ const nodemailer = require("nodemailer");
 const Service = require("../service/service.model");
 const Business = require("../business/business.model");
 const { Op } = require('sequelize');
+const { assign } = require("nodemailer/lib/shared");
 
 
 
@@ -29,21 +30,8 @@ exports.userForgotPassword = async (email) => {
   const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    port: 465,
-    host: "smtp@gmai.com",
-    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
-  });
-
-  const mailOptions = {
-    to: email,
-    subject: "Jafi App Password Reset",
-    text: `Follow this link to reset your password: ${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`,
-  };
-
-  await transporter.sendMail(mailOptions);
-
+  const mailContent = ``
+  await sendMail(user.email, "JAFI AI Reset Password", mailContent);
   return { message: "Reset token sent to email" };
 };
 
@@ -141,5 +129,6 @@ exports.getAllListings = async (searchTerm) => {
 
     return allListings;
 };
+
 
 

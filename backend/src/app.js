@@ -42,6 +42,8 @@ const userRoutes = require("./domains/user/user.routes");
 const otpRoutes = require("./domains/otp/otp.routes");
 const reviewRoutes = require("./domains/review/review.routes");
 const businessRoutes = require("./domains/business/business.routes")
+const claimRoutes = require("./domains/claim/claim.routes")
+
 
 
 app.use(`${app_url}/service`, serviceRoutes);
@@ -49,6 +51,8 @@ app.use(`${app_url}/user`, userRoutes);
 app.use(`${app_url}/otp`, otpRoutes);
 app.use(`${app_url}/review`, reviewRoutes);
 app.use(`${app_url}/business`, businessRoutes);
+app.use(`${app_url}/claim`, claimRoutes);
+
 
 
 // Error Handling Middleware
