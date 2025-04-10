@@ -24,7 +24,17 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   try {
     await sequelize.authenticate();
     console.log("Database connected successfully");
+
+    // Create tables if they don't exist
+    // try {
+    //   await sequelize.sync();
+    //   console.log("Tables created successfully");
+    // } catch (error) {
+    //   console.log("Error creating tables:");
+      
+    // }
     
+
     } catch (error) {
       console.error("Database connection error:", error);
     }

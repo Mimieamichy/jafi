@@ -1,8 +1,8 @@
 const Business = require("./business.model");
 const User = require("../user/user.model");
 const PaymentService = require("../payments/payments.service");
-const crypto = require("crypto");
-const bcrypt = require("bcryptjs");
+const {generatePassword} = require("../../utils/generatePassword")
+
 
 exports.registerBusiness = async (businessData) => {
     const existingBusiness = await Business.findOne({ where: { email: businessData.email } });
@@ -28,8 +28,7 @@ exports.registerBusiness = async (businessData) => {
                 
             } else {
                 // Create new user with role "business"
-                const plainPassword = crypto.randomBytes(6).toString("hex");
-                const hashedPassword = await bcrypt.hash(plainPassword, 10);
+                const { plainPassword, hashedPassword } = await generatePassword();
                 
                 user = await User.create({ 
                     email: businessData.email, 

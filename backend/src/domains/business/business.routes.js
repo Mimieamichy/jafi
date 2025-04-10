@@ -18,9 +18,9 @@ const { authorize } = require('../../application/middlewares/authorize');
 // Public routes
 router.post("/register", uploadMiddleware, registerBusiness); // Signup API
 router.get("/verify/:pay_ref", verifyBusinessPayment);
+router.post("/pay/:businessId", payForBusiness);
 router.get("/", getAllBusinesses);
 router.get("/:id", getABusiness);
-router.post("/pay/:businessId", payForBusiness);
 
 
 // Protected routes - require authentication and authorization
