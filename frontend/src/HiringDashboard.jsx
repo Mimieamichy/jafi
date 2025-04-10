@@ -91,22 +91,14 @@ export default function HiringDashboard() {
 
         if (response.ok) {
           setReviews(data.reviews);
-          const currentTime = Date.now();
-          const oneDayInMs = 24 * 60 * 60 * 1000;
+          
 
-          const newReviews = data.reviews.filter((review) => {
-            const reviewCreatedTime = new Date(review.createdAt).getTime();
-            return currentTime - reviewCreatedTime <= oneDayInMs;
-          });
+          const newReviews = data.reviews.filter(review => review.isnew);
+
+          console.log("New reviews:", newReviews);
+           // Assuming `isNew` to filter new reviews
           setNewReviewCount(newReviews.length);
-          if (newReviews.length > 0) {
-            enqueueSnackbar(`You have ${newReviews.length} new reviews!`, {
-              variant: "info",
-            });
-            setNewReviewNotification(true); // Show the notification badge
-          } else {
-            setNewReviewNotification(false); // Hide the notification badge
-          }
+          setNewReviewNotification(newReviews.length > 0);
 
           const totalReviews = data.reviews.length;
           setTotalPages(Math.ceil(totalReviews / reviewsPerPage));
@@ -161,6 +153,32 @@ export default function HiringDashboard() {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  const handleNotificationClick = async () => {
+    try {
+      const response = await fetch(`${baseUrl}/review/acknowledge`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        // You can send additional data if needed, e.g., userId or serviceId
+        body: JSON.stringify({ userId }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Assume the API returns success so we clear notifications
+      setNewReviewCount(0);
+      setNewReviewNotification(false);
+      enqueueSnackbar("Notifications acknowledged.", { variant: "success" });
+    } catch (error) {
+      console.error("Error acknowledging reviews:", error);
+      enqueueSnackbar("Failed to acknowledge notifications.", { variant: "error" });
+    }
+  };
 
   // Handle save functionality
   const handleSave = () => {
@@ -394,10 +412,12 @@ export default function HiringDashboard() {
                 <div className="p-6">
                   {/* Notification Icon */}
                   <div className="flex justify-between items-center mb-4">
-                    <div className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="bg-blue-100 text-blue-600 px-3 py-1 hover:bg-blue-600 hover:text-blue-100 rounded-full text-sm font-medium">
                       {newReviewNotification ? (
                         <div className="flex items-center">
-                          <FontAwesomeIcon icon={faBell} className="mr-1" />
+                          <FontAwesomeIcon icon={faBell}
+                           onClick={handleNotificationClick}
+                           className="mr-1" />
                           <span>{newReviewCount} new</span>
                         </div>
                       ) : (
@@ -584,7 +604,7 @@ export default function HiringDashboard() {
                   >
                     {/* Reviewer Name */}
                     <div className="flex items-center justify-center">
-                      <p className="font-semibold text-lg">
+                      <p className="font-semibold text-lg capitalize">
                         {review.user_name}
                       </p>
                     </div>

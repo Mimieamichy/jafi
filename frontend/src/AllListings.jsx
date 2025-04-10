@@ -5,28 +5,29 @@ import {
   faPhone,
   faMapMarkerAlt,
   faBriefcase,
-  faSearch
+  faSearch,
+  faHouse,
 } from "@fortawesome/free-solid-svg-icons";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function AllListings() {
-  const [listings, setListings] = useState([]); 
-  const [filteredListings, setFilteredListings] = useState([]); 
-  const [searchQuery, setSearchQuery] = useState(""); 
-  const [currentPage, setCurrentPage] = useState(1); 
-  const [listingsPerPage] = useState(6); 
-  const navigate = useNavigate(); 
+  const [listings, setListings] = useState([]);
+  const [filteredListings, setFilteredListings] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [listingsPerPage] = useState(6);
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchListings = async () => {
       try {
         const response = await fetch(`${baseUrl}/user/listings`);
         const data = await response.json();
-        console.log("Fetched listings:", data); 
+        console.log("Fetched listings:", data);
 
         if (response.ok) {
-          setListings(data.listings); 
-          setFilteredListings(data.listings); 
+          setListings(data.listings);
+          setFilteredListings(data.listings);
         } else {
           console.error(
             "Error fetching listings:",
@@ -49,7 +50,7 @@ export default function AllListings() {
           listing.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           listing.category.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      setFilteredListings(filtered); 
+      setFilteredListings(filtered);
     } else {
       setFilteredListings(listings);
     }
@@ -74,7 +75,7 @@ export default function AllListings() {
     if (type === "service") {
       navigate(`/hire/${id}`);
     } else if (type === "business") {
-      navigate(`/bus/${id}`);
+      navigate(`/business/${id}`);
     }
   };
 
@@ -106,10 +107,15 @@ export default function AllListings() {
             onClick={() => handleListingClick(listing.id, listing.type)} // Handle navigation based on role
           >
             <img
-              src={listing.images[0]} // Assuming each listing has an image
+              src={
+                listing.images && listing.images.length > 0
+                  ? listing.images[0]
+                  : "/placeholder.jpg"
+              }
               alt={listing.name}
               className="w-full h-48 object-cover rounded-md"
             />
+
             <div className="mt-4">
               <h3 className="text-xl font-semibold">{listing.name}</h3>
               <p className="text-gray-600">
@@ -125,7 +131,7 @@ export default function AllListings() {
                     icon={faPhone}
                     className="mr-2 text-blue-500"
                   />{" "}
-                  {listing.phone_number}
+                  {listing.phone_number || listing.phone_number1}
                 </p>
                 <p className="text-sm text-gray-500">
                   <FontAwesomeIcon
@@ -134,7 +140,19 @@ export default function AllListings() {
                   />{" "}
                   {listing.address}
                 </p>
+                <p className="text-sm text-gray-500">
+                  <FontAwesomeIcon
+                    icon={faHouse}
+                    className="mr-2 text-yellow-400"
+                  />{" "}
+                  {listing.type}
+                </p>
               </div>
+              {listing.claimed && (
+                <div className="absolute bottom-0 right-0 m-2 bg-blue-600 text-white text-xs px-3 py-1 rounded-tl-full rounded-br-full">
+                  Claimed
+                </div>
+              )}
             </div>
           </div>
         ))}
