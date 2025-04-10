@@ -7,48 +7,44 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/effect-fade";
+
+// Sample images (replace with your own)
 import Car from "../assets/cars.jpg";
 import Bank from "../assets/bank.jpg";
 import Hospital from "../assets/hospital.jpg";
 import Mall from "../assets/mall.jpg";
 import Hotel from "../assets/hotel.jpg";
 
+// Adjust to your environment variable or config
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
-const images = [
-  Car,
-  Bank,
-  Hospital,
-  Mall,
-  Hotel,
-  Car,
-  Bank,
-  Hospital,
-  Mall,
-  Hotel,
-];
+// Example images array for the background carousel
+const images = [Car, Bank, Hospital, Mall, Hotel, Car, Bank, Hospital, Mall, Hotel];
 
 export default function HeroSection() {
-  const [searchQuery, setSearchQuery] = useState("");  // User search query
-  const [suggestions, setSuggestions] = useState([]); // List of suggestions based on search
-  const [error, setError] = useState("");             // Error state
-  const [loading, setLoading] = useState(false);      // Loading state to track when fetching is happening
   const navigate = useNavigate();
 
+  const [searchQuery, setSearchQuery] = useState("");   // User’s search query
+  const [suggestions, setSuggestions] = useState([]);   // Fetched search results
+  // Example "Recent searches"
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Load initial search query from localStorage
   useEffect(() => {
-    // Get the searchQuery from localStorage when the component mounts
     const savedSearchQuery = localStorage.getItem("searchQuery");
     if (savedSearchQuery) {
       setSearchQuery(savedSearchQuery);
-      setSearchQuery("");
+      // If you don’t want to auto-populate, uncomment below:
+       setSearchQuery("");
     }
   }, []);
 
-  // Fetch matching listings based on the search query
+  // Fetch suggestions whenever searchQuery changes
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (searchQuery) {
-        setLoading(true); // Set loading to true while fetching results
+        setLoading(true);
         try {
           const response = await axios.get(`${baseUrl}/user/listings`, {
             params: { searchTerm: searchQuery },
@@ -58,42 +54,41 @@ export default function HeroSection() {
           console.error("Error fetching listings:", error);
           setError("Failed to fetch listings. Please try again later.");
         } finally {
-          setLoading(false); // Set loading to false after fetching is complete
-           // Clear the input field after fetching results
+          setLoading(false);
         }
       } else {
-        setSuggestions([]); // Reset suggestions if search is cleared
+        setSuggestions([]);
       }
     };
-
     fetchSuggestions();
   }, [searchQuery]);
 
+  // Update search query in state + localStorage
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-    localStorage.setItem("searchQuery", query); // Store searchQuery in localStorage
+    localStorage.setItem("searchQuery", query);
   };
 
+  // Navigate to the appropriate page
   const handleListingClick = (id, type) => {
-    // Navigate to the appropriate route based on type
     if (type === "service") {
       navigate(`/hire/${id}`);
     } else if (type === "business") {
-      navigate(`/bus/${id}`);
+      navigate(`/business/${id}`);
     }
   };
 
   return (
     <div className="relative h-screen w-full">
-      {/* Background Image */}
+      {/* Background Image Carousel */}
       <Swiper
         modules={[Autoplay, EffectFade]}
         effect="fade"
         autoplay={{ delay: 4000, disableOnInteraction: false }}
         loop={true}
         slidesPerView={1}
-        className="relative h-[100%] w-[100%]"
+        className="relative h-full w-full"
       >
         {images.map((img, index) => (
           <SwiperSlide key={index}>
@@ -105,57 +100,68 @@ export default function HeroSection() {
         ))}
       </Swiper>
 
-      {/* Overlay Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center bg-black/50 px-4 z-10">
+      {/* Overlay for Hero Text + Search */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white text-center px-4 z-10">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
           Find Trusted Reviews In Africa
         </h1>
-        <p className="text-lg mb-6">
-          Discover genuine reviews from real users.
-        </p>
+        <p className="text-lg mb-6">Discover genuine reviews from real users.</p>
 
-        {/* Search Bar */}
-        <div className="flex flex-col md:flex-row items-center gap-4 w-full max-w-lg">
-          <div className="relative w-full">
-            <FontAwesomeIcon
-              icon={faSearch}
-              className="absolute top-1/2 left-3 transform -translate-y-1/2 text-white"
-            />
-            <input
-              name={searchQuery}
-              type="text"
-              placeholder="Search for a listing"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="px-6 py-3 w-full border border-gray-300 rounded-full text-white pl-12 bg-black/50 focus:outline-none"
-            />
-          </div>
-        </div>
+        {/* Search Input */}
+        <div className="relative w-full max-w-lg">
+          <FontAwesomeIcon
+            icon={faSearch}
+            className="absolute top-1/2 left-3 transform -translate-y-1/2 text-white"
+          />
+          <input
+            type="text"
+            placeholder="Search for a listing"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="w-full py-3 px-12 bg-black/50 border border-gray-300 rounded-full text-white placeholder-white focus:outline-none"
+          />
 
-        {/* Error Message */}
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+          {/* Command-Palette–Style Search Overlay */}
+          {(searchQuery || loading || suggestions.length > 0) && (
+            <div className="absolute left-0 w-full bg-white text-black rounded-md shadow-lg mt-2 py-2 z-20">
+              {/* "Recent searches" heading + items */}
+             
 
-        {/* Suggestions Dropdown */}
-        {loading ? (
-          <p>Loading...</p> // Display loading text while results are being fetched
-        ) : (
-          searchQuery &&
-          suggestions.length > 0 && (
-            <div className="absolute mt-2 bg-white rounded-lg shadow-lg w-full max-w-md mx-auto text-black">
-              <ul>
-                {suggestions.map((listing) => (
-                  <li
-                    key={listing.id}
-                    onClick={() => handleListingClick(listing.id, listing.type)} // Handle navigation based on role
-                    className="px-4 py-2 cursor-pointer hover:bg-gray-200"
-                  >
-                    {listing.name} - {listing.category}
-                  </li>
-                ))}
-              </ul>
+              {/* Search results */}
+              {loading ? (
+                <p className="px-4 py-2">Loading...</p>
+              ) : (
+                searchQuery &&
+                suggestions.length > 0 && (
+                  <ul className="py-2">
+                    {suggestions.map((listing) => (
+                      <li
+                        key={listing.id}
+                        onClick={() =>
+                          handleListingClick(listing.id, listing.type)
+                        }
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center"
+                      >
+                        <span>{listing.name} - {listing.category}</span>
+                        <span className="text-xs text-gray-400">
+                          {listing.type === "business" ? "Business" : "Service"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              )}
+
+              {/* Error message if any */}
+              {error && !loading && (
+                <p className="px-4 py-2 text-red-500">{error}</p>
+              )}
+
+              {/* Bottom "shortcut" row */}
+              
             </div>
-          )
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

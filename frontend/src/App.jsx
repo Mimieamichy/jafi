@@ -54,7 +54,7 @@ export default function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
 
               <Route
-                path="/business/:businessName"
+                path="/business/:id"
                 element={<BusinessPage />}
               />
               <Route path="/hire/:id" element={<HireProfileDetails />} />

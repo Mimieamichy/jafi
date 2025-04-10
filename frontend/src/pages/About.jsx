@@ -1,5 +1,8 @@
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import SignupModal from "../SignupModal";
+
 const About = () => {
+  const [showSignupModal, setShowSignupModal] = useState(false);
   return (
     <section className="bg-gray-100 py-16 px-6 md:px-12 lg:px-24">
       <div className="max-w-4xl mx-auto text-center">
@@ -56,13 +59,26 @@ const About = () => {
 
         {/* CTA Button */}
         <div className="mt-10">
-          <Link
-            to="/auth"
+          <button
+            onClick={() => {
+              setShowSignupModal(true);
+            }}
             className="px-6 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-md hover:bg-blue-700 transition"
           >
             Get Started
-          </Link>
+          </button>
         </div>
+        {showSignupModal && (
+          <SignupModal
+            isOpen={showSignupModal}
+            onClose={() => setShowSignupModal(false)}
+            onSelect={(type) => {
+              setShowSignupModal(false);
+              window.location.href =
+                type === "hiring" ? "/hiring-signup" : "/business-signup";
+            }}
+          />
+        )}
       </div>
     </section>
   );
