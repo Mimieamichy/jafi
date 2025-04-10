@@ -1,18 +1,45 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar } from "@fortawesome/free-solid-svg-icons"; // Importing FontAwesome Icons
+import { faStar } from "@fortawesome/free-solid-svg-icons";
+
+// Assuming you have defined baseUrl in your environment variables
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function BusinessProfileCard() {
   const [businesses, setBusinesses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const storedData = JSON.parse(localStorage.getItem("businessSignupData"));
-    console.log("Fetched Business Data:", storedData);
-    if (storedData) {
-      setBusinesses([storedData]); // Modify this to load multiple businesses
-    }
+    // Fetch all listed businesses from the backend API
+    fetch(`${baseUrl}/business/`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch businesses");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Fetched businesses:", data);
+        
+        setBusinesses(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching businesses:", err);
+        setError("Error fetching businesses");
+        setLoading(false);
+      });
   }, []);
+
+  if (loading) {
+    return <p className="text-center mt-2">Loading...</p>;
+  }
+
+  if (error) {
+    return <p className="text-center mt-2 text-red-500">{error}</p>;
+  }
 
   if (businesses.length === 0) {
     return <p className="text-center mt-2">No businesses listed yet.</p>;
@@ -28,9 +55,9 @@ export default function BusinessProfileCard() {
         {businesses.map((business, index) => (
           <div
             key={index}
-            className=" rounded-lg shadow-md p-4 bg-white transition hover:shadow-lg"
+            className="rounded-lg shadow-md p-4 bg-white transition hover:shadow-lg"
           >
-            {/* Image */}
+            {/* Business Image */}
             <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden">
               <img
                 src={
@@ -40,7 +67,7 @@ export default function BusinessProfileCard() {
                     : "/placeholder.jpg"
                 }
                 alt={business.companyName}
-                className="w-full h-full  rounded-md"
+                className="w-full h-full rounded-md object-cover"
               />
             </div>
 
@@ -55,21 +82,15 @@ export default function BusinessProfileCard() {
                 {[...Array(5)].map((_, i) => (
                   <span key={i}>
                     {i < business.rating ? (
-                      <FontAwesomeIcon
-                        icon={faStar}
-                        className="text-yellow-400"
-                      />
+                      <FontAwesomeIcon icon={faStar} className="text-yellow-400" />
                     ) : (
-                      <FontAwesomeIcon
-                        icon={faStar}
-                        className="text-gray-300"
-                      />
+                      <FontAwesomeIcon icon={faStar} className="text-gray-300" />
                     )}
                   </span>
                 ))}
               </div>
 
-              {/* Opening Time */}
+              {/* Business Hours */}
               <p className="text-blue-600 font-semibold mt-2">
                 {business.openingTime} - {business.closingTime}
               </p>
