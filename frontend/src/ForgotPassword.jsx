@@ -27,7 +27,7 @@ export default function ForgotPassword() {
 
     try {
       setLoading(true);
-      const response = await fetch(`${baseUrl}/user/forgot-password`, {
+      const response = await fetch(`${baseUrl}/user/forget-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +43,7 @@ export default function ForgotPassword() {
         enqueueSnackbar("Password reset link sent to your email.", {
           variant: "success",
         });
-        navigate("/reset-password"); 
+        navigate("/"); 
         // Optionally redirect to the SignIn page or elsewhere after a timeout
       } else {
         setMessage(result.message || "Error sending email");
