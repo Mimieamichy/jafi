@@ -7,6 +7,7 @@ export default function PaymentSuccess() {
   useEffect(() => {
     // Optionally clear serviceId from storage
     localStorage.removeItem("serviceId");
+    localStorage.removeItem("busId");
   }, []);
 
   return (
