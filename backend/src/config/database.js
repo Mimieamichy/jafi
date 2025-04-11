@@ -27,9 +27,10 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
 
     // Create tables if they don't exist
     // try {
-    //   await sequelize.sync();
+    //   await sequelize.query('ALTER TABLE `reviews` ADD COLUMN `images` JSON')
     //   console.log("Tables created successfully");
     // } catch (error) {
+    //   console.log(error)
     //   console.log("Error creating tables:");
       
     // }

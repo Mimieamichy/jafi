@@ -8,6 +8,7 @@ const storage = new CloudinaryStorage({
     let folder = "jafiImages/business"; 
     if (file.fieldname === "workSamples") folder = "jafiImages/services"
     if (file.fieldname === "pob") folder = "jafiImages/pob"
+    if (file.fieldname === "reviewImages") folder = "jafiImages/reviews"
 
     return { folder, allowed_formats: ["jpg", "jpeg", "png", "gif", "svg", "webp", "tiff", "bmp", "heic", "raw", "docx", "pdf"] };
 
@@ -15,9 +16,10 @@ const storage = new CloudinaryStorage({
 });
 
 const upload = multer({ storage }).fields([
-  { name: "images", maxCount: 5 },
-  { name: "workSamples", maxCount: 5 },
-  { name: "pob", maxCount: 2}
+  { name: "images", maxCount: 10 },
+  { name: "workSamples", maxCount: 10 },
+  { name: "pob", maxCount: 2},
+  { name: "reviewImages", maxCount: 2}
 ]);
 
 const uploadMiddleware = (req, res, next) => {

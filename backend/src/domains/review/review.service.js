@@ -55,7 +55,7 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
 };
 
 
-exports.createReview = async (userId, entityId, rating, comment, user_name) => {
+exports.createReview = async (userId, entityId, rating, comment, user_name, images) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
 
@@ -105,7 +105,8 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
         star_rating: rating,
         listingId,
         listingName,
-        listingType
+        listingType,
+        images
       },
       { transaction: t }
     );
@@ -145,11 +146,12 @@ exports.createReview = async (userId, entityId, rating, comment, user_name) => {
   return result;
 };
 
-exports.updateReview = async (reviewId, userId, comment) => {
+exports.updateReview = async (reviewId, userId, comment, images) => {
   const review = await Review.findOne({ where: { id: reviewId, userId } });
   if (!review) throw new Error("Review not found or unauthorized");
 
   review.comment = comment
+  review.images = images
   await review.save();
   return review;
 };

@@ -1,7 +1,7 @@
 const express = require("express");
 const passport = require("passport");
 const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, searchReviews, getAReviewwithReplies, getAllReviewsWithReplies, replyToReview, acknowledgeReview} = require("../review/review.controller");
-
+const { uploadMiddleware } = require("../../application/middlewares/cloudinary"); 
 const router = express.Router();
 
 // Google Authentication Routes
@@ -13,8 +13,8 @@ router.get("/google-callback", googleAuthCallback);
 
 // Protected Routes
 router.get("/user/", passport.authenticate("jwt", { session: false }), getReviewsByUser );
-router.post("/:entityId", passport.authenticate("jwt", { session: false }), createReview);
-router.put("/:id", passport.authenticate("jwt", { session: false }), updateReview);
+router.post("/:entityId", uploadMiddleware, createReview);
+router.put("/:id", passport.authenticate("jwt", { session: false }), uploadMiddleware, updateReview);
 router.delete("/:id", passport.authenticate("jwt", { session: false }), deleteReview);
 
 

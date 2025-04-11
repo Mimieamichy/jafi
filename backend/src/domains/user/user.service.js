@@ -113,43 +113,39 @@ exports.getUserRole = async (email) => {
 
 
 exports.getAllListings = async (searchTerm) => {
-    let searchFilter = {};
+  let searchFilter = {};
 
-    // If searchTerm is provided, add the filter conditions for both services and businesses
-    if (searchTerm) {
-        searchFilter = {
-            [Op.or]: [
-                { name: { [Op.like]: `%${searchTerm}%` } },
-                { category: { [Op.like]: `%${searchTerm}%` } },
-            ],
-        };
-    }
+  if (searchTerm) {
+    searchFilter = {
+      [Op.or]: [
+        { name: { [Op.like]: `%${searchTerm}%` } },
+        { category: { [Op.like]: `%${searchTerm}%` } },
+      ],
+    };
+  }
 
-    // Fetch services with the optional search filter
-    const services = await Service.findAll({
-        where: searchTerm ? searchFilter : {}, // Apply the filter if searchTerm exists
-        order: [['createdAt', 'DESC']],
-    });
+  const services = await Service.findAll({
+    where: searchTerm ? searchFilter : {},
+    order: [['createdAt', 'DESC']],
+  });
 
-    // Fetch businesses with the optional search filter
-    const businesses = await Business.findAll({
-      where: searchTerm ? searchFilter : {},
-      attributes: { exclude: ['proof'] },
-      order: [['createdAt', 'DESC']],
-    });
-    
-    
-    //Combine both services and businesses into one list
-    const combined = [
-        ...services.map(service => ({ type: 'service', ...service.toJSON() })),
-        ...businesses.map(business => ({ type: 'business', ...business.toJSON() }))
-    ];
+  const businesses = await Business.findAll({
+    where: searchTerm ? searchFilter : {},
+    attributes: { exclude: ['proof'] },
+    order: [['createdAt', 'DESC']],
+  });
 
-    // Sort the combined list by creation date (descending)
-    const allListings = combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (!services.length && !businesses.length) {
+    return { message: 'No listings found for the provided search term.' };
+  }
 
-    return allListings;
+  const combined = [
+    ...services.map(service => ({ type: 'service', ...service.toJSON() })),
+    ...businesses.map(business => ({ type: 'business', ...business.toJSON() }))
+  ];
+
+  const allListings = combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  return allListings;
 };
-
-
 

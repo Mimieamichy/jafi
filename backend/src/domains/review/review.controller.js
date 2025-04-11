@@ -53,7 +53,8 @@ exports.createReview = async (req, res) => {
         const userId = req.user.id; 
         const entityId = req.params.entityId;
         const user_name = req.user.name;
-        const review = await ReviewService.createReview(userId, entityId, rating, comment, user_name);
+        const images = req.files["reviewImages"] ? req.files["reviewImages"].map((file) => file.path) : [];
+        const review = await ReviewService.createReview(userId, entityId, rating, comment, user_name, images);
         return res.status(201).json({ success: true, review });
     } catch (error) {
         console.log(error)
@@ -66,7 +67,8 @@ exports.updateReview = async (req, res) => {
         const { id } = req.params;
         const { comment } = req.body;
         const userId = req.user.id; 
-        const review = await ReviewService.updateReview(id, userId, comment);
+        const images = req.files["reviewImages"] ? req.files["reviewImages"].map((file) => file.path) : [];
+        const review = await ReviewService.updateReview(id, userId, comment, images);
         return res.status(200).json({ success: true, review });
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
