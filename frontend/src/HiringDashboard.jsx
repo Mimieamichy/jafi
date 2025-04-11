@@ -18,7 +18,7 @@ export default function HiringDashboard() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [reviews, setReviews] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
+  // const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newReviewNotification, setNewReviewNotification] = useState(false);
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -30,6 +30,7 @@ export default function HiringDashboard() {
   const [reviewsPerPage, setReviewsPerPage] = useState(8);
   const [newReviewCount, setNewReviewCount] = useState(0);
   const [profileImage, setProfileImage] = useState(null);
+  
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -37,6 +38,7 @@ export default function HiringDashboard() {
 
   // Parse query string
   const authToken = localStorage.getItem("userToken");
+  
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
 
@@ -88,11 +90,18 @@ export default function HiringDashboard() {
         }
         const data = await response.json();
         console.log("Fetched reviews:", data);
+        
+
 
         if (response.ok) {
           setReviews(data.reviews);
+          
+          // Set the first review ID if available
+          
+          
 
-          const newReviews = data.reviews.filter((review) => review.isnew);
+
+          const newReviews = data.reviews.filter((review) => review.isNew)
 
           console.log("New reviews:", newReviews);
           // Assuming `isNew` to filter new reviews
@@ -155,14 +164,14 @@ export default function HiringDashboard() {
 
   const handleNotificationClick = async () => {
     try {
-      const response = await fetch(`${baseUrl}/review/acknowledge`, {
-        method: "POST",
+      const response = await fetch(`${baseUrl}/review/acknowledge/${serviceId}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
         // You can send additional data if needed, e.g., userId or serviceId
-        body: JSON.stringify({ userId }),
+       
       });
 
       if (!response.ok) {
@@ -170,6 +179,7 @@ export default function HiringDashboard() {
       }
 
       // Assume the API returns success so we clear notifications
+      
       setNewReviewCount(0);
       setNewReviewNotification(false);
       enqueueSnackbar("Notifications acknowledged.", { variant: "success" });
@@ -227,7 +237,6 @@ export default function HiringDashboard() {
           enqueueSnackbar("Profile updated successfully!", {
             variant: "success",
           });
-          setIsEditing(false);
         } else {
           enqueueSnackbar("Failed to update profile. Please try again.", {
             variant: "error",

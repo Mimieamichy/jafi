@@ -11,7 +11,6 @@ import { faStar } from "@fortawesome/free-solid-svg-icons";
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function BusinessPage() {
- 
   const { enqueueSnackbar } = useSnackbar();
   const { id } = useParams(); // Get business id from route parameters
   const navigate = useNavigate();
@@ -289,27 +288,50 @@ export default function BusinessPage() {
             Opens at: {business.start} - {business.end}
           </p>
           <p className="text-sm text-gray-500 m-2">
-            Opening days: {business.day}
-          </p>
-          <div className="flex items-center">
-          <span className="mr-2">Rating:</span>
-          {[...Array(5)].map((_, i) => (
-            <FontAwesomeIcon
-              key={i}
-              icon={faStar}
-              className={
-                i < (business.average_rating || 0)
-                  ? "text-yellow-400"
-                  : "text-gray-300"
+            Opening days:
+            {(() => {
+              // If business.day is an array, use it; otherwise, split it by commas.
+              let days = Array.isArray(business.day)
+                ? business.day
+                : typeof business.day === "string"
+                ? business.day.split(",").map((d) => d.trim())
+                : [];
+
+              // Break the days array into chunks of 2.
+              const chunked = [];
+              for (let i = 0; i < days.length; i += 2) {
+                chunked.push(days.slice(i, i + 2));
               }
-            />
-          ))}
-        </div>
+
+              // Render each chunk on its own line.
+              return chunked.map((pair, index) => (
+                <span key={index}>
+                  <br />
+                  {pair.join(", ")}
+                </span>
+              ));
+            })()}
+          </p>
+
+          <div className="flex items-center">
+            <span className="mr-2">Rating:</span>
+            {[...Array(5)].map((_, i) => (
+              <FontAwesomeIcon
+                key={i}
+                icon={faStar}
+                className={
+                  i < (business.average_rating || 0)
+                    ? "text-yellow-400"
+                    : "text-gray-300"
+                }
+              />
+            ))}
+          </div>
           <div className="flex justify-between items-center mt-4 flex-wrap">
             {/* Left Section: Go Back */}
             <button
               onClick={() => navigate(-1)}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              className="px-4 mb-2 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
             >
               Go Back
             </button>
