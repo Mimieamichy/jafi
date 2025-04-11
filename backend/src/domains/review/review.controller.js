@@ -173,11 +173,11 @@ exports.getAllReviewsWithReplies = async (req, res) => {
 
 exports.acknowledgeReview = async (req, res) => {
     try{
-        const { reviewId, userId } = req.params;
+        const { listingId, userId } = req.params;
         if (userId === req.user.id) {
-            const review = await ReviewService.acknowledgeReview(reviewId, userId);
+            const review = await ReviewService.acknowledgeReview(listingId);
             return res.status(200).json({ success: true, review })
-        }  
+        }
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
     }
