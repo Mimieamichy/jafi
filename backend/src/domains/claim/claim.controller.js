@@ -1,4 +1,5 @@
 const claimService = require("./claim.service");
+const sequelize = require('../../config/database')
 
 
 exports.createClaim = async (req, res) => {
