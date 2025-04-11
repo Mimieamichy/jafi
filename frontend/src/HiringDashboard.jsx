@@ -104,7 +104,7 @@ export default function HiringDashboard() {
           const newReviews = data.reviews.filter((review) => review.isNew)
 
           console.log("New reviews:", newReviews);
-          // Assuming `isNew` to filter new reviews
+         
           setNewReviewCount(newReviews.length);
           setNewReviewNotification(newReviews.length > 0);
 
@@ -170,19 +170,23 @@ export default function HiringDashboard() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        // You can send additional data if needed, e.g., userId or serviceId
+        
        
       });
+
+      if (response.ok) {   
+        setNewReviewCount(0);
+        setNewReviewNotification(false);
+        enqueueSnackbar("Notifications acknowledged.", { variant: "success" });
+      } 
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Assume the API returns success so we clear notifications
-      
-      setNewReviewCount(0);
-      setNewReviewNotification(false);
-      enqueueSnackbar("Notifications acknowledged.", { variant: "success" });
+     
+
+    
     } catch (error) {
       console.error("Error acknowledging reviews:", error);
       enqueueSnackbar("Failed to acknowledge notifications.", {
@@ -427,13 +431,13 @@ export default function HiringDashboard() {
                   <div className="flex justify-between items-center mb-4">
                     <div className="bg-blue-100 text-blue-600 px-3 py-1 hover:bg-blue-600 hover:text-blue-100 rounded-full text-sm font-medium">
                       {newReviewNotification ? (
-                        <div className="flex items-center">
+                        <div className="flex items-center cursor-pointer"  onClick={handleNotificationClick}>
                           <FontAwesomeIcon
                             icon={faBell}
-                            onClick={handleNotificationClick}
-                            className="mr-1"
+              
+                            className="mr-1 "
                           />
-                          <span>{newReviewCount} new</span>
+                          <span>{newReviewCount} </span>
                         </div>
                       ) : (
                         <FontAwesomeIcon icon={faBell} />
