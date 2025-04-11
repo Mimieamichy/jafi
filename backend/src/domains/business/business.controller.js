@@ -1,28 +1,29 @@
 const BusinessService = require("./business.service");
 const sequelize = require("../../config/database");
+const bcrypt = require("bcryptjs");
 
 exports.registerBusiness = async (req, res) => {
-    try {
-      const businessData = { ...req.body };
-  
-      // Check and handle image files
-      if (req.files) {
-        if (req.files["images"]) {
-          businessData.images = req.files["images"].map(file => file.path);  
-        }
-        
-        // Handle proof file if it's provided
-        if (req.files["pob"]) {
-          businessData.proof = req.files["pob"].map(file => file.path);   
-        }
+  try {
+    const businessData = { ...req.body };
+
+    // Check and handle image files
+    if (req.files) {
+      if (req.files["images"]) {
+        businessData.images = req.files["images"].map((file) => file.path);
       }
-  
-      const response = await BusinessService.registerBusiness(businessData);
-      res.status(201).json(response);
-    } catch (error) {
-      console.log(error);
-      res.status(400).json({ error: error.message });
+
+      // Handle proof file if it's provided
+      if (req.files["pob"]) {
+        businessData.proof = req.files["pob"].map((file) => file.path);
+      }
     }
+
+    const response = await BusinessService.registerBusiness(businessData);
+    res.status(201).json(response);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ error: error.message });
+  }
 };
 
 exports.getABusiness = async (req, res) => {
@@ -50,11 +51,25 @@ exports.updateBusiness = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
     const businessData = req.body;
-    const images = req.files["workSamples"] ? req.files["workSamples"].map(file => file.path) : [];
-    const proof = req.files["pob"] ? req.files["pob"].map(file => file.path) : [];
-    businessData.images = images
-    businessData.proof = proof
-    const business = await BusinessService.updateBusiness(id, userId, businessData);
+    const images = req.files["workSamples"]
+      ? req.files["workSamples"].map((file) => file.path)
+      : [];
+    const proof = req.files["pob"]
+      ? req.files["pob"].map((file) => file.path)
+      : [];
+    businessData.images = images;
+    businessData.proof = proof;
+
+    if (businessData.password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(businessData.password, salt);
+      businessData.password = hashedPassword;
+    }
+    const business = await BusinessService.updateBusiness(
+      id,
+      userId,
+      businessData
+    );
     res.status(200).json(business);
   } catch (error) {
     res.status(404).json({ error: error.message });
@@ -67,7 +82,11 @@ exports.payForBusiness = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const response = await BusinessService.payForBusiness(businessId, amount, transaction);
+    const response = await BusinessService.payForBusiness(
+      businessId,
+      amount,
+      transaction
+    );
     await transaction.commit();
     return res.status(200).json({ success: true, data: response });
   } catch (error) {

@@ -15,7 +15,6 @@ exports.registerService = async (email, name, service, phone, address, category,
         const {plainPassword, hashedPassword} = generatePassword()
 
         // Use transaction to ensure data consistency
-        const result = await sequelize.transaction(async (t) => {
             // Create user inside the transaction
             const user = await User.create(
                 { 
@@ -24,7 +23,6 @@ exports.registerService = async (email, name, service, phone, address, category,
                     role: "service", 
                     name: name
                 }, 
-                { transaction: t }
             );
 
             // Create service inside the transaction
@@ -41,21 +39,10 @@ exports.registerService = async (email, name, service, phone, address, category,
                     email, 
                     description 
                 }, 
-                { transaction: t }
             );
 
-            return { user, newService };
-        });
-
-        // Send OTP (outside transaction to avoid rollback on failure)
-        const response = await OTPService.sendOTP(result.newService.phone_number, result.user.id);
-        
-        return { 
-            message: "OTP sent successfully", 
-            newService: result.newService, 
-            response, 
-            plainPassword 
-        };
+            const response = await OTPService.sendOTP(result.newService.phone_number, result.user.id);
+            return { user, newService , plainPassword, response};
 };
 
 exports.verifyServiceNumber = async (phoneNumber, otp) => {

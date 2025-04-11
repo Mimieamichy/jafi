@@ -11,13 +11,15 @@ router.post("/register", uploadMiddleware, registerService);//signup api
 router.post("/verify-service", verifyServiceNumber);
 router.post("/pay/:serviceId", payForService);
 router.get("/verify/:pay_ref", verifyServicePayment)
-router.get("/", getAllServices);
 router.get("/:id", getAService);
+router.get("/", getAllServices);
+
+
 
 
 // Protected routes - require authentication
 router.use(authenticate, authorize(["service", "admin", "superadmin"]));
-router.put("/:id", updateService);
+router.put("/:id", uploadMiddleware, updateService);
 router.delete("/:id", deleteService);
 router.get("/user/:id", getServiceByUserId)
 
