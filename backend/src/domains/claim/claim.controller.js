@@ -10,7 +10,8 @@ exports.createClaim = async (req, res) => {
       const claim = await claimService.createClaim(businessId, email, phone_number, pob);
       res.status(201).json(claim);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.log(error)
+      res.status(error.status || 500).json({ message: error.message });
     }
 };
 
@@ -21,7 +22,7 @@ exports.getClaims = async (req, res) => {
       const claims = await claimService.getClaims();
       res.status(200).json(claims);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(error.status || 500).json({ message: error.message });
     }
 };
 
@@ -32,7 +33,7 @@ exports.getAClaim = async (req, res) => {
         const claims = await claimService.getAClaim(claimId);
         res.status(200).json(claims);
       } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(error.status || 500).json({ message: error.message });
       }
 }
 
@@ -46,7 +47,7 @@ exports.payForClaim = async (req, res) => {
         res.status(200).json(response);
     } catch (error) {
         await transaction.rollback();
-        res.status(500).json({ error: error.message });
+        res.status(error.status || 500).json({ message: error.message });
     }
 }
 
@@ -56,7 +57,7 @@ exports.verifyClaimPayment = async (req, res) => {
     const response = await claimService.verifyPayment(pay_ref);
     res.status(200).json(response);
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
 
