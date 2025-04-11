@@ -3,6 +3,7 @@ const User = require("../user/user.model");
 const OTPService = require("../otp/otp.service");
 const PaymentService= require("../payments/payments.service");
 const {generatePassword} = require("../../utils/generatePassword")
+const bcrypt = require("bcryptjs");
 
 
 
@@ -80,11 +81,21 @@ exports.getAllServices = async () => {
     return services;
 };
 
-exports.updateService = async (serviceId, userId, serviceData) => {
+exports.updateService = async (serviceId, userId, serviceData, password) => {
     const service = await Service.findByPk(serviceId);
     if (!service) throw new Error("Service not found");
 
     if (service.userId !== userId) throw new Error("Unauthorized to update this service");
+
+    
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+  
+    await User.update(
+        { password: hashedPassword },
+        { where: { id: userId } 
+    })
+
 
     service.set(serviceData);
     await service.save();

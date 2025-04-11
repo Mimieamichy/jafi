@@ -336,16 +336,12 @@ exports.getAllReviewsWithReplies = async () => {
 
 
 exports.acknowledgeReview = async (listingId) => {
-  try {
     await Review.updateMany(
       { listingId, isNew: true },
       { $set: { isNew: false } }
     );
 
+    console.log("Review acknowledged");
     return { message: 'Marked as read' };
-  } catch (error) {
-    console.error('Error acknowledging reviews', error);
-    throw new Error('Internal server error');
-  }
 };
 

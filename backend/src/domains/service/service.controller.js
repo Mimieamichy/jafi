@@ -1,6 +1,7 @@
 const ServiceService = require("./service.service");
 const sequelize = require("../../config/database");
-const bcrypt = require("bcryptjs");
+
+
 
 exports.registerService = async (req, res) => {
   try {
@@ -63,26 +64,24 @@ exports.updateService = async (req, res) => {
     const userId = req.user.id;
     const serviceData = req.body;
 
+    
     // Handle images
     const images = req.files?.["workSamples"]
-      ? req.files["workSamples"].map((file) => file.path)
-      : [];
+    ? req.files["workSamples"].map(file => file.path)
+    : [];
     serviceData.images = images;
 
-    // Hash password if it exists in the update payload
-    if (serviceData.password) {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(serviceData.password, salt);
-      serviceData.password = hashedPassword;
-    }
+    const password = serviceData.password
+    delete serviceData.password;
 
-    const service = await ServiceService.updateService(id, userId, serviceData);
+    const service = await ServiceService.updateService(id, userId, serviceData, password);
     res.status(200).json(service);
   } catch (error) {
     console.log(error);
     res.status(404).json({ error: error.message });
   }
 };
+
 
 exports.payForService = async (req, res) => {
   const { serviceId } = req.params;
