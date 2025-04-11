@@ -336,10 +336,15 @@ exports.getAllReviewsWithReplies = async () => {
 
 
 exports.acknowledgeReview = async (listingId) => {
-    await Review.updateMany(
-      { listingId, isNew: true },
-      { $set: { isNew: false } }
-    );
+  await Review.update(
+    { isNew: false }, // values to update
+    {
+      where: {
+        listingId,
+        isNew: true
+      }
+    }
+  );
 
     console.log("Review acknowledged");
     return { message: 'Marked as read' };
