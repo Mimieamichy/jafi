@@ -30,7 +30,6 @@ export default function HiringDashboard() {
   const [reviewsPerPage, setReviewsPerPage] = useState(8);
   const [newReviewCount, setNewReviewCount] = useState(0);
   const [profileImage, setProfileImage] = useState(null);
-  
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -38,7 +37,7 @@ export default function HiringDashboard() {
 
   // Parse query string
   const authToken = localStorage.getItem("userToken");
-  
+
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
 
@@ -90,21 +89,16 @@ export default function HiringDashboard() {
         }
         const data = await response.json();
         console.log("Fetched reviews:", data);
-        
-
 
         if (response.ok) {
           setReviews(data.reviews);
-          
+
           // Set the first review ID if available
-          
-          
 
-
-          const newReviews = data.reviews.filter((review) => review.isNew)
+          const newReviews = data.reviews.filter((review) => review.isNew);
 
           console.log("New reviews:", newReviews);
-         
+
           setNewReviewCount(newReviews.length);
           setNewReviewNotification(newReviews.length > 0);
 
@@ -164,29 +158,26 @@ export default function HiringDashboard() {
 
   const handleNotificationClick = async () => {
     try {
-      const response = await fetch(`${baseUrl}/review/acknowledge/${serviceId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        
-       
-      });
+      const response = await fetch(
+        `${baseUrl}/review/acknowledge/${serviceId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
 
-      if (response.ok) {   
+      if (response.ok) {
         setNewReviewCount(0);
         setNewReviewNotification(false);
         enqueueSnackbar("Notifications acknowledged.", { variant: "success" });
-      } 
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-     
-
-    
     } catch (error) {
       console.error("Error acknowledging reviews:", error);
       enqueueSnackbar("Failed to acknowledge notifications.", {
@@ -197,7 +188,12 @@ export default function HiringDashboard() {
 
   // Handle save functionality
   const handleSave = () => {
-    if (workSampleImages.length > 5) {
+    if (!formData) {
+      enqueueSnackbar("No data to save", { variant: "error" });
+      return;
+    }
+
+    if (workSampleImages.length > 10) {
       enqueueSnackbar("Please upload no more than five images.", {
         variant: "warning",
       });
@@ -207,7 +203,9 @@ export default function HiringDashboard() {
     const formDataObj = new FormData();
     formDataObj.append("email", formData.email || "");
     formDataObj.append("address", formData.address || "");
+
     formDataObj.append("password", formData.password || "");
+
     formDataObj.append("description", formData.description || "");
 
     // Separate new images (File objects) from existing image URLs (strings)
@@ -223,10 +221,12 @@ export default function HiringDashboard() {
 
     // Append new images (as files) with key "workSamplesNew"
     newImages.forEach((file) => {
-      formDataObj.append("workSamplesNew", file, file.name);
+      const fileName = file.name || "untitled";
+      formDataObj.append("workSamples", file, fileName);
     });
+    console.log("form data", formDataObj);
+
     // Append existing images (URLs) as JSON string
-    formDataObj.append("existingWorkSamples", JSON.stringify(existingImages));
 
     fetch(`${baseUrl}/service/${id}`, {
       method: "PUT",
@@ -237,7 +237,9 @@ export default function HiringDashboard() {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
+        console.log("Update response:", data);
+
+        if (data) {
           enqueueSnackbar("Profile updated successfully!", {
             variant: "success",
           });
@@ -287,8 +289,8 @@ export default function HiringDashboard() {
   // Handle file upload
   const handleWorkSampleUpload = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length + workSampleImages.length > 5) {
-      enqueueSnackbar("You must upload no more than five images.", {
+    if (files.length + workSampleImages.length > 10) {
+      enqueueSnackbar("You must upload no more than ten images.", {
         variant: "warning",
       });
       return;
@@ -334,7 +336,10 @@ export default function HiringDashboard() {
             className={`cursor-pointer mb-2 p-2 rounded ${
               activeSection === "reviews" ? "bg-gray-700" : ""
             }`}
-            onClick={() => setActiveSection("reviews")}
+            onClick={() => {
+              setActiveSection("reviews");
+              handleNotificationClick;
+            }}
           >
             Reviews
           </li>
@@ -400,6 +405,7 @@ export default function HiringDashboard() {
                   onClick={() => {
                     setActiveSection("reviews");
                     setIsSidebarOpen(false);
+                    handleNotificationClick; // Acknowledge notifications when navigating to reviews
                   }}
                 >
                   Reviews
@@ -431,12 +437,11 @@ export default function HiringDashboard() {
                   <div className="flex justify-between items-center mb-4">
                     <div className="bg-blue-100 text-blue-600 px-3 py-1 hover:bg-blue-600 hover:text-blue-100 rounded-full text-sm font-medium">
                       {newReviewNotification ? (
-                        <div className="flex items-center cursor-pointer"  onClick={handleNotificationClick}>
-                          <FontAwesomeIcon
-                            icon={faBell}
-              
-                            className="mr-1 "
-                          />
+                        <div
+                          className="flex items-center cursor-pointer"
+                          onClick={handleNotificationClick}
+                        >
+                          <FontAwesomeIcon icon={faBell} className="mr-1 " />
                           <span>{newReviewCount} </span>
                         </div>
                       ) : (
@@ -455,7 +460,7 @@ export default function HiringDashboard() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="text-2xl font-bold text-gray-600">
+                        <div className="text-2xl font-bold text-gray-600 capitalize">
                           {formData.name ? formData.name.charAt(0) : "?"}
                         </div>
                       )}
@@ -463,7 +468,7 @@ export default function HiringDashboard() {
                   </div>
 
                   {/* Service Name (was Alexis Hill) */}
-                  <h2 className="text-center text-2xl font-bold text-gray-800 mb-1">
+                  <h2 className="text-center text-2xl font-bold text-gray-800 capitalize mb-1">
                     {formData.service_name || formData.name || "Service Name"}
                   </h2>
 
@@ -575,7 +580,7 @@ export default function HiringDashboard() {
                 {/* Work Samples Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Work Samples (5 images required)
+                    Work Samples (Upload up to 10 images)
                   </label>
                   <input
                     type="file"
@@ -589,7 +594,7 @@ export default function HiringDashboard() {
                 {/* Work Samples Preview */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
                   {workSampleImages.map((item, index) => {
-                    // Check type: if it's a File (instance of Blob) or a string (URL)
+                    // If item is a File object, use URL.createObjectURL; if it's a string (URL) use it directly.
                     const src =
                       typeof item === "string"
                         ? item
@@ -603,7 +608,7 @@ export default function HiringDashboard() {
                         />
                         <button
                           type="button"
-                          className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+                          className="absolute top-0 left-0 bg-red-500 text-white rounded-full p-1 text-xs"
                           onClick={() => removeImage(index)}
                         >
                           <FontAwesomeIcon icon={faTimes} />

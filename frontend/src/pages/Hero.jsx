@@ -115,7 +115,7 @@ export default function HeroSection() {
           />
           <input
             type="text"
-            placeholder="Search for a listing"
+            placeholder="Search for a listing by name or category"
             value={searchQuery}
             onChange={handleSearchChange}
             className="w-full py-3 px-12 bg-black/50 border border-gray-300 rounded-full text-white placeholder-white focus:outline-none"

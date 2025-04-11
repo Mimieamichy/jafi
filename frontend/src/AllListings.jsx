@@ -117,7 +117,7 @@ export default function AllListings() {
             />
 
             <div className="mt-4">
-              <h3 className="text-xl font-semibold">{listing.name}</h3>
+              <h3 className="text-xl font-semibold capitalize">{listing.name}</h3>
               <p className="text-gray-600">
                 <FontAwesomeIcon
                   icon={faBriefcase}

@@ -11,7 +11,6 @@ const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 const CustomerReviews = () => {
   const [reviews, setReviews] = useState([]);
- 
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +18,9 @@ const CustomerReviews = () => {
       try {
         const res = await fetch(`${baseUrl}/review/`);
         const data = await res.json();
+        console.log("Fetched reviews:", data.reviews);
+
+        // Sort by newest and take top 10
         const sorted = (data.reviews || [])
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 10);
@@ -27,11 +29,8 @@ const CustomerReviews = () => {
         console.error("Failed to fetch reviews", err);
       }
     };
-
     fetchReviews();
   }, []);
-
- 
 
   const handleNavigate = () => navigate("/all-listing");
 
@@ -42,6 +41,7 @@ const CustomerReviews = () => {
           What Customers Say
         </h2>
 
+        {/* Main Swiper for the reviews */}
         <Swiper
           modules={[Pagination, Autoplay]}
           spaceBetween={20}
@@ -58,39 +58,65 @@ const CustomerReviews = () => {
           {reviews.map((review) => (
             <SwiperSlide
               key={review.id}
-              className="bg-white p-10 rounded-lg shadow-md h-64 flex flex-col items-center justify-center text-center"
+              className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-left h-auto"
             >
-              <h3 className="text-lg font-semibold text-black capitalize">
-                {review.listingName || review.companyName}
-              </h3>
-              <p className="text-gray-700 capitalize">
-                {review.user?.user_name || review.user_name}
-              </p>
-
-              <div className="flex justify-center text-yellow-500 mt-2">
-                {[...Array(5)].map((_, i) => (
-                  <FontAwesomeIcon
-                    icon={faStar}
-                    key={i}
-                    className={
-                      i < (review.star_rating || review.rating)
-                        ? "text-yellow-500"
-                        : "text-gray-300"
-                    }
-                  />
-                ))}
+              {/* Top section: text details */}
+              <div className="w-full mb-4 flex-grow">
+                <h3 className="text-lg font-semibold text-black capitalize">
+                  {review.listingName || review.companyName}
+                </h3>
+                <p className="text-gray-700 capitalize">
+                  {review.user?.user_name || review.user_name}
+                </p>
+                <div className="flex text-yellow-500 mt-2">
+                  {[...Array(5)].map((_, i) => (
+                    <FontAwesomeIcon
+                      icon={faStar}
+                      key={i}
+                      className={
+                        i < (review.star_rating || review.rating)
+                          ? "text-yellow-500"
+                          : "text-gray-300"
+                      }
+                    />
+                  ))}
+                </div>
+                <p className="text-gray-600 mt-3 break-words overflow-hidden text-ellipsis max-w-full">
+                  {review.comment?.length > 25
+                    ? review.comment.substring(0, 25) + "..."
+                    : review.comment}
+                </p>
               </div>
 
-              <p className="text-gray-600 mt-3 break-words overflow-hidden text-ellipsis max-w-full">
-                {review.comment.length > 25
-                  ? review.comment.substring(0, 25) + "..."
-                  : review.comment}
-              </p>
+              {/* Nested Swiper for the review images */}
+              {review.images?.length > 0 ? (
+                <Swiper
+                  modules={[Pagination, Autoplay]}
+                  pagination={{ clickable: true }}
+                  autoplay={{ delay: 3000, disableOnInteraction: false }}
+                  loop={true}
+                  className="w-full"
+                >
+                  {review.images.map((imgUrl, idx) => (
+                    <SwiperSlide key={idx}>
+                      <img
+                        src={imgUrl}
+                        alt={`Review image ${idx}`}
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              ) : (
+                <div className="w-full h-40 bg-gray-200 flex items-center justify-center rounded-lg">
+                  <p className="text-gray-500">No images available</p>
+                </div>
+              )}
             </SwiperSlide>
           ))}
         </Swiper>
 
-        {/* Write a Review Button */}
+        {/* Button to navigate to All Listings */}
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleNavigate}

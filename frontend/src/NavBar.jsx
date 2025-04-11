@@ -4,52 +4,64 @@ import SignupModal from "./SignupModal";
 import { jwtDecode } from "jwt-decode";
 
 export default function Navbar() {
+  const baseUrl = import.meta.env.VITE_BACKEND_URL;
   const [isOpen, setIsOpen] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [reviewer, setReviewer] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [categories, setCategories] = useState([]); // New state for categories
+  const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false); // Toggles the dropdown
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Close dropdown on outside click
+  // Close dropdown on outside click for reviewer dropdown
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
+        setShowCategoriesDropdown(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Fetch categories from the listings API (only used on desktop)
+  useEffect(() => {
+    fetch(`${baseUrl}/user/listings`)
+      .then((res) => res.json())
+      .then((data) => {
+        // Assuming the API returns an object with a listings array.
+        const listings = data.listings || [];
+        const uniqueCats = [
+          ...new Set(listings.map((listing) => listing.category)),
+        ];
+        setCategories(uniqueCats);
+      })
+      .catch((err) =>
+        console.error("Error fetching listings for categories:", err)
+      );
+  }, []);
+
   // Check for token and reviewer status on mount and URL changes
   useEffect(() => {
-    // Check URL parameters for token (from Google login redirect)
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-
-    // If token is in URL, process it
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
         const isExpired = decodedToken.exp * 1000 < Date.now();
-
         if (isExpired) {
-          // Handle expired token
           localStorage.removeItem("reviewerToken");
           localStorage.removeItem("reviewer");
           console.log("Token expired");
         } else {
-          // Store valid token and data
           localStorage.setItem("reviewerToken", token);
           localStorage.setItem("reviewer", JSON.stringify(decodedToken));
           setReviewer(decodedToken);
           console.log("Reviewer authenticated:", decodedToken);
-
-          // Clean URL by removing token parameter
           const cleanedUrl = location.pathname;
           window.history.replaceState({}, document.title, cleanedUrl);
         }
@@ -57,15 +69,12 @@ export default function Navbar() {
         console.error("Error decoding token:", error);
       }
     } else {
-      // Check localStorage for existing token
       const storedToken = localStorage.getItem("reviewerToken");
       const storedRole = localStorage.getItem("userRole");
-
       if (storedToken) {
         try {
           const decodedToken = jwtDecode(storedToken);
           const isExpired = decodedToken.exp * 1000 < Date.now();
-
           if (isExpired) {
             localStorage.removeItem("reviewerToken");
             localStorage.removeItem("reviewer");
@@ -80,8 +89,6 @@ export default function Navbar() {
           localStorage.removeItem("reviewer");
         }
       }
-
-      // Set user role from localStorage
       if (storedRole) {
         setUserRole(storedRole);
         console.log("User role:", storedRole);
@@ -117,13 +124,50 @@ export default function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex space-x-6 items-center">
-          <Link
+        <Link
             to="/"
             onClick={handleNavClick}
             className="text-gray-600 hover:text-black"
           >
             Home
           </Link>
+          {/* Categories Dropdown - only on desktop */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowCategoriesDropdown((prev) => !prev)}
+              className="text-gray-600 hover:text-black"
+            >
+              Categories
+            </button>
+            {showCategoriesDropdown && (
+              <div className="absolute left-0 mt-2 bg-white border rounded shadow-md w-48 z-10">
+                <ul>
+                  {categories.length > 0 ? (
+                    categories.map((cat, idx) => (
+                      <li
+                        key={idx}
+                        onClick={() => {
+                          
+                          navigate("/all-listing");
+                          setShowCategoriesDropdown(false);
+                        }}
+                        className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                      >
+                        {cat}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="px-4 py-2 text-sm text-gray-500">
+                      No categories
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Menu Items */}
+          
           <Link
             to="/#about"
             onClick={handleNavClick}
@@ -153,7 +197,6 @@ export default function Navbar() {
           {/* Conditional Rendering based on authentication status */}
           {!reviewer && userRole === null ? (
             <>
-              {/* Display Login button if no user is logged in */}
               <button
                 onClick={handleLoginClick}
                 className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
@@ -162,8 +205,7 @@ export default function Navbar() {
               </button>
             </>
           ) : reviewer ? (
-            <div ref={dropdownRef} className="relative">
-              {/* Display reviewer name and dropdown */}
+            <div className="relative">
               <button
                 onClick={() => setShowDropdown((prev) => !prev)}
                 className="text-gray-800 font-medium bg-gray-100 px-4 py-2 rounded hover:bg-gray-200"
@@ -192,7 +234,6 @@ export default function Navbar() {
             </div>
           ) : null}
 
-          {/* Conditional rendering for "For Listing" / "Logout" button */}
           {userRole ? (
             <button
               onClick={handleLogout}
