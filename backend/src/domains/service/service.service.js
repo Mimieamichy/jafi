@@ -81,7 +81,7 @@ exports.getAllServices = async () => {
     return services;
 };
 
-exports.updateService = async (serviceId, userId, serviceData, password) => {
+exports.updateService = async (serviceId, userId, serviceData, password, email) => {
     const service = await Service.findByPk(serviceId);
     if (!service) throw new Error("Service not found");
 
@@ -92,9 +92,9 @@ exports.updateService = async (serviceId, userId, serviceData, password) => {
     const hashedPassword = await bcrypt.hash(password, salt);
   
     await User.update(
-        { password: hashedPassword },
-        { where: { id: userId } 
-    })
+        { password: hashedPassword, email: email },
+        { where: { id: userId } }
+    )
 
 
     service.set(serviceData);

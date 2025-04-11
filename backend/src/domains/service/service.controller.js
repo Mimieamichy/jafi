@@ -72,9 +72,11 @@ exports.updateService = async (req, res) => {
     serviceData.images = images;
 
     const password = serviceData.password
+    const email = serviceData.email
     delete serviceData.password;
+    delete serviceData.email;
 
-    const service = await ServiceService.updateService(id, userId, serviceData, password);
+    const service = await ServiceService.updateService(id, userId, serviceData, password, email);
     res.status(200).json(service);
   } catch (error) {
     console.log(error);
