@@ -137,8 +137,8 @@ function ReviewCard({ review, onEdit, onDelete }) {
 
   return (
     <div className="bg-white p-4 rounded shadow">
-      <h3 className="text-xl font-bold">{review.listingName}</h3>
-      <p className="text-sm text-gray-500 mb-1">{review.user_name}</p>
+      <h3 className="text-xl font-bold capitalize">{review.listingName}</h3>
+      <p className="text-sm text-gray-500 mb-1 capitalize">{review.user_name}</p>
 
       {isEditing ? (
         <textarea
