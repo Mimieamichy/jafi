@@ -25,7 +25,7 @@ const ReviewCard = ({
   return (
     <div
       className="bg-white p-6 rounded-lg shadow-md text-center flex flex-col justify-between h-full cursor-pointer"
-      onClick={() => onImageClick(images, id, type)}
+      
     >
       <div>
         <h3 className="text-lg font-semibold text-black capitalize">
@@ -166,7 +166,7 @@ export default function PaginatedReviews() {
             Next
           </button>
         </div>
-        {/* Write a Review Button */}
+        
         
       </div>
       {/* Modal for full-size image preview and swipe navigation */}
@@ -193,7 +193,7 @@ export default function PaginatedReviews() {
                   <img
                     src={img}
                     alt={`Review image ${idx}`}
-                    className="w-full h-[80vh] object-cover rounded-lg"
+                    className="w-full md:object-cover h-[80vh] object-contain rounded-lg"
                   />
                 </SwiperSlide>
               ))}

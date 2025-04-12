@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEye,
@@ -13,6 +14,7 @@ import { jwtDecode } from "jwt-decode";
 import { formatDistanceToNow } from "date-fns";
 
 export default function HiringDashboard() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState(null);
   const [workSampleImages, setWorkSampleImages] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -639,7 +641,8 @@ export default function HiringDashboard() {
                 reviews.map((review, index) => (
                   <div
                     key={index}
-                    className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                    className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow "
+                    onClick={navigate("/review-page")}
                   >
                     {/* Reviewer Name */}
                     <div className="flex items-center justify-center">

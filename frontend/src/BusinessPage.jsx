@@ -464,6 +464,7 @@ export default function BusinessPage() {
                 type="file"
                 accept="image/*"
                 multiple
+                required
                 onChange={(e) => {
                   const files = Array.from(e.target.files);
                   if (reviewImages.length + files.length > 2) {
@@ -602,7 +603,7 @@ export default function BusinessPage() {
                     <img
                       src={img}
                       alt={`Review image ${idx}`}
-                      className="w-full h-[80vh] object-cover rounded-lg"
+                      className="w-full md:object-cover h-[80vh] object-contain rounded-lg"
                     />
                   </div>
                 ))}
