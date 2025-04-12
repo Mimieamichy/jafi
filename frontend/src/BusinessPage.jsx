@@ -12,49 +12,65 @@ const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function BusinessPage() {
   const { enqueueSnackbar } = useSnackbar();
-  const { id } = useParams(); // Get business id from route parameters
+  const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [business, setBusiness] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [reviewer, setReviewer] = useState(null);
 
+  // Claim modal state
   const [showClaimModal, setShowClaimModal] = useState(false);
-
-  // Claim form state
   const [claimEmail, setClaimEmail] = useState("");
   const [claimPhone, setClaimPhone] = useState("");
   const [claimPobFile, setClaimPobFile] = useState(null);
 
-  // Review form state (placeholder; you mentioned you'll handle the review API)
-
-  const [reviewer, setReviewer] = useState(null);
-  const [reviewData, setReviewData] = useState({ rating: 0, comment: "" });
-  const [uniqueId, setUniqueId] = useState(null);
+  // Review form state
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewData, setReviewData] = useState({ rating: 0, comment: "" });
+  // Review images state for form uploads (max 2)
+  const [reviewImages, setReviewImages] = useState([]);
+  const [uniqueId, setUniqueId] = useState(null);
+
+  // Pagination for reviews
   const [currentPage, setCurrentPage] = useState(1);
   const reviewsPerPage = 3;
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
 
+  // Review Images Modal state (for full-size preview)
+  const [reviewImageModalOpen, setReviewImageModalOpen] = useState(false);
+  const [reviewModalImages, setReviewModalImages] = useState([]);
+  const [reviewModalIndex, setReviewModalIndex] = useState(0);
+
+  // Settings for business images carousel (header section)
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: true,
+    autoplay: true,
+  };
+
+  // Fetch business information
   useEffect(() => {
+    const fetchBusiness = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/business/${id}`);
+        const data = await response.json();
+        setBusiness(data);
+        console.log("Fetched business:", data);
+        setUniqueId(data.uniqueId);
+      } catch (error) {
+        console.error("Error fetching business:", error);
+      }
+    };
     fetchBusiness();
   }, [id]);
 
-  const fetchBusiness = async () => {
-    try {
-      const response = await fetch(`${baseUrl}/business/${id}`);
-      const data = await response.json();
-      setBusiness(data);
-      console.log("Fetched business:", data);
-      setUniqueId(data.uniqueId); // Assuming uniqueId is part of the business data
-      // Assuming uniqueId is part of the business data
-
-      // If business has a uniqueId, fetch reviews as well
-    } catch (error) {
-      console.error("Error fetching business:", error);
-    }
-  };
-
+  // Fetch reviews after uniqueId is available
   useEffect(() => {
     if (!uniqueId) return;
     fetch(`${baseUrl}/review/entity/${uniqueId}`)
@@ -69,46 +85,27 @@ export default function BusinessPage() {
       });
   }, [uniqueId, showReviewForm, enqueueSnackbar]);
 
-  // Settings for react-slick carousel
-  const sliderSettings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    arrows: true,
-    autoplay: true,
-  };
-  // Google Sign-in & token handling
+  // Google sign-in & token handling
   useEffect(() => {
-    // Check for token in URL parameters (from Google login redirect)
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-
     if (token) {
       try {
-        // Decode and validate token
         const decoded = jwtDecode(token);
         const isExpired = decoded.exp * 1000 < Date.now();
-
         if (isExpired) {
-          // Handle expired token
           localStorage.removeItem("reviewerToken");
           localStorage.removeItem("reviewer");
           enqueueSnackbar("Session expired. Please sign in again.", {
             variant: "info",
           });
-          // Redirect to Google login with current page as redirect target
           const currentPath = encodeURIComponent(location.pathname);
           window.location.href = `${baseUrl}/review/google?redirect=${currentPath}`;
         } else {
-          // Store valid token and user data
           localStorage.setItem("reviewerToken", token);
           localStorage.setItem("reviewer", JSON.stringify(decoded));
           setReviewer(decoded);
           console.log("User authenticated:", decoded);
-
-          // Clean URL by removing token parameter
           const cleanedUrl = location.pathname;
           window.history.replaceState({}, document.title, cleanedUrl);
         }
@@ -117,21 +114,16 @@ export default function BusinessPage() {
         enqueueSnackbar("Invalid login token", { variant: "error" });
       }
     } else {
-      // Check for existing token in localStorage
       const storedToken = localStorage.getItem("reviewerToken");
       const stored = localStorage.getItem("reviewer");
-
       if (storedToken && stored) {
         const decoded = jwtDecode(storedToken);
-        // Check if token is expired
         if (decoded.exp * 1000 < Date.now()) {
           localStorage.removeItem("reviewerToken");
           localStorage.removeItem("reviewer");
           enqueueSnackbar(
             "Session expired. Please sign in again to write a review.",
-            {
-              variant: "info",
-            }
+            { variant: "info" }
           );
         } else {
           setReviewer(JSON.parse(stored));
@@ -140,7 +132,6 @@ export default function BusinessPage() {
     }
   }, [location, enqueueSnackbar]);
 
-  // Claim Form Submission Handler
   const handleClaimSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -155,7 +146,6 @@ export default function BusinessPage() {
         body: formData,
       });
       if (response.ok) {
-        // Navigate to pricing page after a successful claim
         navigate("/pricing");
       } else {
         const errorData = await response.text();
@@ -174,23 +164,22 @@ export default function BusinessPage() {
     setReviewData({ ...reviewData, comment: e.target.value });
   };
 
-  // Placeholder for the review form submission
+  // Review form: Allow up to 2 images
+
+  
+
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-
     const token = localStorage.getItem("reviewerToken");
     console.log("Submitting review with token:", token);
-
     if (!token) {
       enqueueSnackbar("Please login to submit your review.", {
         variant: "warning",
       });
-      // Save current URL for redirect after login
       const currentUrl = encodeURIComponent(window.location.pathname);
       window.location.href = `${baseUrl}/review/google?redirect=${currentUrl}`;
       return;
     }
-
     const decoded = jwtDecode(token);
     if (decoded.exp * 1000 < Date.now()) {
       enqueueSnackbar("Session expired. Please login again.", {
@@ -202,22 +191,22 @@ export default function BusinessPage() {
       window.location.href = `${baseUrl}/review/google?redirect=${currentUrl}`;
       return;
     }
-
     try {
+      const formDataObj = new FormData();
+      formDataObj.append("name", reviewer.name);
+      formDataObj.append("email", reviewer.email);
+      formDataObj.append("comment", reviewData.comment);
+      formDataObj.append("rating", reviewData.rating);
+      reviewImages.forEach((file) => {
+        formDataObj.append("reviewImages", file, file.name);
+      });
       const res = await fetch(`${baseUrl}/review/${uniqueId}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          name: reviewer.name,
-          email: reviewer.email,
-          comment: reviewData.comment,
-          rating: reviewData.rating,
-        }),
+        body: formDataObj,
       });
-
       const result = await res.json();
       if (res.ok) {
         enqueueSnackbar("Review submitted successfully!", {
@@ -225,6 +214,7 @@ export default function BusinessPage() {
         });
         setShowReviewForm(false);
         setReviewData({ rating: 0, comment: "" });
+        setReviewImages([]);
       } else {
         enqueueSnackbar(result.message || "Failed to submit review", {
           variant: "error",
@@ -237,16 +227,23 @@ export default function BusinessPage() {
   };
 
   const handleGoogleLogin = () => {
-    // Capture the current URL for redirect after login
     const currentUrl = encodeURIComponent(window.location.pathname);
-    console.log("Redirecting to Google login with redirect:", currentUrl);
     window.location.href = `${baseUrl}/review/google?redirect=${currentUrl}`;
   };
+
+  // Review Images Modal handlers
+  
+  const closeReviewImageModal = () => {
+    setReviewImageModalOpen(false);
+    setReviewModalImages([]);
+    setReviewModalIndex(0);
+  };
+  
 
   if (!business) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading business...</p>
+        <p>Loading ...</p>
       </div>
     );
   }
@@ -255,7 +252,6 @@ export default function BusinessPage() {
     <div className="max-w-4xl mx-auto py-6 px-4">
       {/* HEADER / COVER SECTION */}
       <div className="bg-white rounded-lg shadow p-4 relative">
-        {/* Carousel using react-slick */}
         {business.images?.length > 0 ? (
           <div className="w-full h-64 overflow-hidden bg-gray-100">
             <Slider key={business.images.length} {...sliderSettings}>
@@ -276,7 +272,7 @@ export default function BusinessPage() {
           </div>
         )}
 
-        {/* Business Info */}
+        {/* Business Info - remains unchanged */}
         <div className="mt-4">
           <h1 className="text-2xl font-bold capitalize m-2">{business.name}</h1>
           <p className="text-sm text-gray-500 m-2">
@@ -290,29 +286,23 @@ export default function BusinessPage() {
           <p className="text-sm text-gray-500 m-2">
             Opening days:
             {(() => {
-              // If business.day is an array, use it; otherwise, split it by commas.
               let days = Array.isArray(business.day)
                 ? business.day
                 : typeof business.day === "string"
                 ? business.day.split(",").map((d) => d.trim())
                 : [];
-
-              // Break the days array into chunks of 2.
               const chunked = [];
               for (let i = 0; i < days.length; i += 2) {
                 chunked.push(days.slice(i, i + 2));
               }
-
-              // Render each chunk on its own line.
-              return chunked.map((pair, index) => (
-                <span key={index}>
+              return chunked.map((pair, idx) => (
+                <span key={idx}>
                   <br />
                   {pair.join(", ")}
                 </span>
               ));
             })()}
           </p>
-
           <div className="flex items-center">
             <span className="mr-2">Rating:</span>
             {[...Array(5)].map((_, i) => (
@@ -327,28 +317,25 @@ export default function BusinessPage() {
               />
             ))}
           </div>
-          <div className="flex justify-between items-center mt-4 flex-wrap">
-            {/* Left Section: Go Back */}
+          <div className="flex justify-between items-center mt-4 flex-wrap gap-4">
             <button
               onClick={() => navigate(-1)}
-              className="px-4 mb-2 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              className="px-4 py-2 bg-gray-300 md:text-base text-sm text-gray-700 rounded hover:bg-gray-400"
             >
               Go Back
             </button>
-
-            {/* Right Section: Write a Review and Claim */}
             <div className="flex items-center gap-4">
               <button
                 onClick={() =>
                   reviewer ? setShowReviewForm(true) : handleGoogleLogin()
                 }
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 md:text-base text-sm text-white rounded hover:bg-blue-700"
               >
                 Write a Review
               </button>
               {business.claimed ? (
                 <button
-                  className="px-4 py-2 bg-green-500 text-white rounded cursor-default"
+                  className="px-4 py-2 bg-green-500 md:text-base text-sm text-white rounded cursor-default"
                   disabled
                 >
                   Claimed
@@ -356,7 +343,7 @@ export default function BusinessPage() {
               ) : (
                 <button
                   onClick={() => setShowClaimModal(true)}
-                  className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                  className="px-4 py-2 bg-yellow-500 md:text-base text-sm text-white rounded hover:bg-yellow-600"
                 >
                   Claim this Business
                 </button>
@@ -385,30 +372,15 @@ export default function BusinessPage() {
                 currentPage * reviewsPerPage
               )
               .map((review) => (
-                <div
+                <ReviewCard
                   key={review.id}
-                  className="bg-white shadow-md rounded-lg p-4 text-center"
-                >
-                  <h4 className="text-lg font-bold">{review.listingName}</h4>
-                  <p className="text-gray-700">{review.user_name}</p>
-                  <div className="flex justify-center my-2 text-yellow-500">
-                    {[...Array(5)].map((_, i) => (
-                      <FontAwesomeIcon
-                        key={i}
-                        icon={faStar}
-                        className={
-                          i < review.star_rating
-                            ? "text-yellow-500"
-                            : "text-gray-300"
-                        }
-                      />
-                    ))}
-                  </div>
-                  <p className="text-gray-600">{review.comment}</p>
-                  <p className="text-sm text-gray-500 text-right mt-2">
-                    {new Date(review.createdAt).toLocaleString()}
-                  </p>
-                </div>
+                  {...review}
+                  onImageClick={(images, idx) => {
+                    setReviewModalImages(images);
+                    setReviewModalIndex(idx);
+                    setReviewImageModalOpen(true);
+                  }}
+                />
               ))}
           </div>
         ) : (
@@ -435,15 +407,18 @@ export default function BusinessPage() {
         )}
       </div>
 
-      {/* --- Write a Review Modal --- */}
+      {/* Write a Review Modal */}
       {showReviewForm && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center transition-opacity duration-300"
-          onClick={() => setShowReviewForm(false)}
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+          onClick={() => {
+            setShowReviewForm(false);
+            setReviewImages([]);
+          }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md transform transition-all duration-300 scale-100"
+            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
           >
             <h2 className="text-xl font-bold mb-4 text-center">
               Submit a Review
@@ -461,7 +436,6 @@ export default function BusinessPage() {
                 readOnly
                 className="w-full p-2 border rounded bg-gray-100"
               />
-
               <div className="flex justify-center space-x-2 text-yellow-500">
                 {[...Array(5)].map((_, i) => (
                   <FontAwesomeIcon
@@ -476,7 +450,6 @@ export default function BusinessPage() {
                   />
                 ))}
               </div>
-
               <textarea
                 name="comment"
                 rows="4"
@@ -486,7 +459,45 @@ export default function BusinessPage() {
                 className="w-full border p-2 rounded"
                 required
               />
-
+              <label className="block font-medium">Attach Images (Max 2)</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files);
+                  if (reviewImages.length + files.length > 2) {
+                    enqueueSnackbar("You can only upload up to 2 images.", {
+                      variant: "warning",
+                    });
+                    return;
+                  }
+                  setReviewImages((prev) => [...prev, ...files]);
+                }}
+                className="w-full p-2 border rounded"
+              />
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {reviewImages.map((file, idx) => (
+                  <div key={idx} className="relative">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Review img ${idx}`}
+                      className="w-full h-20 object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setReviewImages((prev) =>
+                          prev.filter((_, i) => i !== idx)
+                        )
+                      }
+                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
+              </div>
               <div className="flex justify-between">
                 <button
                   type="submit"
@@ -496,7 +507,10 @@ export default function BusinessPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowReviewForm(false)}
+                  onClick={() => {
+                    setShowReviewForm(false);
+                    setReviewImages([]);
+                  }}
                   className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
                 >
                   Cancel
@@ -506,6 +520,7 @@ export default function BusinessPage() {
           </div>
         </div>
       )}
+
       {/* --- Claim this Business Modal --- */}
       {showClaimModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -544,7 +559,7 @@ export default function BusinessPage() {
                 <button
                   type="button"
                   onClick={() => setShowClaimModal(false)}
-                  className="px-4 py-2 bg-gray-300 rounded"
+                  className="px-4   py-2 bg-gray-300 rounded"
                 >
                   Cancel
                 </button>
@@ -559,6 +574,103 @@ export default function BusinessPage() {
           </div>
         </div>
       )}
+
+      {/* Review Images Modal */}
+      {/* Review Images Modal using react-slick Carousel */}
+      {reviewImageModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
+          <div className="relative bg-white p-4 rounded-lg w-full md:max-w-3xl">
+            <button
+              onClick={closeReviewImageModal}
+              className="absolute top-1 right-2 text-gray-900 text-2xl font-bold"
+            >
+              &times;
+            </button>
+            {reviewModalImages.length > 0 && (
+              <Slider
+                dots={true}
+                infinite={true}
+                speed={500}
+                slidesToShow={1}
+                slidesToScroll={1}
+                arrows={true}
+                autoplay={true}
+                className="mt-4"
+              >
+                {reviewModalImages.map((img, idx) => (
+                  <div key={idx}>
+                    <img
+                      src={img}
+                      alt={`Review image ${idx}`}
+                      className="w-full h-[80vh] object-cover rounded-lg"
+                    />
+                  </div>
+                ))}
+              </Slider>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReviewCard({
+  listingName,
+  user_name,
+  star_rating,
+  comment,
+  createdAt,
+  images,
+  onImageClick,
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const hasLongComment = comment?.length > 150;
+  const displayedText =
+    expanded || !hasLongComment ? comment : comment.slice(0, 150) + "...";
+
+  return (
+    <div
+      className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center text-center cursor-pointer"
+      onClick={() => onImageClick(images, 0)}
+    >
+      <h4 className="text-lg font-bold">{listingName}</h4>
+      <p className="text-gray-700">{user_name}</p>
+      <div className="flex justify-center my-2 text-yellow-500">
+        {[...Array(5)].map((_, i) => (
+          <FontAwesomeIcon
+            key={i}
+            icon={faStar}
+            className={i < star_rating ? "text-yellow-500" : "text-gray-300"}
+          />
+        ))}
+      </div>
+      <p className="text-gray-600 mb-2">{displayedText}</p>
+      {hasLongComment && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded((prev) => !prev);
+          }}
+          className="text-blue-600 text-sm font-medium hover:underline mb-2"
+        >
+          {expanded ? "Show Less" : "Read More"}
+        </button>
+      )}
+      {images && images.length > 0 && (
+        <img
+          src={images[0]}
+          alt="Review thumbnail"
+          className="mt-4 w-full h-40 object-cover rounded cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            onImageClick(images, 0);
+          }}
+        />
+      )}
+      <p className="text-sm text-gray-500 text-right mt-2 w-full">
+        {new Date(createdAt).toLocaleString()}
+      </p>
     </div>
   );
 }

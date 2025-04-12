@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import BlueSpiralLoader from "./BlueSpiralLoader";
 
 // Lazy-load components
 const Navbar = lazy(() => import("./NavBar"));
@@ -9,9 +10,7 @@ const BusinessSignup = lazy(() => import("./BusinessSignup"));
 const PaginatedReviews = lazy(() => import("./ReviewsPage"));
 const Footer = lazy(() => import("./pages/Footer"));
 const ReviewsProvider = lazy(() =>
-  import("./context/reviewContext").then((module) => ({
-    default: module.ReviewsProvider,
-  }))
+  import("./context/reviewContext").then((module) => ({ default: module.ReviewsProvider }))
 );
 const SignupModal = lazy(() => import("./SignupModal"));
 const SignIn = lazy(() => import("./SignInPage"));
@@ -35,15 +34,12 @@ export default function App() {
   return (
     <Router>
       <Suspense
-        fallback={
-          <div className="min-h-screen flex items-center justify-center">
-            Loading...
-          </div>
-        }
+        fallback={<BlueSpiralLoader />}
       >
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <ReviewsProvider>
+            {/* Main content should grow to push the footer down */}
             <div className="flex-grow pt-9 mt-10">
               <Routes>
                 <Route path="/" element={<Homepage />} />

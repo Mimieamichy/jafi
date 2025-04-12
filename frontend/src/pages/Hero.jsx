@@ -49,7 +49,10 @@ export default function HeroSection() {
           const response = await axios.get(`${baseUrl}/user/listings`, {
             params: { searchTerm: searchQuery },
           });
-          setSuggestions(response.data.listings || []);
+          setSuggestions(response.data.listings  || [])
+          console.log("Fetched data:", response.data);
+          
+
         } catch (error) {
           console.error("Error fetching listings:", error);
           setError("Failed to fetch listings. Please try again later.");
@@ -132,7 +135,7 @@ export default function HeroSection() {
                 <p className="px-4 py-2">Loading...</p>
               ) : (
                 searchQuery &&
-                suggestions.length > 0 && (
+                suggestions.length > 0 ? (
                   <ul className="py-2">
                     {suggestions.map((listing) => (
                       <li
@@ -150,7 +153,12 @@ export default function HeroSection() {
                     ))}
                   </ul>
                 )
-              )}
+                : (
+                  <p className="px-4 py-2 text-gray-500">{suggestions.message}</p>
+                )
+              ) }
+
+             
 
               {/* Error message if any */}
               {error && !loading && (

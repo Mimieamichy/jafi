@@ -19,8 +19,7 @@ const CustomerReviews = () => {
         const res = await fetch(`${baseUrl}/review/`);
         const data = await res.json();
         console.log("Fetched reviews:", data.reviews);
-
-        // Sort by newest and take top 10
+        
         const sorted = (data.reviews || [])
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 10);
@@ -29,8 +28,22 @@ const CustomerReviews = () => {
         console.error("Failed to fetch reviews", err);
       }
     };
+
     fetchReviews();
   }, []);
+
+  // Function to handle a review card click. 
+  // Adjust the navigation logic as needed based on your review object.
+ 
+
+  const handleReviewCardClick = (id, listingType) => {
+    // Navigate to the appropriate route based on listingType (either service or business)
+    if (listingType === "service") {
+      navigate(`/hire/${id}`);
+    } else if (listingType === "business") {
+      navigate(`/business/${id}`);
+    }
+  };
 
   const handleNavigate = () => navigate("/all-listing");
 
@@ -41,7 +54,6 @@ const CustomerReviews = () => {
           What Customers Say
         </h2>
 
-        {/* Main Swiper for the reviews */}
         <Swiper
           modules={[Pagination, Autoplay]}
           spaceBetween={20}
@@ -58,9 +70,10 @@ const CustomerReviews = () => {
           {reviews.map((review) => (
             <SwiperSlide
               key={review.id}
-              className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-left h-auto"
+              onClick={() => handleReviewCardClick(review.listing.id, review.listingType)}
+              className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center h-auto cursor-pointer"
             >
-              {/* Top section: text details */}
+              {/* Review details */}
               <div className="w-full mb-4 flex-grow">
                 <h3 className="text-lg font-semibold text-black capitalize">
                   {review.listingName || review.companyName}
@@ -68,11 +81,11 @@ const CustomerReviews = () => {
                 <p className="text-gray-700 capitalize">
                   {review.user?.user_name || review.user_name}
                 </p>
-                <div className="flex text-yellow-500 mt-2">
+                <div className="flex justify-center text-yellow-500 mt-2">
                   {[...Array(5)].map((_, i) => (
                     <FontAwesomeIcon
-                      icon={faStar}
                       key={i}
+                      icon={faStar}
                       className={
                         i < (review.star_rating || review.rating)
                           ? "text-yellow-500"
@@ -82,20 +95,20 @@ const CustomerReviews = () => {
                   ))}
                 </div>
                 <p className="text-gray-600 mt-3 break-words overflow-hidden text-ellipsis max-w-full">
-                  {review.comment?.length > 25
+                  {review.comment.length > 25
                     ? review.comment.substring(0, 25) + "..."
                     : review.comment}
                 </p>
               </div>
 
-              {/* Nested Swiper for the review images */}
-              {review.images?.length > 0 ? (
+              {/* Nested Swiper for review images */}
+              {review.images && review.images.length > 0 ? (
                 <Swiper
                   modules={[Pagination, Autoplay]}
                   pagination={{ clickable: true }}
                   autoplay={{ delay: 3000, disableOnInteraction: false }}
                   loop={true}
-                  className="w-full"
+                  className="w-full mt-4"
                 >
                   {review.images.map((imgUrl, idx) => (
                     <SwiperSlide key={idx}>
@@ -116,7 +129,7 @@ const CustomerReviews = () => {
           ))}
         </Swiper>
 
-        {/* Button to navigate to All Listings */}
+        {/* Button to navigate to the All Listings page */}
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleNavigate}

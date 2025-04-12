@@ -205,7 +205,7 @@ export default function Navbar() {
               </button>
             </>
           ) : reviewer ? (
-            <div className="relative">
+            <div ref={dropdownRef} className="relative">
               <button
                 onClick={() => setShowDropdown((prev) => !prev)}
                 className="text-gray-800 font-medium bg-gray-100 px-4 py-2 rounded hover:bg-gray-200"
@@ -213,11 +213,12 @@ export default function Navbar() {
                 {reviewer.name}
               </button>
               {showDropdown && (
-                <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg w-48 z-10">
+                <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg w-48 z-50">
                   <button
                     onClick={() => {
-                      setShowDropdown(false);
                       navigate("/reviewer");
+                      setShowDropdown(false);
+                      
                     }}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                   >
