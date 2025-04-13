@@ -27,12 +27,16 @@ exports.forgotPassword = async (req, res) => {
 exports.verifyResetToken = async (req, res) => {
   try {
     const { token } = req.params;
-    await UserService.verifyResetToken(token);
-    res.redirect(
-      `${process.env.FRONTEND_URL}/reset-password`
-    );
+    const email = await UserService.verifyResetToken(token);
+
+    if (email) {
+      res.redirect(
+        `${process.env.FRONTEND_URL}/reset-password/?token=${token}`
+      );
+    }
 
   } catch (error) {
+
     res.status(error.status || 500).json({ message: error.message });
   }
 }
