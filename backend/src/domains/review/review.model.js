@@ -58,7 +58,7 @@ const Review = sequelize.define(
       allowNull: false,
       defaultValue: true,
     },
-    replyId: {
+    reply: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {

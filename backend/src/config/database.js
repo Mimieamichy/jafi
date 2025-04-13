@@ -27,7 +27,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
 
     // Create tables if they don't exist
     // try {
-    //   await sequelize.query('ALTER TABLE `reviews` ADD COLUMN `images` JSON')
+    //   await sequelize.query('ALTER TABLE `services` DROP COLUMN `password`')
     //   console.log("Tables created successfully");
     // } catch (error) {
     //   console.log(error)

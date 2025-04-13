@@ -6,12 +6,12 @@ const PaymentService = require("../payments/payments.service");
 exports.createClaim = async (businessId, email, phone, proof) => {
   const business = await Business.findByPk(businessId);
   if (!business || business.claim === true) {
-    throw new Error("Business not available for claim");
+    return { message: "Business not available for claim"};
   }
 
   const user = await User.findOne({ where: { email } });
   if (user) {
-    throw new Error("User already exists");
+    return { message:"User already exists"};
   }
 
   const name = business.name;

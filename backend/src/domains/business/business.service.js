@@ -83,11 +83,17 @@ exports.getAllBusinesses = async () => {
     return businesses;
 };
 
-exports.updateBusiness = async (businessId, userId, businessData) => {
+exports.updateBusiness = async (businessId, userId, businessData, password, email) => {
     const business = await Business.findByPk(businessId);
     if (!business) throw new Error("Business not found");
 
     if (business.userId !== userId) throw new Error("Unauthorized to update this business");
+
+    const hashedPassword = generatePassword(password)
+    await User.update(
+        { password: hashedPassword, email: email },
+        { where: { id: userId } }
+    )
 
     business.set(businessData);
     await business.save();
