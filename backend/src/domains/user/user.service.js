@@ -87,7 +87,9 @@ exports.getUserById = async (id) => {
 };
 
 exports.getAllUsers = async () => {
-  const users = await User.findAll();
+  const users = await User.findAll({
+    attributes: ['id', 'name', 'email', 'role'] 
+  });
   return users;
 }
 
@@ -105,7 +107,7 @@ exports.updateUser = async (id, data) => {
 
 
 exports.getUserRole = async (email) => {
-  const user = await User.findAll({ where: { email } });
+  const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("User not found");
 
   return user.role
