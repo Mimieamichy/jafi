@@ -19,7 +19,7 @@ const upload = multer({ storage }).fields([
   { name: "images", maxCount: 10 },
   { name: "workSamples", maxCount: 10 },
   { name: "pob", maxCount: 2},
-  { name: "reviewImages", maxCount: 2}
+  { name: "reviewImages", maxCount: 10}
 ]);
 
 const uploadMiddleware = (req, res, next) => {

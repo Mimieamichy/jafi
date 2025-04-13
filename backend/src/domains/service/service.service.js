@@ -1,49 +1,49 @@
 const Service = require("./service.model");
 const User = require("../user/user.model");
 const OTPService = require("../otp/otp.service");
-const PaymentService= require("../payments/payments.service");
-const {generatePassword} = require("../../utils/generatePassword")
-const bcrypt = require("bcryptjs");
+const PaymentService = require("../payments/payments.service");
+const { generatePassword } = require("../../utils/generatePassword")
+
 
 
 
 exports.registerService = async (email, name, service, phone, address, category, images, description) => {
-        const existingService = await Service.findOne({ where: { email } });
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser || existingService) throw new Error("User already exists");
+    const existingService = await Service.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser || existingService) throw new Error("User already exists");
 
-        // Generate random password
-        const {plainPassword, hashedPassword} = generatePassword()
+    // Generate random password
+    const { plainPassword, hashedPassword } = generatePassword()
 
-        // Use transaction to ensure data consistency
-            // Create user inside the transaction
-            const user = await User.create(
-                { 
-                    email, 
-                    password: hashedPassword, 
-                    role: "service", 
-                    name: name
-                }, 
-            );
+    // Use transaction to ensure data consistency
+    // Create user inside the transaction
+    const user = await User.create(
+        {
+            email,
+            password: hashedPassword,
+            role: "service",
+            name: name
+        },
+    );
 
-            // Create service inside the transaction
-            const newService = await Service.create(
-                {
-                    name: service, 
-                    password: hashedPassword, 
-                    status: "pending", 
-                    userId: user.id, 
-                    address, 
-                    phone_number: phone, 
-                    category, 
-                    images, 
-                    email, 
-                    description 
-                }, 
-            );
+    // Create service inside the transaction
+    const newService = await Service.create(
+        {
+            name: service,
+            password: hashedPassword,
+            status: "pending",
+            userId: user.id,
+            address,
+            phone_number: phone,
+            category,
+            images,
+            email,
+            description
+        },
+    );
 
-            const response = await OTPService.sendOTP(result.newService.phone_number, result.user.id);
-            return { user, newService , plainPassword, response};
+    const response = await OTPService.sendOTP(result.newService.phone_number, result.user.id);
+    return { user, newService, plainPassword, response };
 };
 
 exports.verifyServiceNumber = async (phoneNumber, otp) => {
@@ -55,29 +55,29 @@ exports.verifyServiceNumber = async (phoneNumber, otp) => {
 
 exports.getAService = async (serviceId) => {
     const service = await Service.findByPk(serviceId, {
-      include: {
-        model: User,
-        attributes: ["id", "name", "email", "role"], 
-      },
+        include: {
+            model: User,
+            attributes: ["id", "name", "email", "role"],
+        },
     });
-  
+
     if (!service) throw new Error("Service not found");
-  
+
     return service;
 };
 
 exports.getAllServices = async () => {
     const services = await Service.findAll({
-      include: {
-        model: User,
-        attributes: ["id", "name", "email", "role"], 
-      },
-         
+        include: {
+            model: User,
+            attributes: ["id", "name", "email", "role"],
+        },
+
     });
     if (!services || services.length === 0) {
-      throw new Error("No services found");
+        throw new Error("No services found");
     }
-  
+
     return services;
 };
 
@@ -87,10 +87,15 @@ exports.updateService = async (serviceId, userId, serviceData, password, email) 
 
     if (service.userId !== userId) throw new Error("Unauthorized to update this service");
 
-    
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-  
+
+
+    if (password !== undefined || password !== "") {
+        const hashedPassword = generatePassword(password);
+        await User.update(
+            { password: hashedPassword },
+            { where: { id: userId } }
+        );
+    }
     await User.update(
         { password: hashedPassword, email: email },
         { where: { id: userId } }
@@ -107,7 +112,8 @@ exports.updateService = async (serviceId, userId, serviceData, password, email) 
 exports.payForService = async (serviceId, amount, transaction) => {
     const service = await Service.findOne({
         where: { id: serviceId },
-        include: [{ model: User, attributes: ["id", "email", "name", "role"]
+        include: [{
+            model: User, attributes: ["id", "email", "name", "role"]
         }],
         transaction
     });
@@ -124,19 +130,19 @@ exports.payForService = async (serviceId, amount, transaction) => {
     // Make payment
     const paymentDetails = await PaymentService.makePayment(response.id, { transaction });
 
-    return {response, paymentDetails};
+    return { response, paymentDetails };
 };
 
 
 exports.verifyPayment = async (paymentReference) => {
     const paymentResponse = await PaymentService.verifyPayment(paymentReference);
-    
+
     return paymentResponse
 
 }
 
 exports.getServiceByUserId = async (userId) => {
-   const service = await Service.findOne({ where: { userId } });
+    const service = await Service.findOne({ where: { userId } });
     if (!service) throw new Error("Service not found");
 
     return service;
@@ -166,4 +172,3 @@ exports.deleteService = async (serviceId, userId) => {
 
 
 
-  

@@ -59,10 +59,15 @@ exports.updateBusiness = async (req, res) => {
       : [];
     businessData.images = images;
     businessData.proof = proof;
+    let password = ""
 
-    const password = businessData.password
+    if (businessData.password) {
+    return password = businessData.password
+    }
+
     const email = businessData.email
     delete businessData.password;
+    delete businessData.email;
 
 
     const business = await BusinessService.updateBusiness(id, userId, businessData, password, email);
