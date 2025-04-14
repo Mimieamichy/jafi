@@ -10,7 +10,9 @@ const BusinessSignup = lazy(() => import("./BusinessSignup"));
 const PaginatedReviews = lazy(() => import("./ReviewsPage"));
 const Footer = lazy(() => import("./pages/Footer"));
 const ReviewsProvider = lazy(() =>
-  import("./context/reviewContext").then((module) => ({ default: module.ReviewsProvider }))
+  import("./context/reviewContext").then((module) => ({
+    default: module.ReviewsProvider,
+  }))
 );
 const SignupModal = lazy(() => import("./SignupModal"));
 const SignIn = lazy(() => import("./SignInPage"));
@@ -22,7 +24,7 @@ const BusinessDashboard = lazy(() => import("./BusinessDashboard"));
 const BusinessPage = lazy(() => import("./BusinessPage"));
 const BusinessProfileCard = lazy(() => import("./BusinessProfileCard"));
 const ReviewersDashboard = lazy(() => import("./Reviewer"));
-const AdminDashboard = lazy(() => import("./Admindashboard"));
+
 const PaymentSuccess = lazy(() => import("./PaymentSuccess"));
 const NotFound = lazy(() => import("./NotFound"));
 const HireProfileDetails = lazy(() => import("./HirePage"));
@@ -33,9 +35,7 @@ const ResetPassword = lazy(() => import("./ResetPassword"));
 export default function App() {
   return (
     <Router>
-      <Suspense
-        fallback={<BlueSpiralLoader />}
-      >
+      <Suspense fallback={<BlueSpiralLoader />}>
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <ReviewsProvider>
@@ -55,7 +55,7 @@ export default function App() {
                 <Route path="/bus-dashboard" element={<BusinessDashboard />} />
                 <Route path="/bus-profile" element={<BusinessProfileCard />} />
                 <Route path="/reviewer" element={<ReviewersDashboard />} />
-                <Route path="/admin/*" element={<AdminDashboard />} />
+
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/all-listing" element={<AllListings />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />

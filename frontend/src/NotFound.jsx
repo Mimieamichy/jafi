@@ -1,11 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
 export default function NotFound() {
+  const location = useLocation();
+  
   useEffect(() => {
     document.title = "404 - Page Not Found";
   }, []);
-
+  
+  // Check if the error message has been passed in location state
+  const errorMessage =
+    (location && location.state && location.state.error) ||
+    "The page you're looking for might have been removed or is temporarily unavailable.";
+    
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 to-white px-4 text-center animate-fade-in">
       <h1 className="text-[6rem] sm:text-[8rem] font-extrabold text-blue-600 drop-shadow-lg animate-bounce">
@@ -15,8 +22,7 @@ export default function NotFound() {
         Oops! This page doesn't exist.
       </h2>
       <p className="text-gray-600 mb-6 max-w-md">
-        The page you're looking for might have been removed or is temporarily
-        unavailable.
+        {errorMessage}
       </p>
       <Link
         to="/"

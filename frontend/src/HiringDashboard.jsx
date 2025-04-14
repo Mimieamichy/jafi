@@ -14,7 +14,10 @@ import { jwtDecode } from "jwt-decode";
 import { formatDistanceToNow } from "date-fns";
 
 export default function HiringDashboard() {
-  
+  const { enqueueSnackbar } = useSnackbar();
+
+  const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
   const [formData, setFormData] = useState(null);
   const [workSampleImages, setWorkSampleImages] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -32,16 +35,64 @@ export default function HiringDashboard() {
   const [reviewsPerPage, setReviewsPerPage] = useState(8);
   const [newReviewCount, setNewReviewCount] = useState(0);
   const [profileImage, setProfileImage] = useState(null);
-
-  const { enqueueSnackbar } = useSnackbar();
-
-  const baseUrl = import.meta.env.VITE_BACKEND_URL;
+  const [replyStates, setReplyStates] = useState({});
+  const [replyTexts, setReplyTexts] = useState({});
 
   // Parse query string
   const authToken = localStorage.getItem("userToken");
-
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
+
+  const toggleReply = (reviewId) => {
+    setReplyStates((prev) => ({ ...prev, [reviewId]: !prev[reviewId] }));
+  };
+
+  const handleReplyChange = (reviewId, value) => {
+    setReplyTexts((prev) => ({ ...prev, [reviewId]: value }));
+  };
+
+  const handleReplySubmit = async (reviewId) => {
+    console.log("Submitting reply for review ID:", reviewId);
+    
+    const replyText = replyTexts[reviewId];
+    if (!replyText) {
+      enqueueSnackbar("Reply cannot be empty.", { variant: "warning" });
+      return;
+    }
+    try {
+      const response = await fetch(`${baseUrl}/user/reply/${reviewId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ reply: replyText }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        enqueueSnackbar("Reply submitted successfully!", {
+          variant: "success",
+        });
+        // Optionally clear the reply text and close the reply area
+        setReplyTexts((prev) => ({ ...prev, [reviewId]: "" }));
+        setReplyStates((prev) => ({ ...prev, [reviewId]: false }));
+      } else {
+        enqueueSnackbar(data.message || "Failed to submit reply.", {
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting reply:", error);
+      enqueueSnackbar("An error occurred while submitting your reply.", {
+        variant: "error",
+      });
+    }
+  };
+
+  const cancelReply = (reviewId) => {
+    setReplyTexts((prev) => ({ ...prev, [reviewId]: "" }));
+    setReplyStates((prev) => ({ ...prev, [reviewId]: false }));
+  };
 
   useEffect(() => {
     if (!authToken) {
@@ -94,6 +145,8 @@ export default function HiringDashboard() {
 
         if (response.ok) {
           setReviews(data.reviews);
+          const reviewId = data.reviews.map((review) => review.id);
+          console.log("Review IDs:", reviewId);
 
           // Set the first review ID if available
 
@@ -196,7 +249,7 @@ export default function HiringDashboard() {
     }
 
     if (workSampleImages.length > 10) {
-      enqueueSnackbar("Please upload no more than five images.", {
+      enqueueSnackbar("Please upload no more than ten images.", {
         variant: "warning",
       });
       return;
@@ -634,23 +687,23 @@ export default function HiringDashboard() {
         {activeSection === "reviews" && (
           <div>
             <h2 className="text-2xl font-bold mb-6 text-center">All Reviews</h2>
-
             {/* Reviews Grid (Responsive) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {reviews.length > 0 ? (
-                reviews.map((review, index) => (
+                reviews.map((review) => (
                   <div
-                    key={index}
-                    className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow "
-                   
+                    key={review.id}
+                    className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
                   >
                     {/* Reviewer Name */}
                     <div className="flex items-center justify-center">
-                      <Link to="/review-page" className="font-semibold text-lg capitalize">
+                      <Link
+                        to="/review-page"
+                        className="font-semibold text-lg capitalize"
+                      >
                         {review.user_name}
                       </Link>
                     </div>
-
                     {/* Rating */}
                     <div className="flex justify-center text-yellow-500 mt-2">
                       {[...Array(5)].map((_, i) => (
@@ -665,18 +718,52 @@ export default function HiringDashboard() {
                         />
                       ))}
                     </div>
-
                     {/* Review Comment */}
                     <p className="mt-2 text-center text-gray-600 line-clamp-3">
                       {review.comment}
                     </p>
-
                     {/* Time */}
                     <p className="text-sm text-gray-500 mt-2 text-center">
                       {formatDistanceToNow(new Date(review.createdAt), {
                         addSuffix: true,
                       })}
                     </p>
+
+                    {/* Reply Section */}
+                    <div className="mt-4">
+                      <button
+                        className="text-blue-600 hover:underline"
+                        onClick={() => toggleReply(review.id)}
+                      >
+                        Reply
+                      </button>
+                      {replyStates[review.id] && (
+                        <div className="mt-2">
+                          <textarea
+                            className="w-full p-2 border rounded"
+                            placeholder="Write your reply..."
+                            value={replyTexts[review.id] || ""}
+                            onChange={(e) =>
+                              handleReplyChange(review.id, e.target.value)
+                            }
+                          />
+                          <div className="mt-2 flex gap-2">
+                            <button
+                              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                              onClick={() => handleReplySubmit(review.id)}
+                            >
+                              Submit Reply
+                            </button>
+                            <button
+                              className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                              onClick={() => cancelReply(review.id)}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))
               ) : (

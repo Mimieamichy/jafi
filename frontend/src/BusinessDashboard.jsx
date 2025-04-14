@@ -14,7 +14,6 @@ import { jwtDecode } from "jwt-decode";
 import { formatDistanceToNow } from "date-fns";
 
 export default function BusinessDashboard() {
-  
   const [formData, setFormData] = useState(null);
   const [busNewImages, setBusNewImages] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -39,6 +38,8 @@ export default function BusinessDashboard() {
 
   // Parse query string
   const authToken = localStorage.getItem("userToken");
+  
+  
 
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
@@ -160,16 +161,13 @@ export default function BusinessDashboard() {
 
   const handleNotificationClick = async () => {
     try {
-      const response = await fetch(
-        `${baseUrl}/review/acknowledge/${busId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
+      const response = await fetch(`${baseUrl}/review/acknowledge/${busId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
 
       if (response.ok) {
         setNewReviewCount(0);
@@ -189,74 +187,105 @@ export default function BusinessDashboard() {
   };
 
   // Handle save functionality
-  const handleSave = () => {
-    if (!formData) {
-      enqueueSnackbar("No data to save", { variant: "error" });
-      return;
+ // Helper function to convert a URL to a File object
+const urlToFile = async (url, fileName, mimeType) => {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new File([blob], fileName, { type: mimeType });
+};
+
+const handleSave = async () => {
+  if (!formData) {
+    enqueueSnackbar("No data to save", { variant: "error" });
+    return;
+  }
+
+  if (busNewImages.length > 10) {
+    enqueueSnackbar("Please upload no more than ten images.", {
+      variant: "warning",
+    });
+    return;
+  }
+
+  // Create a new FormData object
+  const formDataBus = new FormData();
+  formDataBus.append("email", formData.email || "");
+  formDataBus.append("address", formData.address || "");
+  formDataBus.append("password", formData.password || "");
+  formDataBus.append("description", formData.description || "");
+
+  // Separate new images (already File objects) and existing image URLs (strings)
+  const newImages = [];
+  const existingImageUrls = [];
+  busNewImages.forEach((item) => {
+    if (item instanceof Blob) {
+      newImages.push(item);
+    } else if (typeof item === "string") {
+      existingImageUrls.push(item);
     }
+  });
 
-    if (busNewImages.length > 10) {
-      enqueueSnackbar("Please upload no more than ten images.", {
-        variant: "warning",
-      });
-      return;
-    }
+  // Append new images to FormData
+  newImages.forEach((file) => {
+    const fileName = file.name || "untitled";
+    formDataBus.append("images", file, fileName);
+  });
 
-    const formDataObj = new FormData();
-    formDataObj.append("email", formData.email || "");
-    formDataObj.append("address", formData.address || "");
-
-    formDataObj.append("password", formData.password || "");
-
-    formDataObj.append("description", formData.description || "");
-
-    // Separate new images (File objects) from existing image URLs (strings)
-    const newImages = [];
-    const existingImages = [];
-    busNewImages.forEach((item) => {
-      if (item instanceof Blob) {
-        newImages.push(item);
-      } else if (typeof item === "string") {
-        existingImages.push(item);
+  // Convert each existing image URL to a File object and append
+  try {
+    const convertedFiles = await Promise.all(
+      existingImageUrls.map(async (url, index) => {
+        // You can adjust the default file name and MIME type as needed;
+        // here we assume JPEG (you might detect MIME type based on URL or your data).
+        return await urlToFile(url, `existing_image_${index}.jpg`, "image/jpeg");
+      })
+    );
+    convertedFiles.forEach((file) => {
+      if (file) {
+        formDataBus.append("images", file, file.name);
       }
     });
+  } catch (error) {
+    console.error("Error converting image URLs:", error);
+    enqueueSnackbar("Error processing images.", { variant: "error" });
+    return;
+  }
 
-    // Append new images (as files) with key "images"
-    newImages.forEach((file) => {
-      const fileName = file.name || "untitled";
-      formDataObj.append("images", file, fileName);
-    });
-    console.log("form data", formDataObj);
+  // (Optional) Log the FormData contents for debugging.
+  for (let [key, value] of formDataBus.entries()) {
+    console.log(`${key}:`, value);
+  }
 
-    // Append existing images (URLs) as JSON string
-
-    fetch(`${baseUrl}/business/${id}`, {
+  try {
+    const response = await fetch(`${baseUrl}/business/${id}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${authToken}`,
+        // Do not set the Content-Type header; let the browser set it for FormData.
       },
-      body: formDataObj,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Update response:", data);
+      body: formDataBus,
+    });
 
-        if (data) {
-          enqueueSnackbar("Profile updated successfully!", {
-            variant: "success",
-          });
-        } else {
-          enqueueSnackbar("Failed to update profile. Please try again.", {
-            variant: "error",
-          });
-        }
-      })
-      .catch((error) => {
-        enqueueSnackbar(`${error} There was an error updating your profile.`, {
-          variant: "error",
-        });
+    const data = await response.json();
+    console.log("Update response:", data);
+
+    if (data) {
+      enqueueSnackbar("Profile updated successfully!", { variant: "success" });
+      // Optionally clear out busNewImages if you want to reset them after update:
+      // setBusNewImages([]);
+      window.location.reload(); // Reload the page to reflect changes
+    } else {
+      enqueueSnackbar("Failed to update profile. Please try again.", {
+        variant: "error",
       });
-  };
+    }
+  } catch (error) {
+    enqueueSnackbar(`${error} There was an error updating your profile.`, {
+      variant: "error",
+    });
+  }
+};
+
 
   // Handle delete account
   const handleDeleteAccount = () => {
@@ -642,11 +671,13 @@ export default function BusinessDashboard() {
                   <div
                     key={index}
                     className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow "
-                   
                   >
                     {/* Reviewer Name */}
-                    <div className="flex items-center justify-center" >
-                      <Link className="font-semibold text-lg capitalize"  to="/review-page"> 
+                    <div className="flex items-center justify-center">
+                      <Link
+                        className="font-semibold text-lg capitalize"
+                        to="/review-page"
+                      >
                         {review.user_name}
                       </Link>
                     </div>
