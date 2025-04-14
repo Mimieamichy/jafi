@@ -51,28 +51,23 @@ exports.updateBusiness = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
     const businessData = req.body;
-    const images = req.files["images"]
-      ? req.files["images"].map((file) => file.path)
-      : [];
-    const proof = req.files["pob"]
-      ? req.files["pob"].map((file) => file.path)
-      : [];
+
+    console.log(businessData);
+
+    // Handle images
+    const images = req.files?.["images"]? req.files["images"].map(file => file.path) : [];
     businessData.images = images;
-    businessData.proof = proof;
-    let password = ""
-
-    if (businessData.password) {
-    return password = businessData.password
-    }
-
+    
+    const password = businessData.password;
     const email = businessData.email
     delete businessData.password;
-    delete businessData.email;
+    delete businessData.email
 
 
     const business = await BusinessService.updateBusiness(id, userId, businessData, password, email);
     res.status(200).json(business);
   } catch (error) {
+    console.log(error);
     res.status(404).json({ error: error.message });
   }
 };

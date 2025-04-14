@@ -84,36 +84,35 @@ exports.getAllBusinesses = async () => {
   return businesses;
 };
 
-exports.updateBusiness = async (
-  businessId,
-  userId,
-  businessData,
-  password,
-  email
-) => {
+exports.updateBusiness = async (businessId, userId, businessData, password, email) => {
   const business = await Business.findByPk(businessId);
-  if (!business) throw new Error("Business not found");
+  if (!business) throw new Error("Service not found");
 
-  if (business.userId !== userId)
-    throw new Error("Unauthorized to update this business");
+  if (business.userId !== userId) throw new Error("Unauthorized to update this business");
 
-  if (password !== undefined || password !== "") {
-    const hashedPassword = generatePassword(password);
-    await User.update(
-      { password: hashedPassword },
-      { where: { id: userId } }
-    );
+  let finalPassword = password;
+
+  if (!password || password.trim() === "") {
+      const user = await User.findByPk(userId, {
+          attributes: ["password"]
+      });
+      if (!user) throw new Error("User not found");
+      finalPassword = user.password;
+  } else {
+      finalPassword = generatePassword(password);
   }
 
   await User.update(
-    { email: email },
-    { where: { id: userId } }
+      { password: finalPassword, email: email },
+      { where: { id: userId } }
   );
+
   business.set(businessData);
   await business.save();
 
   return business;
 };
+
 
 exports.payForBusiness = async (businessId, amount, transaction) => {
   const business = await Business.findOne({

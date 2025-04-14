@@ -5,10 +5,11 @@ const cloudinary = require("../../config/cloudinary");
 const storage = new CloudinaryStorage({
   cloudinary,
   params: (req, file) => {
-    let folder = "jafiImages/business"; 
+    let folder = ""; 
     if (file.fieldname === "workSamples") folder = "jafiImages/services"
     if (file.fieldname === "pob") folder = "jafiImages/pob"
     if (file.fieldname === "reviewImages") folder = "jafiImages/reviews"
+    if (file.fieldname === "images") folder = "jafiImages/business"
 
     return { folder, allowed_formats: ["jpg", "jpeg", "png", "gif", "svg", "webp", "tiff", "bmp", "heic", "raw", "docx", "pdf"] };
 

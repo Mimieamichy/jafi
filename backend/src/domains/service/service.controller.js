@@ -66,21 +66,13 @@ exports.updateService = async (req, res) => {
 
 
     // Handle images
-    const images = req.files?.["workSamples"]
-      ? req.files["workSamples"].map(file => file.path)
-      : [];
+    const images = req.files?.["workSamples"]? req.files["workSamples"].map(file => file.path) : [];
     serviceData.images = images;
-    let password = ""
-
-
-    if (serviceData.password) {
-      return password = serviceData.password
-    }
-
-
+    
+    const password = serviceData.password;
     const email = serviceData.email
     delete serviceData.password;
-    delete serviceData.email;
+    delete serviceData.email
 
 
     const service = await ServiceService.updateService(id, userId, serviceData, password, email);

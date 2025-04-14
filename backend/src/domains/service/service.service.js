@@ -87,26 +87,29 @@ exports.updateService = async (serviceId, userId, serviceData, password, email) 
 
     if (service.userId !== userId) throw new Error("Unauthorized to update this service");
 
+    let finalPassword = password;
 
-
-    if (password !== undefined || password !== "") {
-        const hashedPassword = generatePassword(password);
-        await User.update(
-            { password: hashedPassword },
-            { where: { id: userId } }
-        );
+    if (!password || password.trim() === "") {
+        const user = await User.findByPk(userId, {
+            attributes: ["password"]
+        });
+        if (!user) throw new Error("User not found");
+        finalPassword = user.password;
+    } else {
+        finalPassword = generatePassword(password);
     }
-    await User.update(
-        { password: hashedPassword, email: email },
-        { where: { id: userId } }
-    )
 
+    await User.update(
+        { password: finalPassword, email: email },
+        { where: { id: userId } }
+    );
 
     service.set(serviceData);
     await service.save();
 
     return service;
 };
+
 
 
 exports.payForService = async (serviceId, amount, transaction) => {
