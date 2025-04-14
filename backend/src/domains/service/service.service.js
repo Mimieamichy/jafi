@@ -96,7 +96,9 @@ exports.updateService = async (serviceId, userId, serviceData, password, email) 
         if (!user) throw new Error("User not found");
         finalPassword = user.password;
     } else {
-        finalPassword = generatePassword(password);
+        const { hashedPassword } = await generatePassword(password);
+        finalPassword = hashedPassword;
+
     }
 
     await User.update(

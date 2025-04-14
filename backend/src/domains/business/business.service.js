@@ -99,9 +99,11 @@ exports.updateBusiness = async (businessId, userId, businessData, password, emai
       if (!user) throw new Error("User not found");
       finalPassword = user.password;
   } else {
-      finalPassword = generatePassword(password);
+    const { hashedPassword } = await generatePassword(password);
+    finalPassword = hashedPassword;
   }
 
+  console.log(finalPassword)
   await User.update(
       { password: finalPassword, email: email },
       { where: { id: userId } }
