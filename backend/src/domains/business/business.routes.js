@@ -19,13 +19,13 @@ const { authorize } = require('../../application/middlewares/authorize');
 router.post("/register", uploadMiddleware, registerBusiness); // Signup API
 router.get("/verify/:pay_ref", verifyBusinessPayment);
 router.post("/pay/:businessId", payForBusiness);
-router.get("/", getAllBusinesses);
 router.get("/:id", getABusiness);
+router.get("/", getAllBusinesses);
 
 
 // Protected routes - require authentication and authorization
 router.use(authenticate, authorize(["business", "admin", "superadmin"])); 
-router.put("/:id", updateBusiness);
+router.put("/:id", uploadMiddleware, updateBusiness);
 router.delete("/:id", deleteBusiness);
 router.get("/user/:id", getBusinessByUserId);
 
