@@ -42,6 +42,53 @@ export default function HiringDashboard() {
   const authToken = localStorage.getItem("userToken");
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
+  // Subcomponent to fetch and display replies for a given review
+  function ReviewReplies({ reviewId, authToken, baseUrl, enqueueSnackbar }) {
+    const [replies, setReplies] = useState([]);
+
+    useEffect(() => {
+      const fetchReplies = async () => {
+        try {
+          const response = await fetch(`${baseUrl}/review/replies/${reviewId}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+          const data = await response.json();
+          console.log("Fetched replies:", data);
+
+          setReplies(data.replies || []);
+        } catch (error) {
+          console.error("Error fetching replies:", error);
+          enqueueSnackbar("Error fetching replies", { variant: "error" });
+        }
+      };
+
+      fetchReplies();
+    }, [reviewId, authToken, baseUrl, enqueueSnackbar]);
+
+    if (replies.length === 0) return null;
+
+    return (
+      <div className="border-l border-gray-300 pl-4 ml-4 mt-2">
+        {replies.map((reply) => (
+          <div key={reply.id} className="mb-2">
+            <p className="font-semibold text-sm">
+              {reply.name || "Anonymous"}
+            </p>
+            <p className="text-sm text-gray-600">{reply.reply}</p>
+            <p className="text-xs text-gray-400">
+              {new Date(reply.createdAt).toLocaleString()}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const toggleReply = (reviewId) => {
     setReplyStates((prev) => ({ ...prev, [reviewId]: !prev[reviewId] }));
@@ -53,7 +100,7 @@ export default function HiringDashboard() {
 
   const handleReplySubmit = async (reviewId) => {
     console.log("Submitting reply for review ID:", reviewId);
-    
+
     const replyText = replyTexts[reviewId];
     if (!replyText) {
       enqueueSnackbar("Reply cannot be empty.", { variant: "warning" });
@@ -145,8 +192,6 @@ export default function HiringDashboard() {
 
         if (response.ok) {
           setReviews(data.reviews);
-          const reviewId = data.reviews.map((review) => review.id);
-          console.log("Review IDs:", reviewId);
 
           // Set the first review ID if available
 
@@ -687,6 +732,7 @@ export default function HiringDashboard() {
         {activeSection === "reviews" && (
           <div>
             <h2 className="text-2xl font-bold mb-6 text-center">All Reviews</h2>
+
             {/* Reviews Grid (Responsive) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {reviews.length > 0 ? (
@@ -704,6 +750,7 @@ export default function HiringDashboard() {
                         {review.user_name}
                       </Link>
                     </div>
+
                     {/* Rating */}
                     <div className="flex justify-center text-yellow-500 mt-2">
                       {[...Array(5)].map((_, i) => (
@@ -718,10 +765,12 @@ export default function HiringDashboard() {
                         />
                       ))}
                     </div>
+
                     {/* Review Comment */}
                     <p className="mt-2 text-center text-gray-600 line-clamp-3">
                       {review.comment}
                     </p>
+
                     {/* Time */}
                     <p className="text-sm text-gray-500 mt-2 text-center">
                       {formatDistanceToNow(new Date(review.createdAt), {
@@ -729,41 +778,52 @@ export default function HiringDashboard() {
                       })}
                     </p>
 
-                    {/* Reply Section */}
-                    <div className="mt-4">
+                    {/* Reply Button and Reply Area Toggle */}
+                    <div className="mt-2 text-center">
                       <button
-                        className="text-blue-600 hover:underline"
                         onClick={() => toggleReply(review.id)}
+                        className="text-blue-600 hover:underline"
                       >
                         Reply
                       </button>
-                      {replyStates[review.id] && (
-                        <div className="mt-2">
-                          <textarea
-                            className="w-full p-2 border rounded"
-                            placeholder="Write your reply..."
-                            value={replyTexts[review.id] || ""}
-                            onChange={(e) =>
-                              handleReplyChange(review.id, e.target.value)
-                            }
-                          />
-                          <div className="mt-2 flex gap-2">
-                            <button
-                              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                              onClick={() => handleReplySubmit(review.id)}
-                            >
-                              Submit Reply
-                            </button>
-                            <button
-                              className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-                              onClick={() => cancelReply(review.id)}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      )}
                     </div>
+
+                    {/* If the reply area is toggled open, show the text area & reply buttons */}
+                    {replyStates[review.id] && (
+                      <div className="mt-2">
+                        <textarea
+                        name="reply"
+                          className="w-full p-2 border rounded"
+                          placeholder="Write your reply..."
+                          value={replyTexts[review.id] || ""}
+                          onChange={(e) =>
+                            handleReplyChange(review.id, e.target.value)
+                          }
+                        />
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            onClick={() => handleReplySubmit(review.id)}
+                            className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
+                          >
+                            Submit Reply
+                          </button>
+                          <button
+                            onClick={() => cancelReply(review.id)}
+                            className="bg-gray-300 text-gray-800 px-3 py-2 rounded hover:bg-gray-400 transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Render replies for this review */}
+                    <ReviewReplies
+                      reviewId={review.id}
+                      authToken={authToken}
+                      baseUrl={baseUrl}
+                      enqueueSnackbar={enqueueSnackbar}
+                    />
                   </div>
                 ))
               ) : (
@@ -773,7 +833,7 @@ export default function HiringDashboard() {
               )}
             </div>
 
-            {/* Pagination */}
+            {/* PAGINATION */}
             {reviews.length > 0 && (
               <div className="mt-6 flex justify-center items-center space-x-4">
                 <button

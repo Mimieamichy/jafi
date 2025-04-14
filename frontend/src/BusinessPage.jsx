@@ -632,8 +632,8 @@ function ReviewCard({
 
   return (
     <div
-      className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center text-center cursor-pointer"
-      onClick={() => onImageClick(images, 0)}
+      className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center text-center "
+     
     >
       <h4 className="text-lg font-bold capitalize">{listingName}</h4>
       <p className="text-gray-700 capitalize">{user_name}</p>
