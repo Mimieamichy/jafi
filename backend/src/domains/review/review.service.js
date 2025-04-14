@@ -145,12 +145,11 @@ exports.createReview = async (userId, entityId, rating, comment, user_name, imag
   return result;
 };
 
-exports.updateReview = async (reviewId, userId, comment, images) => {
+exports.updateReview = async (reviewId, userId, comment) => {
   const review = await Review.findOne({ where: { id: reviewId, userId } });
   if (!review) throw new Error("Review not found or unauthorized");
 
   review.comment = comment
-  review.images = images
   await review.save();
   return review;
 };
@@ -246,7 +245,7 @@ exports.getReviewById = async (reviewId) => {
 
 exports.getReviewsForListings = async (listingId) => {
   return await Review.findAll({
-    where: { listingId, reply: null },
+    where: { listingId },
     include: [
       {
         model: User,

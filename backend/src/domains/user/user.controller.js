@@ -111,10 +111,9 @@ exports.getUserRole = async (req, res) => {
 exports.replyToReview = async (req, res) => {
     try {
         const { reviewId } = req.params;
-        const { comment } = req.body;
+        const newReply = req.body.reply;
         const userId = req.user.id; 
-        console.log("userId", userId);
-        const reply = await UserService.replyToReview(reviewId, userId, comment);
+        const reply = await UserService.replyToReview(reviewId, userId, newReply);
         return res.status(201).json({ success: true, reply });
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });

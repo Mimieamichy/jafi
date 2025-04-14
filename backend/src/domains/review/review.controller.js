@@ -67,8 +67,7 @@ exports.updateReview = async (req, res) => {
         const { id } = req.params;
         const { comment } = req.body;
         const userId = req.user.id; 
-        const images = req.files["reviewImages"] ? req.files["reviewImages"].map((file) => file.path) : [];
-        const review = await ReviewService.updateReview(id, userId, comment, images);
+        const review = await ReviewService.updateReview(id, userId, comment);
         return res.status(200).json({ success: true, review });
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });

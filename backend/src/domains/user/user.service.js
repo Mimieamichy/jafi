@@ -1,13 +1,12 @@
-require("dotenv").config()
+require("dotenv").config();
 const User = require("./user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Service = require("../service/service.model");
 const Business = require("../business/business.model");
-const { Op } = require('sequelize');
-const { sendMail} = require("../../utils/sendEmail");
+const { Op } = require("sequelize");
+const { sendMail } = require("../../utils/sendEmail");
 const Review = require("../review/review.model");
-
 
 exports.userLogin = async (email, password) => {
   const user = await User.findOne({ where: { email } });
@@ -15,20 +14,24 @@ exports.userLogin = async (email, password) => {
     throw new Error("Invalid credentials");
   }
 
-  if (user.role == 'reviewer') {
+  if (user.role == "reviewer") {
     throw new Error("You are registered as a reviewer, sign in with Google");
   }
 
-  return jwt.sign({ id: user.id, role: user.role, name: user.name }, process.env.JWT_SECRET, { expiresIn: "3d" });
+  return jwt.sign(
+    { id: user.id, role: user.role, name: user.name },
+    process.env.JWT_SECRET,
+    { expiresIn: "3d" }
+  );
 };
-
 
 exports.userForgotPassword = async (email) => {
   const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("User not found");
 
-  const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "15m" });
-
+  const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, {
+    expiresIn: "15m",
+  });
 
   const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
           <div style="text-align: center; margin-bottom: 20px;">
@@ -57,7 +60,6 @@ exports.userForgotPassword = async (email) => {
   return { message: "Reset token sent to email" };
 };
 
-
 exports.verifyResetToken = async (token) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -66,7 +68,6 @@ exports.verifyResetToken = async (token) => {
   }
 
   return decoded.email;
-
 };
 
 exports.userResetPassword = async (token, newPassword) => {
@@ -79,7 +80,7 @@ exports.userResetPassword = async (token, newPassword) => {
   await user.save();
 
   return { message: "Password reset successful" };
-}
+};
 
 exports.getUserById = async (id) => {
   const user = await User.findByPk(id);
@@ -89,10 +90,10 @@ exports.getUserById = async (id) => {
 
 exports.getAllUsers = async () => {
   const users = await User.findAll({
-    attributes: ['id', 'name', 'email', 'role'] 
+    attributes: ["id", "name", "email", "role"],
   });
   return users;
-}
+};
 
 exports.updateUser = async (id, data) => {
   const user = await User.findByPk(id);
@@ -104,16 +105,14 @@ exports.updateUser = async (id, data) => {
 
   await user.update(data);
   return user;
-}
-
+};
 
 exports.getUserRole = async (email) => {
   const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("User not found");
 
-  return user.role
-}
-
+  return user.role;
+};
 
 exports.getAllListings = async (searchTerm) => {
   let searchFilter = {};
@@ -129,25 +128,30 @@ exports.getAllListings = async (searchTerm) => {
 
   const services = await Service.findAll({
     where: searchTerm ? searchFilter : {},
-    order: [['createdAt', 'DESC']],
+    order: [["createdAt", "DESC"]],
   });
 
   const businesses = await Business.findAll({
     where: searchTerm ? searchFilter : {},
-    attributes: { exclude: ['proof'] },
-    order: [['createdAt', 'DESC']],
+    attributes: { exclude: ["proof"] },
+    order: [["createdAt", "DESC"]],
   });
 
   if (!services.length && !businesses.length) {
-    return { message: 'No listings found for the provided search term.' };
+    return { message: "No listings found for the provided search term." };
   }
 
   const combined = [
-    ...services.map(service => ({ type: 'service', ...service.toJSON() })),
-    ...businesses.map(business => ({ type: 'business', ...business.toJSON() }))
+    ...services.map((service) => ({ type: "service", ...service.toJSON() })),
+    ...businesses.map((business) => ({
+      type: "business",
+      ...business.toJSON(),
+    })),
   ];
 
-  const allListings = combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const allListings = combined.sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
 
   return allListings;
 };
@@ -157,37 +161,34 @@ exports.replyToReview = async (reviewId, userId, comment) => {
 
   if (!originalReview) throw new Error("Original review not found");
 
-  // Check if the user is the business owner or the original reviewer
-
   const business = await Business.findOne({
     where: { uniqueId: originalReview.listingId },
   });
 
- 
   const service = await Service.findOne({
     where: { uniqueId: originalReview.listingId },
   });
- 
-  let owner = "" 
+
+  let owner = "";
   if (business) {
-    owner = business.userId
+    owner = business.userId;
   } else if (service) {
-    owner = service.userId
+    owner = service.userId;
   } else {
     throw new Error("Invalid listing type");
   }
 
-  if (owner != userId ) {
+  if (owner != userId) {
     throw new Error("You are not authorized to reply to this review");
   }
   const reply = await Review.update(
-    { reply: comment }, 
+    { reply: comment },
     {
       where: {
         listingId: originalReview.listingId,
       },
     }
   );
-  
+
   return reply;
 };
