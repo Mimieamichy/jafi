@@ -114,7 +114,7 @@ exports.replyToReview = async (req, res) => {
         const { comment } = req.body;
         const userId = req.user.id; 
         const user_name = req.user.name;
-        const reply = await ReviewService.replyToReview(reviewId, userId, user_name, comment);
+        const reply = await UserService.replyToReview(reviewId, userId, user_name, comment);
         return res.status(201).json({ success: true, reply });
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
