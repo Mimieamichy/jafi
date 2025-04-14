@@ -165,7 +165,7 @@ exports.deleteReview = async (reviewId, userId) => {
 
 exports.getAllReviews = async () => {
   const reviews = await Review.findAll({
-    where: { replyId: null },
+    where: { reply: null },
     include: [
       {
         model: User,
@@ -246,7 +246,7 @@ exports.getReviewById = async (reviewId) => {
 
 exports.getReviewsForListings = async (listingId) => {
   return await Review.findAll({
-    where: { listingId, replyId: null },
+    where: { listingId, reply: null },
     include: [
       {
         model: User,
@@ -267,7 +267,8 @@ exports.getReviewsByUser = async (userId) => {
 
 exports.getAReviewwithReplies = async (reviewId) => {
   const replies = await Review.findAll({
-    where: { replyId: reviewId }, // Fetch only replies to the given reviewId
+    where: { id: reviewId },
+    attributes: ["id", "comment", "createdAt", "reply"],
     include: [
       {
         model: User,

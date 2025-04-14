@@ -58,13 +58,9 @@ const Review = sequelize.define(
       allowNull: false,
       defaultValue: true,
     },
-    replyId: {
-      type: DataTypes.INTEGER,
+    reply: {
+      type: DataTypes.STRING,
       allowNull: true,
-      references: {
-        model: "reviews",
-        key: "id",
-      },
     },
   },
   {
