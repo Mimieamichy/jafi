@@ -19,7 +19,7 @@ router.get("/:id", getUserById);
 
 
 // Protected routes - require authentication
-router.use(authenticate, authorize(["user", "admin"]));
+router.use(authenticate, authorize(["user", "admin", "business", "service"]));
 router.put("/:id", updateUser);
 router.post("/reply/:reviewId", replyToReview);
 
