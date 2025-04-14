@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
-// import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEye,
@@ -431,7 +431,7 @@ export default function BusinessDashboard() {
           <div className="mt-6">
             {formData ? (
               <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-                {/* Top Green Bar */}
+                {/* Top blue Bar */}
                 <div className="h-12 bg-blue-600"></div>
 
                 <div className="p-6">
@@ -533,7 +533,7 @@ export default function BusinessDashboard() {
                       setFormData({ ...formData, email: e.target.value })
                     }
                     placeholder="Email"
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   />
                 </div>
 
@@ -565,7 +565,7 @@ export default function BusinessDashboard() {
                         setFormData({ ...formData, password: e.target.value })
                       }
                       placeholder="New Password"
-                      className="w-full p-2 border rounded pr-10 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full p-2 border rounded pr-10 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                     />
                     <button
                       type="button"
@@ -582,7 +582,7 @@ export default function BusinessDashboard() {
                 {/* Work Samples Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Work Samples (Upload up to 10 images)
+                    Image Samples (Upload up to 10 images)
                   </label>
                   <input
                     type="file"
@@ -646,9 +646,9 @@ export default function BusinessDashboard() {
                   >
                     {/* Reviewer Name */}
                     <div className="flex items-center justify-center" >
-                      <p className="font-semibold text-lg capitalize">
+                      <Link className="font-semibold text-lg capitalize"  to="/review-page"> 
                         {review.user_name}
-                      </p>
+                      </Link>
                     </div>
 
                     {/* Rating */}
