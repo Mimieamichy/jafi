@@ -273,14 +273,17 @@ exports.replyToReview = async (reviewId, userId, user_name, comment) => {
 
   // Check if the user is the business owner or the original reviewer
   const business = await Business.findOne({
-    where: { id: originalReview.listingId, userId: userId },
+    where: { uniqueId: originalReview.listingId },
   });
 
   const service = await Service.findOne({
-    where: { id: originalReview.listingId, userId: userId },
+    where: { uniqueId: originalReview.listingId },
   });
 
-  if (!business && !service && originalReview.userId !== userId) {
+  const businessOwner = business.userId
+  const serviceOwner = service.userId;
+
+  if (businessOwner != userId || !serviceOwner != userId) {
     throw new Error("You are not authorized to reply to this review");
   }
 
