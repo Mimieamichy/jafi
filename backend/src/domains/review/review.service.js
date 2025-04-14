@@ -54,7 +54,6 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
   return { message: "Reviewer registered successfully", token };
 };
 
-
 exports.createReview = async (userId, entityId, rating, comment, user_name, images) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
@@ -291,7 +290,8 @@ exports.replyToReview = async (reviewId, userId, user_name, comment) => {
     listingId: originalReview.listingId,
     listingName: originalReview.listingName,
     user_name: user_name,
-    comment,
+    comment: originalReview.comment,
+    newComment: comment,
     star_rating: originalReview.star_rating,
     replyId: reviewId,
   });
