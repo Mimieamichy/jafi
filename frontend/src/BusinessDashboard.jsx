@@ -35,10 +35,10 @@ export default function BusinessDashboard() {
   const [newReviewCount, setNewReviewCount] = useState(0);
   const [profileImage, setProfileImage] = useState(null);
 
-  
-
   // Parse query string
   const authToken = localStorage.getItem("userToken");
+  console.log("Auth Token:", authToken);
+  
 
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
@@ -46,24 +46,71 @@ export default function BusinessDashboard() {
   const [replyStates, setReplyStates] = useState({});
   const [replyTexts, setReplyTexts] = useState({});
 
+  function ReviewReplies({ reviewId, authToken, baseUrl, enqueueSnackbar }) {
+    const [replies, setReplies] = useState([]);
+
+    useEffect(() => {
+      const fetchReplies = async () => {
+        try {
+          const response = await fetch(
+            `${baseUrl}/review/replies/${reviewId}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+            }
+          );
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+          const data = await response.json();
+
+          setReplies(data.replies || []);
+        } catch (error) {
+          console.error("Error fetching replies:", error);
+          enqueueSnackbar("Error fetching replies", { variant: "error" });
+        }
+      };
+
+      fetchReplies();
+    }, [reviewId, authToken, baseUrl, enqueueSnackbar]);
+
+    if (replies.length === 0) return null;
+
+    return (
+      <div className="border-l border-gray-300 pl-4 ml-4 mt-2">
+        {replies.map((reply) => (
+          <div key={reply.id} className="mb-2">
+            <p className="text-sm text-gray-600">{reply.reply}</p>
+            <p className="text-xs text-gray-400">
+              {new Date(reply.createdAt).toLocaleString()}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const toggleReply = (reviewId) => {
     setReplyStates((prev) => ({ ...prev, [reviewId]: !prev[reviewId] }));
   };
 
   const handleReplyChange = (reviewId, value) => {
-    setReplyTexts((prev) => ({ ...prev, [reviewId]: value }));
+    setReplyTexts((prev) => ({
+      ...prev,
+      [reviewId]: value,
+    }));
   };
 
   const handleReplySubmit = async (reviewId) => {
-    console.log("Submitting reply for review ID:", reviewId);
-
     const replyText = replyTexts[reviewId];
     if (!replyText) {
       enqueueSnackbar("Reply cannot be empty.", { variant: "warning" });
       return;
     }
     try {
-      const response = await fetch(`${baseUrl}/review/reply/${reviewId}`, {
+      const response = await fetch(`${baseUrl}/user/reply/${reviewId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -76,7 +123,12 @@ export default function BusinessDashboard() {
         enqueueSnackbar("Reply submitted successfully!", {
           variant: "success",
         });
-        // Optionally clear the reply text and close the reply area
+        // Update only the review with the matching id:
+        setReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review.id === reviewId ? { ...review, reply: replyText } : review
+          )
+        );
         setReplyTexts((prev) => ({ ...prev, [reviewId]: "" }));
         setReplyStates((prev) => ({ ...prev, [reviewId]: false }));
       } else {
@@ -96,7 +148,6 @@ export default function BusinessDashboard() {
     setReplyTexts((prev) => ({ ...prev, [reviewId]: "" }));
     setReplyStates((prev) => ({ ...prev, [reviewId]: false }));
   };
-
   useEffect(() => {
     if (!authToken) {
       enqueueSnackbar("You need to be logged in to view this page.", {
@@ -587,7 +638,7 @@ export default function BusinessDashboard() {
             )}
           </div>
         )}
-
+        {/* Settings Modal */}
         {activeSection === "settings" && (
           <div className="mt-6">
             <h2 className="text-2xl font-bold mb-6 text-center">Settings</h2>
@@ -717,16 +768,18 @@ export default function BusinessDashboard() {
             </div>
           </div>
         )}
-
+        {/* Reviews Modal */}
+        {/* Reviews Section */}
         {activeSection === "reviews" && (
           <div>
             <h2 className="text-2xl font-bold mb-6 text-center">All Reviews</h2>
+
             {/* Reviews Grid (Responsive) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {reviews.length > 0 ? (
                 reviews.map((review) => (
                   <div
-                    key={review.id}
+                    key={review.id} // Use the unique identifier from the API
                     className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
                   >
                     {/* Reviewer Name */}
@@ -738,6 +791,7 @@ export default function BusinessDashboard() {
                         {review.user_name}
                       </Link>
                     </div>
+
                     {/* Rating */}
                     <div className="flex justify-center text-yellow-500 mt-2">
                       {[...Array(5)].map((_, i) => (
@@ -752,10 +806,12 @@ export default function BusinessDashboard() {
                         />
                       ))}
                     </div>
+
                     {/* Review Comment */}
                     <p className="mt-2 text-center text-gray-600 line-clamp-3">
                       {review.comment}
                     </p>
+
                     {/* Time */}
                     <p className="text-sm text-gray-500 mt-2 text-center">
                       {formatDistanceToNow(new Date(review.createdAt), {
@@ -764,40 +820,57 @@ export default function BusinessDashboard() {
                     </p>
 
                     {/* Reply Section */}
-                    <div className="mt-4">
-                      <button
-                        className="text-blue-600 hover:underline"
-                        onClick={() => toggleReply(review.id)}
-                      >
-                        Reply
-                      </button>
-                      {replyStates[review.id] && (
-                        <div className="mt-2">
-                          <textarea
-                            className="w-full p-2 border rounded"
-                            placeholder="Write your reply..."
-                            value={replyTexts[review.id] || ""}
-                            onChange={(e) =>
-                              handleReplyChange(review.id, e.target.value)
-                            }
-                          />
-                          <div className="mt-2 flex gap-2">
-                            <button
-                              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                              onClick={() => handleReplySubmit(review.id)}
-                            >
-                              Submit Reply
-                            </button>
-                            <button
-                              className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-                              onClick={() => cancelReply(review.id)}
-                            >
-                              Cancel
-                            </button>
+                    {review.reply ? (
+                      // If a reply already exists, display it
+                      <div className="border-l-2 border-gray-300 pl-4 ml-4 mt-2">
+                        <p className="font-semibold text-sm">Your Reply:</p>
+                        <p className="text-sm text-gray-600">{review.reply}</p>
+                      </div>
+                    ) : (
+                      // Otherwise, display the "Reply" button and, if toggled, the reply form
+                      <>
+                        <button
+                          onClick={() => toggleReply(review.id)}
+                          className="text-blue-600 hover:underline mt-2 block text-center"
+                        >
+                          Reply
+                        </button>
+                        {replyStates[review.id] && (
+                          <div className="mt-2">
+                            <textarea
+                              className="w-full p-2 border rounded"
+                              placeholder="Write your reply..."
+                              value={replyTexts[review.id] || ""}
+                              onChange={(e) =>
+                                handleReplyChange(review.id, e.target.value)
+                              }
+                            />
+                            <div className="mt-2 flex gap-2">
+                              <button
+                                onClick={() => handleReplySubmit(review.id)}
+                                className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
+                              >
+                                Submit Reply
+                              </button>
+                              <button
+                                onClick={() => cancelReply(review.id)}
+                                className="bg-gray-300 text-gray-800 px-3 py-2 rounded hover:bg-gray-400 transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Render replies (if any) with a connecting line */}
+                    <ReviewReplies
+                      reviewId={review.id}
+                      authToken={authToken}
+                      baseUrl={baseUrl}
+                      enqueueSnackbar={enqueueSnackbar}
+                    />
                   </div>
                 ))
               ) : (
@@ -807,7 +880,7 @@ export default function BusinessDashboard() {
               )}
             </div>
 
-            {/* Pagination */}
+            {/* PAGINATION */}
             {reviews.length > 0 && (
               <div className="mt-6 flex justify-center items-center space-x-4">
                 <button
