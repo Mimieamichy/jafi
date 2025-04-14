@@ -1,6 +1,6 @@
 const express = require("express");
 const passport = require("passport");
-const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, searchReviews, getAReviewwithReplies, getAllReviewsWithReplies, replyToReview, acknowledgeReview} = require("../review/review.controller");
+const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, searchReviews, getAReviewwithReplies, getAllReviewsWithReplies, acknowledgeReview} = require("../review/review.controller");
 const { uploadMiddleware } = require("../../application/middlewares/cloudinary"); 
 const router = express.Router();
 
@@ -25,7 +25,6 @@ router.get("/search", searchReviews);
 router.get("/:id", getReviewById);
 router.get("/replies/:reviewId", getAReviewwithReplies);
 router.get("/reply", getAllReviewsWithReplies);
-router.post("/reply/:reviewId", passport.authenticate("jwt", { session: false }), replyToReview);
 router.put('/acknowledge/:listingId', passport.authenticate("jwt", { session: false }), acknowledgeReview)
 
 

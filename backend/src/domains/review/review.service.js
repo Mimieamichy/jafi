@@ -265,43 +265,6 @@ exports.getReviewsByUser = async (userId) => {
   return userReviews;
 };
 
-
-exports.replyToReview = async (reviewId, userId, user_name, comment) => {
-  const originalReview = await Review.findByPk(reviewId);
-
-  if (!originalReview) throw new Error("Original review not found");
-
-  // Check if the user is the business owner or the original reviewer
-  const business = await Business.findOne({
-    where: { uniqueId: originalReview.listingId },
-  });
-
-  const service = await Service.findOne({
-    where: { uniqueId: originalReview.listingId },
-  });
-
-  const businessOwner = business.userId
-  const serviceOwner = service.userId;
-
-  if (businessOwner != userId || !serviceOwner != userId) {
-    throw new Error("You are not authorized to reply to this review");
-  }
-
-  // Create the reply with `replyId` pointing to the original review
-  const reply = await Review.create({
-    userId,
-    listingId: originalReview.listingId,
-    listingName: originalReview.listingName,
-    user_name: user_name,
-    comment: originalReview.comment,
-    newComment: comment,
-    star_rating: originalReview.star_rating,
-    replyId: reviewId,
-  });
-
-  return reply;
-};
-
 exports.getAReviewwithReplies = async (reviewId) => {
   const replies = await Review.findAll({
     where: { replyId: reviewId }, // Fetch only replies to the given reviewId
