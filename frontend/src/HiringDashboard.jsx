@@ -40,6 +40,7 @@ export default function HiringDashboard() {
 
   // Parse query string
   const authToken = localStorage.getItem("userToken");
+  console.log("Auth Token:", authToken);
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
   // Subcomponent to fetch and display replies for a given review
@@ -49,17 +50,19 @@ export default function HiringDashboard() {
     useEffect(() => {
       const fetchReplies = async () => {
         try {
-          const response = await fetch(`${baseUrl}/review/replies/${reviewId}`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          });
+          const response = await fetch(
+            `${baseUrl}/review/replies/${reviewId}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+            }
+          );
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
           }
           const data = await response.json();
-          console.log("Fetched replies:", data);
 
           setReplies(data.replies || []);
         } catch (error) {
@@ -77,9 +80,6 @@ export default function HiringDashboard() {
       <div className="border-l border-gray-300 pl-4 ml-4 mt-2">
         {replies.map((reply) => (
           <div key={reply.id} className="mb-2">
-            <p className="font-semibold text-sm">
-              {reply.name || "Anonymous"}
-            </p>
             <p className="text-sm text-gray-600">{reply.reply}</p>
             <p className="text-xs text-gray-400">
               {new Date(reply.createdAt).toLocaleString()}
@@ -95,7 +95,10 @@ export default function HiringDashboard() {
   };
 
   const handleReplyChange = (reviewId, value) => {
-    setReplyTexts((prev) => ({ ...prev, [reviewId]: value }));
+    setReplyTexts((prev) => ({
+      ...prev,
+      [reviewId]: value,
+    }));
   };
 
   const handleReplySubmit = async (reviewId) => {
@@ -598,7 +601,7 @@ export default function HiringDashboard() {
             )}
           </div>
         )}
-
+        {/* Settings Modal */}
         {activeSection === "settings" && (
           <div className="mt-6">
             <h2 className="text-2xl font-bold mb-6 text-center">Settings</h2>
@@ -728,7 +731,7 @@ export default function HiringDashboard() {
             </div>
           </div>
         )}
-
+        {/* Reviews Modal */}
         {activeSection === "reviews" && (
           <div>
             <h2 className="text-2xl font-bold mb-6 text-center">All Reviews</h2>
@@ -779,44 +782,49 @@ export default function HiringDashboard() {
                     </p>
 
                     {/* Reply Button and Reply Area Toggle */}
-                    <div className="mt-2 text-center">
-                      <button
-                        onClick={() => toggleReply(review.id)}
-                        className="text-blue-600 hover:underline"
-                      >
-                        Reply
-                      </button>
-                    </div>
-
-                    {/* If the reply area is toggled open, show the text area & reply buttons */}
-                    {replyStates[review.id] && (
-                      <div className="mt-2">
-                        <textarea
-                        name="reply"
-                          className="w-full p-2 border rounded"
-                          placeholder="Write your reply..."
-                          value={replyTexts[review.id] || ""}
-                          onChange={(e) =>
-                            handleReplyChange(review.id, e.target.value)
-                          }
-                        />
-                        <div className="mt-2 flex gap-2">
-                          <button
-                            onClick={() => handleReplySubmit(review.id)}
-                            className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
-                          >
-                            Submit Reply
-                          </button>
-                          <button
-                            onClick={() => cancelReply(review.id)}
-                            className="bg-gray-300 text-gray-800 px-3 py-2 rounded hover:bg-gray-400 transition"
-                          >
-                            Cancel
-                          </button>
-                        </div>
+                    {review.reply ? (
+                      // If a reply already exists, show it with a connecting line
+                      <div className="border-l-2 border-gray-300 pl-4 ml-4 mt-2">
+                        <p className="font-semibold text-sm">Your Reply:</p>
+                        <p className="text-sm text-gray-600">{review.reply}</p>
                       </div>
+                    ) : (
+                      // Otherwise, show the "Reply" button (and if toggled, show the text area)
+                      <>
+                        <button
+                          onClick={() => toggleReply(review.id)}
+                          className="text-blue-600 hover:underline mt-2 block text-center"
+                        >
+                          Reply
+                        </button>
+                        {replyStates[review.id] && (
+                          <div className="mt-2">
+                            <textarea
+                              className="w-full p-2 border rounded"
+                              placeholder="Write your reply..."
+                              value={replyTexts[review.id] || ""}
+                              onChange={(e) =>
+                                handleReplyChange(review.id, e.target.value)
+                              }
+                            />
+                            <div className="mt-2 flex gap-2">
+                              <button
+                                onClick={() => handleReplySubmit(review.id)}
+                                className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
+                              >
+                                Submit Reply
+                              </button>
+                              <button
+                                onClick={() => cancelReply(review.id)}
+                                className="bg-gray-300 text-gray-800 px-3 py-2 rounded hover:bg-gray-400 transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
-
                     {/* Render replies for this review */}
                     <ReviewReplies
                       reviewId={review.id}
