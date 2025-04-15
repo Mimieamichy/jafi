@@ -164,7 +164,6 @@ exports.deleteReview = async (reviewId, userId) => {
 
 exports.getAllReviews = async () => {
   const reviews = await Review.findAll({
-    where: { reply: null },
     include: [
       {
         model: User,

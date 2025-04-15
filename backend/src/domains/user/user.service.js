@@ -185,6 +185,7 @@ exports.replyToReview = async (reviewId, userId, comment) => {
     { reply: comment },
     {
       where: {
+        reviewId: reviewId,
         listingId: originalReview.listingId,
       },
     }
