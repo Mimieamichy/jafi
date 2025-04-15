@@ -7,54 +7,61 @@ exports.registerBusiness = async (businessData) => {
   const existingBusiness = await Business.findOne({
     where: { email: businessData.email },
   });
+
   const existingUser = await User.findOne({
     where: { email: businessData.email },
   });
 
-  if (existingBusiness)
+  // Prevent duplicate business or user
+  if (existingBusiness) {
     throw new Error("Business already exists with this email");
+  }
 
-  let user;
-
-  // Check if the user exists and is an admin or superadmin
+  // If user exists and is not admin/superadmin, prevent business creation
   if (existingUser) {
     if (existingUser.role !== "admin" && existingUser.role !== "superadmin") {
-      user = existingUser;
-      const newBusiness = await Business.create({
-        ...businessData,
-        userId: user.id,
-        status: "pending",
-        claimed: true,
-      });
-
-      return { user, newBusiness, plainPassword };
+      throw new Error("Only admins can create a new business with an existing user");
     }
-  } else {
-    // Create new user with role "business"
-    const { plainPassword, hashedPassword } = await generatePassword();
 
-    user = await User.create({
-      email: businessData.email,
-      password: hashedPassword,
-      role: "business",
-      name: businessData.name,
-    });
-
-    // Create business inside the transaction
+    // Proceed to create business for existing admin/superadmin user
     const newBusiness = await Business.create({
       ...businessData,
-      userId: user.id,
+      userId: existingUser.id,
       status: "verified",
       claimed: false,
     });
 
     return {
-      user,
+      user: existingUser,
       newBusiness,
-      plainPassword: !existingUser ? plainPassword : existingUser.password,
+      plainPassword: null, // No new user created, so no plain password
     };
   }
+
+  // If no user exists, create new user and business
+  const { plainPassword, hashedPassword } = await generatePassword();
+
+  const newUser = await User.create({
+    email: businessData.email,
+    password: hashedPassword,
+    role: "business",
+    name: businessData.name,
+  });
+
+  const newBusiness = await Business.create({
+    ...businessData,
+    userId: newUser.id,
+    status: "pending",
+    claimed: true,
+  });
+
+  return {
+    user: newUser,
+    newBusiness,
+    plainPassword,
+  };
 };
+
 
 exports.getABusiness = async (businessId) => {
   const business = await Business.findByPk(businessId, {
