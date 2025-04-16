@@ -3,6 +3,7 @@ const User = require("../user/user.model");
 const Business = require("../business/business.model");
 const Service = require("../service/service.model");
 const AdminSettings = require('./admin.model')
+const Review = require('../review/review.model')
 const bcrypt = require("bcryptjs");
 const Claim = require("../claim/claim.model");
 const {generatePassword} = require("../../utils/generatePassword")
@@ -12,21 +13,40 @@ const {sendMail} = require("../../utils/sendEmail")
 
 
 
-exports.createUser = async (email, name, role) => {
+exports.createAdmin = async (email, name, role) => {
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) throw new Error("User already exists");
 
-    // Generate a random password
-    const password = Math.random().toString(36).slice(-8);
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const {hashedPassword, plainPassword} = await generatePassword();
 
     // Create the user
     const newUser = await User.create({ email, password: hashedPassword, role, name });
 
+    
+  const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
+  <div style="text-align: center; margin-bottom: 20px;">
+      <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1744291750/jafi_logo_2_png_ktsfqn.png" alt="JAFIAI Logo" style="max-width: 150px;">
+  </div>
+  <h2 style="color: #333; text-align: center;">Reset Your Password</h2>
+  <p style="font-size: 16px; color: #555; text-align: center;">
+      You have been added as an admin for JAFIAI. Use the link to access your account. Your password is: ${plainPassword}
+      If you did not request this, you can safely ignore this email.
+  </p>
+  <div style="text-align: center; margin: 20px 0;">
+      <a href="${process.env.FRONTEND_URL}/signin" 
+         style="display: inline-block; padding: 12px 20px; background-color: #5271FF; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
+         Your Account
+      </a>
+  </div>
+  <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+  <p style="font-size: 14px; color: #777; text-align: center;">
+      &copy; 2025 JAFIAI. All rights reserved.
+  </p>
+</div>`;
+
     // Send the generated password via email
-    await sendEmail(email, "JAFI AI Admin password", "Your Account Password", `Your password is: ${password}`);
+    await sendMail(email, "JAFI AI Admin password", mailContent);
     return newUser
 }
 
@@ -36,9 +56,16 @@ exports.getAllUsers = async () => {
     return users;
 }
 
-exports.updateUserPassword = async (userId, newPassword) => {
-    const user = await User.findByPk(userId);
-    if (!user) throw new Error("User not found");
+exports.updateAdminPassword = async (userId, newPassword) => {
+const user = await User.findOne({
+  where: {
+    id: userId,
+    [Op.or]: [{ role: "admin" }, { role: "superadmin" }],
+  },
+});
+
+
+    if (!user) throw new Error("Not an admin");
 
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -61,7 +88,7 @@ exports.approveBusiness = async (businessId) => {
 
     // Approve the business and assign the user ID
     business.status = "approved"
-    const {plainPassword,hashedPassword} = generatePassword()
+    const {plainPassword, hashedPassword} = generatePassword()
 
     await User.update(
       { password: hashedPassword },
@@ -81,7 +108,7 @@ exports.approveBusiness = async (businessId) => {
           </p>
           <div style="text-align: center; margin: 20px 0;">
               <p style="font-size: 16px; color: #555;">Your password is: <strong>${plainPassword}</strong></p>
-              <a href="${process.env.FRONTEND_URL}/login" 
+              <a href="${process.env.FRONTEND_URL}/signin" 
                  style="display: inline-block; padding: 12px 20px; background-color: #5271FF; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
                  Login Now
               </a>
@@ -168,6 +195,7 @@ exports.approveAService = async (serviceId) => {
 exports.getClaim = async (claimId) => {
     const claim = await Claim.findByPk(claimId);
     if (!claim) throw new Error("Claim not found");
+    return claim;
 }
 
 exports.approveClaim = async (claimId) => {
@@ -232,5 +260,47 @@ exports.approveClaim = async (claimId) => {
     `
     await sendMail(claim.email, "JAFI AI Business Claim Approved", mailContent);
 
-    res.status(200).json({ message: 'Claim approved and business updated', plainPassword });
+    return {message: 'Claim approved and business updated', plainPassword };
 };
+
+exports.getABusiness = async (id) => {
+    const business = await Business.findOne({
+        where: { id },
+        include: [
+            {
+                model: User,
+                attributes: ['id', 'name', 'email', 'role'],
+            },
+            {
+                model: Service,
+                attributes: ['id', 'name', 'description', 'price', 'duration'],
+            },
+        ],
+    });
+
+    if (!business) throw new Error("Business not found");
+
+    return business;
+};
+
+exports.getAllReviews = async () => {
+    const reviews = await Review.findAll({
+        include: [
+            {
+                model: User,
+                attributes: ['id', 'name', 'email', 'role'],
+            },
+        ],
+    });
+
+    if (!reviews) throw new Error("Reviews not found");
+
+    return reviews;
+};
+
+
+exports.getAllReviewers = async () => {
+    const users = await User.findAll({where: {role: 'reviewer'}});
+    if (!users) throw new Error("No users found");
+    return users;
+}
