@@ -1,5 +1,6 @@
 // src/components/Overview.jsx
 import React, { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 
 
 const getFormattedDate = () => {
@@ -13,15 +14,20 @@ const Overview = () => {
   const [totalBusinesses, setTotalBusinesses] = useState(0);
   const [totalServices, setTotalServices] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
+  const [totalReviewers, setTotalReviewers] = useState(0); // Placeholder for now
   // totalReviewers will be updated later when API becomes available
 
   // Hardcoded details
-  const adminName = "Admin Name";
-  const email = "admin@example.com";
   
-  const newClaims = 5; // corresponds to "Diventa cliente"
+  
+  const authToken = localStorage.getItem("userToken");
+  const decodedToken = jwtDecode(authToken);
+  
+  
+  
+  const newClaims = 5; 
 
-  // Change this as needed for your API
+  
   const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [currentDate, setCurrentDate] = useState(getFormattedDate());
@@ -63,6 +69,15 @@ const Overview = () => {
       .then((data) => {
         console.log("ser data:", data);
         setTotalServices(data.services.length || 0);
+      })
+      .catch((error) => console.error("Error fetching services:", error));
+
+    // Fetch total reviewers
+    fetch(`${baseUrl}/admin/reviewers`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("revwer data:", data);
+        setTotalReviewers(data.reviews.length || 0);
       })
       .catch((error) => console.error("Error fetching services:", error));
 
@@ -111,7 +126,7 @@ const Overview = () => {
           <div className="flex-1 text-center bg-blue-100 p-2 rounded">
             <span className="font-semibold">
               {/* Placeholder for when API is available */}
-              {0} Reviewers
+              {totalReviewers} Reviewers
             </span>
           </div>
         </div>
@@ -121,11 +136,11 @@ const Overview = () => {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="bg-white p-4 shadow rounded">
           <p className="text-sm text-gray-500">Admin Name</p>
-          <p className="text-lg font-semibold">{adminName}</p>
+          <p className="text-lg font-semibold capitalize">{decodedToken.name}</p>
         </div>
         <div className="bg-white p-4 shadow rounded">
-          <p className="text-sm text-gray-500">Email</p>
-          <p className="text-lg font-semibold">{email}</p>
+          <p className="text-sm text-gray-500">Role</p>
+          <p className="text-lg font-semibold capitalize">{decodedToken.role}</p>
         </div>
         <div className="bg-white p-4 shadow rounded">
           <p className="text-sm text-gray-500">Date</p>
