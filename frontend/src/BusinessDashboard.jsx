@@ -37,8 +37,7 @@ export default function BusinessDashboard() {
 
   // Parse query string
   const authToken = localStorage.getItem("userToken");
-  console.log("Auth Token:", authToken);
-  
+
 
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
@@ -82,7 +81,7 @@ export default function BusinessDashboard() {
       <div className="border-l border-gray-300 pl-4 ml-4 mt-2">
         {replies.map((reply) => (
           <div key={reply.id} className="mb-2">
-            <p className="text-sm text-gray-600">{reply.reply}</p>
+            
             <p className="text-xs text-gray-400">
               {new Date(reply.createdAt).toLocaleString()}
             </p>
@@ -170,7 +169,9 @@ export default function BusinessDashboard() {
           setFormData(data.user); // Set all the data correctly
           setBusNewImages(data.user.images || []); // Set images from data
           setBusId(data.user.uniqueId);
-          setId(data.user.id); // Set the ID from the data
+          setId(data.user.id); 
+          console.log("Business:", data);
+          
 
           // Set the first image as profile image if available
           if (data.user.images && data.user.images.length > 0) {
@@ -478,7 +479,7 @@ export default function BusinessDashboard() {
             }`}
             onClick={() => {
               setActiveSection("reviews");
-              handleNotificationClick;
+              newReviewNotification &&  handleNotificationClick;
             }}
           >
             Reviews

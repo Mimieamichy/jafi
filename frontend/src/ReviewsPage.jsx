@@ -18,15 +18,14 @@ const ReviewCard = ({
   images,
   type,
   onImageClick,
+  reply,
+  onReplyClick,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const isLong = comment.length > 150;
 
   return (
-    <div
-      className="bg-white p-6 rounded-lg shadow-md text-center flex flex-col justify-between h-full cursor-pointer"
-      
-    >
+    <div className="bg-white p-6 rounded-lg shadow-md text-center flex flex-col justify-between h-full cursor-pointer">
       <div>
         <h3 className="text-lg font-semibold text-black capitalize">
           {listingName || ""}
@@ -57,21 +56,36 @@ const ReviewCard = ({
             {expanded ? "Show Less" : "Read More"}
           </button>
         )}
+        {images && images.length > 0 && (
+          <img
+            src={images[0]}
+            alt="Review Thumbnail"
+            className="mt-4 w-full h-40 object-cover rounded"
+            onClick={(e) => {
+              e.stopPropagation();
+              onImageClick(images, id, type);
+            }}
+          />
+        )}
       </div>
-      {images && images.length > 0 && (
-        <img
-          src={images[0]}
-          alt="Review Thumbnail"
-          className="mt-4 w-full h-40 object-cover rounded"
-          onClick={(e) => {
-            e.stopPropagation();
-            onImageClick(images, id, type);
-          }}
-        />
-      )}
-      <p className="text-xs text-gray-400 mt-4 text-right">
-        {new Date(createdAt).toLocaleString()}
-      </p>
+
+      {/* Bottom row: replies (left) + timestamp (right) */}
+      <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
+        {reply && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onReplyClick(reply);
+            }}
+            className="text-blue-700 hover:underline flex items-center gap-1"
+          >
+            <span className="text-base"></span> view reply
+          </button>
+        )}
+        <p className="text-xs text-gray-400">
+          {new Date(createdAt).toLocaleString()}
+        </p>
+      </div>
     </div>
   );
 };
@@ -81,10 +95,11 @@ export default function PaginatedReviews() {
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImages, setModalImages] = useState([]);
-  const [modalReviewId, setModalReviewId] = useState(null);
-  const [modalReviewType, setModalReviewType] = useState(null);
+  const [replyModalOpen, setReplyModalOpen] = useState(false);
+  const [selectedReply, setSelectedReply] = useState("");
 
- 
+  // const [modalReviewId, setModalReviewId] = useState(null);
+  // const [modalReviewType, setModalReviewType] = useState(null);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -92,7 +107,7 @@ export default function PaginatedReviews() {
         const res = await fetch(`${baseUrl}/review/`);
         const data = await res.json();
         console.log("Fetched reviews:", data);
-        
+
         const sorted = data.reviews
           ?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 10);
@@ -103,6 +118,16 @@ export default function PaginatedReviews() {
     };
     fetchReviews();
   }, []);
+
+  const openReplyModal = (replyText) => {
+    setSelectedReply(replyText);
+    setReplyModalOpen(true);
+  };
+
+  const closeReplyModal = () => {
+    setSelectedReply("");
+    setReplyModalOpen(false);
+  };
 
   const totalPages = Math.ceil(allReviews.length / REVIEWS_PER_PAGE);
   const currentReviews = allReviews.slice(
@@ -119,11 +144,10 @@ export default function PaginatedReviews() {
   };
 
   // When a review card is clicked, if there are images, open modal to show a larger view with slide navigation.
-  const openImageModal = (images, reviewId, reviewType) => {
+  const openImageModal = (images) => {
     if (images && images.length > 0) {
       setModalImages(images);
-      setModalReviewId(reviewId);
-      setModalReviewType(reviewType);
+
       setModalOpen(true);
     }
   };
@@ -131,8 +155,6 @@ export default function PaginatedReviews() {
   const closeModal = () => {
     setModalOpen(false);
     setModalImages([]);
-    setModalReviewId(null);
-    setModalReviewType(null);
   };
 
   return (
@@ -145,6 +167,7 @@ export default function PaginatedReviews() {
               key={review.id || index}
               {...review}
               onImageClick={openImageModal}
+              onReplyClick={openReplyModal}
             />
           ))}
         </div>
@@ -168,8 +191,6 @@ export default function PaginatedReviews() {
             Next
           </button>
         </div>
-        
-        
       </div>
       {/* Modal for full-size image preview and swipe navigation */}
       {modalOpen && (
@@ -200,6 +221,21 @@ export default function PaginatedReviews() {
                 </SwiperSlide>
               ))}
             </Swiper>
+          </div>
+        </div>
+      )}
+
+      {replyModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white max-w-md w-full p-6 rounded-lg shadow-lg relative">
+            <button
+              onClick={closeReplyModal}
+              className="absolute top-2 right-3 text-2xl text-gray-500 font-bold"
+            >
+              &times;
+            </button>
+            <h3 className="text-lg font-semibold mb-4">Reply to Review</h3>
+            <p className="text-gray-800 whitespace-pre-line">{selectedReply}</p>
           </div>
         </div>
       )}

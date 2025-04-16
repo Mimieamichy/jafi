@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import BlueSpiralLoader from "./BlueSpiralLoader";
 
+
 // Lazy-load components
 const Navbar = lazy(() => import("./NavBar"));
 const Homepage = lazy(() => import("./pages/Homepage"));
@@ -24,6 +25,7 @@ const BusinessDashboard = lazy(() => import("./BusinessDashboard"));
 const BusinessPage = lazy(() => import("./BusinessPage"));
 const BusinessProfileCard = lazy(() => import("./BusinessProfileCard"));
 const ReviewersDashboard = lazy(() => import("./Reviewer"));
+const AdminDashboard = lazy(() => import("./Admindashboard"));
 
 const PaymentSuccess = lazy(() => import("./PaymentSuccess"));
 const NotFound = lazy(() => import("./NotFound"));
@@ -55,6 +57,8 @@ export default function App() {
                 <Route path="/bus-dashboard" element={<BusinessDashboard />} />
                 <Route path="/bus-profile" element={<BusinessProfileCard />} />
                 <Route path="/reviewer" element={<ReviewersDashboard />} />
+                <Route path="/admin/*" element={<AdminDashboard />} />
+                
 
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/all-listing" element={<AllListings />} />
