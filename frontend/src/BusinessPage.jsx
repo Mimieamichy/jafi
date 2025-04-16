@@ -7,6 +7,11 @@ import { jwtDecode } from "jwt-decode";
 import { useSnackbar } from "notistack";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
+import {
+  faStar as solidStar,
+  faStarHalfAlt,
+} from "@fortawesome/free-solid-svg-icons";
+import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -69,6 +74,44 @@ export default function BusinessPage() {
     };
     fetchBusiness();
   }, [id]);
+
+  const renderStars = (rating) => {
+    const numericRating = parseFloat(rating);
+    if (isNaN(numericRating)) {
+      console.error("Invalid star rating:", rating);
+      return null;
+    }
+
+    // Calculate full stars (integer part)
+    const fullStars = Math.floor(numericRating);
+    // If the rating is not exactly an integer, we display one half star.
+    const hasHalfStar = numericRating - fullStars !== 0;
+    // Total stars must always be 5.
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    console.log(
+      "Parsed Rating:",
+      numericRating,
+      "Full:",
+      fullStars,
+      "Has Half:",
+      hasHalfStar,
+      "Empty:",
+      emptyStars
+    );
+
+    return (
+      <div className="flex justify-center space-x-1 text-yellow-400 mt-1">
+        {Array.from({ length: fullStars }).map((_, idx) => (
+          <FontAwesomeIcon icon={solidStar} key={`full-${idx}`} />
+        ))}
+        {hasHalfStar && <FontAwesomeIcon icon={faStarHalfAlt} />}
+        {Array.from({ length: emptyStars }).map((_, idx) => (
+          <FontAwesomeIcon icon={regularStar} key={`empty-${idx}`} />
+        ))}
+      </div>
+    );
+  };
 
   // Fetch reviews after uniqueId is available
   useEffect(() => {
@@ -166,8 +209,6 @@ export default function BusinessPage() {
 
   // Review form: Allow up to 2 images
 
-  
-
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("reviewerToken");
@@ -232,13 +273,12 @@ export default function BusinessPage() {
   };
 
   // Review Images Modal handlers
-  
+
   const closeReviewImageModal = () => {
     setReviewImageModalOpen(false);
     setReviewModalImages([]);
     setReviewModalIndex(0);
   };
-  
 
   if (!business) {
     return (
@@ -305,17 +345,7 @@ export default function BusinessPage() {
           </p>
           <div className="flex items-center">
             <span className="mr-2">Rating:</span>
-            {[...Array(5)].map((_, i) => (
-              <FontAwesomeIcon
-                key={i}
-                icon={faStar}
-                className={
-                  i < (business.average_rating || 0)
-                    ? "text-yellow-400"
-                    : "text-gray-300"
-                }
-              />
-            ))}
+            {renderStars(business.average_rating)}
           </div>
           <div className="flex justify-between items-center mt-4 flex-wrap gap-4">
             <button
@@ -631,10 +661,7 @@ function ReviewCard({
     expanded || !hasLongComment ? comment : comment.slice(0, 150) + "...";
 
   return (
-    <div
-      className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center text-center "
-     
-    >
+    <div className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center text-center ">
       <h4 className="text-lg font-bold capitalize">{listingName}</h4>
       <p className="text-gray-700 capitalize">{user_name}</p>
       <div className="flex justify-center my-2 text-yellow-500">

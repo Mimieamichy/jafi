@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Slider from "react-slick";
-import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { jwtDecode } from "jwt-decode";
 import { useSnackbar } from "notistack";
+import {
+  faStar as solidStar,
+  faStarHalfAlt,
+} from "@fortawesome/free-solid-svg-icons";
+import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faStar,
@@ -13,7 +19,7 @@ import {
   faEnvelope,
   faPen,
 } from "@fortawesome/free-solid-svg-icons";
- // in case duplicate
+// in case duplicate
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -33,8 +39,7 @@ export default function HireProfileDetails() {
   const reviewsPerPage = 3;
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
   const [reviewModalImages, setReviewModalImages] = useState([]);
-  const [reviewModalIndex, setReviewModalIndex] = useState(0);
-  
+
   // Reviewer & authentication
   const [reviewer, setReviewer] = useState(null);
 
@@ -45,11 +50,10 @@ export default function HireProfileDetails() {
 
   // Review Images Modal state (for full screen preview)
   const [reviewImageModalOpen, setReviewImageModalOpen] = useState(false);
- 
-  
+
   // For react-slick carousel in the images modal, we let slider handle navigation.
   // No need for manual prev/next handlers with slider dots and arrows.
-  
+
   // Business (hire) details fetch
   useEffect(() => {
     fetch(`${baseUrl}/service/${id}`)
@@ -91,7 +95,9 @@ export default function HireProfileDetails() {
         if (isExpired) {
           localStorage.removeItem("reviewerToken");
           localStorage.removeItem("reviewer");
-          enqueueSnackbar("Session expired. Please sign in again.", { variant: "info" });
+          enqueueSnackbar("Session expired. Please sign in again.", {
+            variant: "info",
+          });
           const currentPath = encodeURIComponent(location.pathname);
           window.location.href = `${baseUrl}/review/google?redirect=${currentPath}`;
         } else {
@@ -114,7 +120,10 @@ export default function HireProfileDetails() {
         if (decoded.exp * 1000 < Date.now()) {
           localStorage.removeItem("reviewerToken");
           localStorage.removeItem("reviewer");
-          enqueueSnackbar("Session expired. Please sign in again to write a review.", { variant: "info" });
+          enqueueSnackbar(
+            "Session expired. Please sign in again to write a review.",
+            { variant: "info" }
+          );
         } else {
           setReviewer(JSON.parse(stored));
         }
@@ -132,17 +141,6 @@ export default function HireProfileDetails() {
   };
 
   // Review form image upload handler (max 2 images)
-  const handleReviewImagesUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (reviewImages.length + files.length > 2) {
-      enqueueSnackbar("You can only upload up to 2 images.", { variant: "warning" });
-      return;
-    }
-    setReviewImages((prev) => [...prev, ...files]);
-  };
-  const removeReviewImage = (index) => {
-    setReviewImages((prev) => prev.filter((_, i) => i !== index));
-  };
 
   // Submit review using FormData (to include images)
   const handleSubmit = async (e) => {
@@ -150,14 +148,18 @@ export default function HireProfileDetails() {
     const token = localStorage.getItem("reviewerToken");
     console.log("Submitting review with token:", token);
     if (!token) {
-      enqueueSnackbar("Please login to submit your review.", { variant: "warning" });
+      enqueueSnackbar("Please login to submit your review.", {
+        variant: "warning",
+      });
       const currentUrl = encodeURIComponent(window.location.pathname);
       window.location.href = `${baseUrl}/review/google?redirect=${currentUrl}`;
       return;
     }
     const decoded = jwtDecode(token);
     if (decoded.exp * 1000 < Date.now()) {
-      enqueueSnackbar("Session expired. Please login again.", { variant: "info" });
+      enqueueSnackbar("Session expired. Please login again.", {
+        variant: "info",
+      });
       localStorage.removeItem("reviewerToken");
       localStorage.removeItem("reviewer");
       const currentUrl = encodeURIComponent(window.location.pathname);
@@ -182,17 +184,59 @@ export default function HireProfileDetails() {
       });
       const result = await res.json();
       if (res.ok) {
-        enqueueSnackbar("Review submitted successfully!", { variant: "success" });
+        enqueueSnackbar("Review submitted successfully!", {
+          variant: "success",
+        });
         setShowReviewForm(false);
         setReviewData({ rating: 0, comment: "" });
         setReviewImages([]);
       } else {
-        enqueueSnackbar(result.message || "Failed to submit review", { variant: "error" });
+        enqueueSnackbar(result.message || "Failed to submit review", {
+          variant: "error",
+        });
       }
     } catch (error) {
       console.error("Review submission error:", error);
       enqueueSnackbar("Something went wrong", { variant: "error" });
     }
+  };
+
+  const renderStars = (rating) => {
+    const numericRating = parseFloat(rating);
+    if (isNaN(numericRating)) {
+      console.error("Invalid star rating:", rating);
+      return null;
+    }
+
+    // Calculate full stars (integer part)
+    const fullStars = Math.floor(numericRating);
+    // If the rating is not exactly an integer, we display one half star.
+    const hasHalfStar = numericRating - fullStars !== 0;
+    // Total stars must always be 5.
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    console.log(
+      "Parsed Rating:",
+      numericRating,
+      "Full:",
+      fullStars,
+      "Has Half:",
+      hasHalfStar,
+      "Empty:",
+      emptyStars
+    );
+
+    return (
+      <div className="flex justify-center space-x-1 text-yellow-400 mt-1">
+        {Array.from({ length: fullStars }).map((_, idx) => (
+          <FontAwesomeIcon icon={solidStar} key={`full-${idx}`} />
+        ))}
+        {hasHalfStar && <FontAwesomeIcon icon={faStarHalfAlt} />}
+        {Array.from({ length: emptyStars }).map((_, idx) => (
+          <FontAwesomeIcon icon={regularStar} key={`empty-${idx}`} />
+        ))}
+      </div>
+    );
   };
 
   const handleGoogleLogin = () => {
@@ -201,17 +245,10 @@ export default function HireProfileDetails() {
   };
 
   // Review Images Modal handlers using react-slick carousel
-  const openReviewImageModal = (images, initialIndex) => {
-    if (images && images.length > 0) {
-      setReviewModalImages(images);
-      setReviewModalIndex(initialIndex);
-      setReviewImageModalOpen(true);
-    }
-  };
+
   const closeReviewImageModal = () => {
     setReviewImageModalOpen(false);
     setReviewModalImages([]);
-    setReviewModalIndex(0);
   };
 
   // For pagination of reviews
@@ -233,10 +270,25 @@ export default function HireProfileDetails() {
     <div className="max-w-4xl mx-auto py-6 px-4">
       {/* HEADER / COVER SECTION */}
       <div className="bg-white rounded-lg shadow p-4 relative">
-        <Slider dots infinite speed={500} slidesToShow={1} slidesToScroll={1} autoplay arrows>
+        <Slider
+          dots
+          infinite
+          speed={500}
+          slidesToShow={1}
+          slidesToScroll={1}
+          autoplay
+          arrows
+        >
           {hire.images?.map((img, i) => (
-            <div key={i} className="w-full h-64 bg-gray-100 flex items-center justify-center">
-              <img src={img} alt={`Work sample ${i + 1}`} className="w-full h-64 rounded object-cover" />
+            <div
+              key={i}
+              className="w-full h-64 bg-gray-100 flex items-center justify-center"
+            >
+              <img
+                src={img}
+                alt={`Work sample ${i + 1}`}
+                className="w-full h-64 rounded object-cover"
+              />
             </div>
           ))}
         </Slider>
@@ -246,7 +298,10 @@ export default function HireProfileDetails() {
           <h1 className="text-3xl font-bold capitalize">{hire.name}</h1>
           <p className="text-lg text-gray-600">{hire.category}</p>
           <p className="flex items-center text-gray-700">
-            <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2 text-red-500" />
+            <FontAwesomeIcon
+              icon={faMapMarkerAlt}
+              className="mr-2 text-red-500"
+            />
             {hire.address}
           </p>
           <p className="flex items-center text-gray-700">
@@ -259,11 +314,11 @@ export default function HireProfileDetails() {
           </p>
           <div className="flex items-center">
             <span className="mr-2">Rating:</span>
-            {[...Array(5)].map((_, i) => (
-              <FontAwesomeIcon key={i} icon={faStar} className={i < (hire.average_rating || 0) ? "text-yellow-400" : "text-gray-300"} />
-            ))}
+            {renderStars(hire.average_rating)}
           </div>
-          <p className="bg-gray-100 p-4 rounded text-gray-800">{hire.description}</p>
+          <p className="bg-gray-100 p-4 rounded text-gray-800">
+            {hire.description}
+          </p>
         </div>
 
         {/* Action Buttons */}
@@ -275,7 +330,9 @@ export default function HireProfileDetails() {
             ← Go Back
           </button>
           <button
-            onClick={() => reviewer ? setShowReviewForm(true) : handleGoogleLogin()}
+            onClick={() =>
+              reviewer ? setShowReviewForm(true) : handleGoogleLogin()
+            }
             className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md shadow hover:bg-blue-700 transition"
           >
             <FontAwesomeIcon icon={faPen} />
@@ -293,9 +350,9 @@ export default function HireProfileDetails() {
               <ReviewCard
                 key={review.id}
                 {...review}
-                onImageClick={(images, idx) => {
+                onImageClick={(images) => {
                   setReviewModalImages(images);
-                  setReviewModalIndex(idx);
+
                   setReviewImageModalOpen(true);
                 }}
               />
@@ -311,7 +368,9 @@ export default function HireProfileDetails() {
                 key={i}
                 onClick={() => setCurrentPage(i + 1)}
                 className={`px-4 py-2 rounded ${
-                  currentPage === i + 1 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
+                  currentPage === i + 1
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700"
                 }`}
               >
                 {i + 1}
@@ -334,7 +393,9 @@ export default function HireProfileDetails() {
             onClick={(e) => e.stopPropagation()}
             className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
           >
-            <h2 className="text-xl font-bold mb-4 text-center">Submit a Review</h2>
+            <h2 className="text-xl font-bold mb-4 text-center">
+              Submit a Review
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <input
                 type="text"
@@ -354,7 +415,11 @@ export default function HireProfileDetails() {
                     key={i}
                     icon={faStar}
                     onClick={() => handleRating(i)}
-                    className={`text-2xl cursor-pointer ${i < reviewData.rating ? "text-yellow-500" : "text-gray-300"}`}
+                    className={`text-2xl cursor-pointer ${
+                      i < reviewData.rating
+                        ? "text-yellow-500"
+                        : "text-gray-300"
+                    }`}
                   />
                 ))}
               </div>
@@ -376,7 +441,9 @@ export default function HireProfileDetails() {
                 onChange={(e) => {
                   const files = Array.from(e.target.files);
                   if (reviewImages.length + files.length > 2) {
-                    enqueueSnackbar("You can only upload up to 2 images.", { variant: "warning" });
+                    enqueueSnackbar("You can only upload up to 2 images.", {
+                      variant: "warning",
+                    });
                     return;
                   }
                   setReviewImages((prev) => [...prev, ...files]);
@@ -393,7 +460,11 @@ export default function HireProfileDetails() {
                     />
                     <button
                       type="button"
-                      onClick={() => setReviewImages((prev) => prev.filter((_, i) => i !== idx))}
+                      onClick={() =>
+                        setReviewImages((prev) =>
+                          prev.filter((_, i) => i !== idx)
+                        )
+                      }
                       className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
                     >
                       &times;
@@ -463,16 +534,22 @@ export default function HireProfileDetails() {
   );
 }
 
-function ReviewCard({  listingName, user_name, star_rating, comment, createdAt, images, onImageClick }) {
+function ReviewCard({
+  listingName,
+  user_name,
+  star_rating,
+  comment,
+  createdAt,
+  images,
+  onImageClick,
+}) {
   const [expanded, setExpanded] = useState(false);
   const hasLongComment = comment?.length > 150;
-  const displayedText = expanded || !hasLongComment ? comment : comment.slice(0, 150) + "...";
+  const displayedText =
+    expanded || !hasLongComment ? comment : comment.slice(0, 150) + "...";
 
   return (
-    <div
-      className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center text-center "
-     
-    >
+    <div className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center text-center ">
       <h4 className="text-lg font-bold capitalize ">{listingName}</h4>
       <p className="text-gray-700 capitalize">{user_name}</p>
       <div className="flex justify-center my-2 text-yellow-500">
