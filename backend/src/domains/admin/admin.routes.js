@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, updateBusiness, getAllReviewers} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers} = require('./admin.controller')
 
 
 
@@ -21,7 +21,6 @@ router.post('/approveService', approveService);
 router.post('/updateAdminPassword', updateAdminPassword);
 router.post('/updateBusinessPrice', updateBusinessPrice);
 router.post("/updateServicePrice", updateServicePrice);
-router.post("/updateBusiness", updateBusiness);
 
 
 module.exports = router;

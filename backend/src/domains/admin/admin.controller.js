@@ -159,6 +159,9 @@ exports.getAllReviews = async (req, res) => {
   }
 };
 
+exports.updateBusiness = async (req, res) => {
+  
+}
 
 exports.getAllReviewers = async(req, res) => {
   try {
