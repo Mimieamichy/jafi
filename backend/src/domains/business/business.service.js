@@ -7,44 +7,14 @@ exports.registerBusiness = async (businessData) => {
   const existingUser = await User.findOne({
     where: { email: businessData.email },
   });
-
-  if (existingUser) {
-    // If not admin/superadmin, check for duplicate business
-    if (!["admin", "superadmin"].includes(existingUser.role)) {
-      const existingBusiness = await Business.findOne({
-        where: { email: businessData.email },
-      });
-
-      if (existingBusiness) {
-        throw new Error("Business already exists with this email");
-      }
-
-      throw new Error("Only admins can create a new business with an existing user");
-    }
-
-    // Admin/superadmin – skip business email check, allow multiple businesses
-    const newBusiness = await Business.create({
-      ...businessData,
-      userId: existingUser.id,
-      status: "verified",
-      claimed: false,
-      proof: "not available"
-    });
-
-    return {
-      user: existingUser,
-      newBusiness,
-      plainPassword: null,
-    };
-  }
-
+    
   // No user – enforce unique business email
   const existingBusiness = await Business.findOne({
     where: { email: businessData.email },
   });
 
-  if (existingBusiness) {
-    throw new Error("Business already exists with this email");
+  if (existingBusiness || existingUser) {
+    throw new Error("User already exists with this email");
   }
 
   const { plainPassword, hashedPassword } = await generatePassword();

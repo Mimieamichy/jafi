@@ -213,3 +213,21 @@ exports.deleteUser = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 }
+
+exports.addBusiness = async (req, res) => {
+  const businessData = { ...req.body };
+  if (req.files) {
+    if (req.files["images"]) {
+      businessData.images = req.files["images"].map((file) => file.path);
+    }
+  }
+  try {
+    const business = await AdminService.addBusiness(businessData);
+    if (!business) throw new Error("Business creation failed");
+    
+    return res.status(201).json({ success: true, message: "Business created successfully", business: business });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReviews, deleteService, deleteUser} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReviews, deleteService, deleteUser, addBusiness} = require('./admin.controller')
 
 
 
@@ -25,5 +25,6 @@ router.delete('/business/:id', deleteBusiness);
 router.delete('/reviews/:id', deleteReviews);
 router.delete('/service/:id', deleteService);
 router.delete('/user/:id', deleteUser);
+router.post('/addBusiness', addBusiness)
 
 module.exports = router;

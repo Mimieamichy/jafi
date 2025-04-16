@@ -1,6 +1,6 @@
 const BusinessService = require("./business.service");
 const sequelize = require("../../config/database");
-const bcrypt = require("bcryptjs");
+
 
 exports.registerBusiness = async (req, res) => {
   try {

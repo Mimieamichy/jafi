@@ -86,7 +86,7 @@ exports.approveBusiness = async (businessId) => {
     if (!business) throw new Error("Business not found");
 
     // Approve the business and assign the user ID
-    business.status = "approved"
+    business.status = "verified"
     const {plainPassword, hashedPassword} = generatePassword()
 
     await User.update(
@@ -160,7 +160,7 @@ exports.approveAService = async (serviceId) => {
       { where: { id: service.userId } }
     );
     
-    service.status = "approved";
+    service.status = "verified";
     await service.save();
 
     // Send an email notification to the service owner
@@ -228,7 +228,7 @@ exports.approveClaim = async (claimId) => {
     await business.save();
 
     // Mark claim approved
-    claim.status = 'approved';
+    claim.status = 'verified';
     await claim.save();
 
 
@@ -346,3 +346,19 @@ exports.deleteReviews = async (id) => {
 
     return { message: "Reviews deleted successfully" };
 };
+
+
+exports.addBusiness = async (businessData) => { 
+    const newBusiness = await Business.create({
+      ...businessData,
+      userId: newUser.id,
+      status: "verified",
+      claimed: false,
+    });
+  
+    return {
+      user: newUser,
+      newBusiness,
+      plainPassword,
+    };
+  };
