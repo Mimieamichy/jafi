@@ -64,8 +64,8 @@ const Business = sequelize.define(
       allowNull: true,
     },
     proof: {
-      type: DataTypes.JSON,
-      allowNull: false
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     category: {
       type: DataTypes.STRING,
@@ -84,8 +84,24 @@ const Business = sequelize.define(
       type: DataTypes.JSON,
       allowNull: true,
     },
-    social_links: {
-      type: DataTypes.JSON,
+    whatsApp: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    x: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    linkedIn: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    instagram: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    tiktok: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
     businessType: {
@@ -123,7 +139,7 @@ const Business = sequelize.define(
     },
     claimed: {
       type: DataTypes.BOOLEAN,
-      allowNull: false
+      allowNull: false,
     },
   },
   {
