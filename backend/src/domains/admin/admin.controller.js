@@ -172,4 +172,44 @@ exports.getAllReviewers = async(req, res) => {
   }
 }
 
+exports.deleteBusiness = async (req, res) => {
+  const id = req.params.id;
+  try {
+    await AdminService.deleteBusiness(id);
+    return res.status(200).json({ success: true, message: "Business deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
 
+exports.deleteService = async (req, res) => {
+  const id = req.params.id;
+  try {
+    await AdminService.deleteService(id);
+    return res.status(200).json({ success: true, message: "Service deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+
+exports.deleteReviews = async (req, res) => {
+  const id = req.params.id;
+  try {
+    await AdminService.deleteReviews(id);
+    return res.status(200).json({ success: true, message: "Service deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+
+exports.deleteUser = async (req, res) => {
+  const id = req.params.id;
+  try {
+    await AdminService.deleteUser(id);
+    return res.status(200).json({ success: true, message: "Service deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}

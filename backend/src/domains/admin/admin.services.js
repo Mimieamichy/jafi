@@ -81,7 +81,6 @@ exports.getAllBusinesses = async () => {
     return businesses;
 }
 
-
 exports.approveBusiness = async (businessId) => {  
     const business = await Business.findByPk(businessId);
     if (!business) throw new Error("Business not found");
@@ -298,9 +297,52 @@ exports.getAllReviews = async () => {
     return reviews;
 };
 
-
 exports.getAllReviewers = async () => {
     const users = await User.findAll({where: {role: 'reviewer'}});
     if (!users) throw new Error("No users found");
     return users;
 }
+
+exports.deleteUser = async (id) => {
+    const user = await User.findOne({ where: { id } });
+
+    if (!user) throw new Error("User not found");
+
+    await user.destroy();
+
+    return { message: "User deleted successfully" };
+};
+
+exports.deleteBusiness = async (id) => {
+    const business = await Business.findOne({ where: { id } });
+    const businessOwner = await User.findOne({ where: { id: business.userId } });
+
+    if (!business && !businessOwner) throw new Error("Business not found");
+
+    await business.destroy();
+    await businessOwner.destroy();
+
+    return { message: "Business deleted successfully" };
+};
+
+exports.deleteService = async (id) => {
+    const service = await Service.findOne({ where: { id } });
+    const serviceOwner = await User.findOne({ where: { id: service.userId } });
+
+    if (!service && !serviceOwner) throw new Error("Service not found");
+
+    await service.destroy();
+    await serviceOwner.destroy();
+
+    return { message: "Service deleted successfully" };
+};
+
+exports.deleteReviews = async (id) => {
+    const reviews = await Review.findAll({ where: { id } });
+
+    if (!reviews) throw new Error("Reviews not found");
+
+    await reviews.destroy();
+
+    return { message: "Reviews deleted successfully" };
+};
