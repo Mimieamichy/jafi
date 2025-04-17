@@ -1,6 +1,6 @@
 const AdminService = require("./admin.services");
 
-
+//users management
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await AdminService.getAllUsers();
@@ -9,6 +9,16 @@ exports.getAllUsers = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.deleteUser = async (req, res) => {
+  const id = req.params.id;
+  try {
+    await AdminService.deleteUser(id);
+    return res.status(200).json({ success: true, message: "Service deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
 
 exports.createAdmin = async (req, res) => {
   const { email, name, role } = req.body;
@@ -34,6 +44,10 @@ exports.updateAdminPassword = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+
+
 
 // Business management
 exports.getAllBusinesses = async (req, res) => {
@@ -68,27 +82,6 @@ exports.updateBusinessPrice = async (req, res) => {
   }
 };
 
-exports.approveClaim = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const response = await AdminService.approveClaim(id);
-    return res.status(200).json({ success: true, response });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-exports.getClaim = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const claim = await AdminService.getClaim(id);
-    return res.status(200).json(claim)
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
 exports.getABusiness = async (req, res) => {
   const { id } = req.params;
 
@@ -100,6 +93,44 @@ exports.getABusiness = async (req, res) => {
   }
 };
 
+exports.addBusiness = async (req, res) => {
+  const businessData = { ...req.body };
+  const userId = req.user.id
+  console.log(businessData)
+  if (req.files) {
+    if (req.files["images"]) {
+      businessData.images = req.files["images"].map((file) => file.path);
+    }
+  }
+  try {
+    const business = await AdminService.addBusiness(businessData, userId);
+    if (!business) throw new Error("Business creation failed");
+    
+    return res.status(201).json({ success: true, message: "Business created successfully", business: business });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+exports.updateBusiness = async (req, res) => {
+}
+
+exports.deleteBusiness = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const response = await AdminService.deleteBusiness(id);
+    return res.status(200).json({ success: true, message: response });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+
+
+
+
 // Service management
 exports.getAllServices = async (req, res) => {
   try {
@@ -109,7 +140,6 @@ exports.getAllServices = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 exports.getAService = async (req, res) => {
   const { id } = req.params;
@@ -149,40 +179,6 @@ exports.updateServicePrice = async (req, res) => {
   }
 };
 
-// Review management
-exports.getAllReviews = async (req, res) => {
-  try {
-    const reviews = await AdminService.getAllReviews()
-    return res.status(200).json({ success: true, reviews });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-exports.updateBusiness = async (req, res) => {
-  
-}
-
-exports.getAllReviewers = async(req, res) => {
-  try {
-    const reviews = await AdminService.getAllReviewers()
-    return res.status(200).json({ success: true, reviews });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-}
-
-exports.deleteBusiness = async (req, res) => {
-  const id = req.params.id;
-  try {
-    const response = await AdminService.deleteBusiness(id);
-    return res.status(200).json({ success: true, message: response });
-  } catch (error) {
-    console.log(error)
-    return res.status(500).json({ success: false, message: error.message });
-  }
-}
-
 exports.deleteService = async (req, res) => {
   const id = req.params.id;
   try {
@@ -194,8 +190,28 @@ exports.deleteService = async (req, res) => {
 }
 
 
+
+// Review management
+exports.getAllReviews = async (req, res) => {
+  try {
+    const reviews = await AdminService.getAllReviews()
+    return res.status(200).json({ success: true, reviews });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getAllReviewers = async(req, res) => {
+  try {
+    const reviewers = await AdminService.getAllReviewers()
+    return res.status(200).json({ success: true, reviewers });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 exports.deleteReview = async (req, res) => {
-  const id = req.params.id;
+  const id = req.params;
   try {
     await AdminService.deleteReviews(id);
     return res.status(200).json({ success: true, message: "Service deleted successfully" });
@@ -204,34 +220,38 @@ exports.deleteReview = async (req, res) => {
   }
 }
 
-
-exports.deleteUser = async (req, res) => {
-  const id = req.params.id;
+exports.deleteReviewer = async (req, res) => {
+  const id = req.params;
   try {
-    await AdminService.deleteUser(id);
-    return res.status(200).json({ success: true, message: "Service deleted successfully" });
+    await AdminService.deleteReviewer(id);
+    return res.status(200).json({ success: true, message: "Reviewer deleted successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
+
 }
 
-exports.addBusiness = async (req, res) => {
-  const businessData = { ...req.body };
-  const userId = req.user.id
-  console.log(businessData)
-  if (req.files) {
-    if (req.files["images"]) {
-      businessData.images = req.files["images"].map((file) => file.path);
-    }
-  }
+
+
+
+//claim management
+exports.approveClaim = async (req, res) => {
+  const { id } = req.params;
   try {
-    const business = await AdminService.addBusiness(businessData, userId);
-    if (!business) throw new Error("Business creation failed");
-    
-    return res.status(201).json({ success: true, message: "Business created successfully", business: business });
+    const response = await AdminService.approveClaim(id);
+    return res.status(200).json({ success: true, response });
   } catch (error) {
-    console.log(error)
     return res.status(500).json({ success: false, message: error.message });
   }
-}
+};
 
+exports.getClaim = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const claim = await AdminService.getClaim(id);
+    return res.status(200).json(claim)
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};

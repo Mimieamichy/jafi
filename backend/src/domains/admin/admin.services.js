@@ -6,8 +6,8 @@ const AdminSettings = require('./admin.model')
 const Review = require('../review/review.model')
 const bcrypt = require("bcryptjs");
 const Claim = require("../claim/claim.model");
-const {generatePassword} = require("../../utils/generatePassword")
-const {sendMail} = require("../../utils/sendEmail")
+const { generatePassword } = require("../../utils/generatePassword")
+const { sendMail } = require("../../utils/sendEmail")
 
 
 
@@ -17,14 +17,14 @@ exports.createAdmin = async (email, name, role) => {
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) throw new Error("User already exists");
 
-    
-    const {hashedPassword, plainPassword} = await generatePassword();
+
+    const { hashedPassword, plainPassword } = await generatePassword();
 
     // Create the user
     const newUser = await User.create({ email, password: hashedPassword, role, name });
 
-    
-  const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
+
+    const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
   <div style="text-align: center; margin-bottom: 20px;">
       <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1744291750/jafi_logo_2_png_ktsfqn.png" alt="JAFIAI Logo" style="max-width: 150px;">
   </div>
@@ -57,12 +57,12 @@ exports.getAllUsers = async () => {
 }
 
 exports.updateAdminPassword = async (userId, newPassword) => {
-const user = await User.findOne({
-  where: {
-    id: userId,
-    [Op.or]: [{ role: "admin" }, { role: "superadmin" }],
-  },
-});
+    const user = await User.findOne({
+        where: {
+            id: userId,
+            [Op.or]: [{ role: "admin" }, { role: "superadmin" }],
+        },
+    });
 
 
     if (!user) throw new Error("Not an admin");
@@ -81,24 +81,24 @@ exports.getAllBusinesses = async () => {
     return businesses;
 }
 
-exports.approveBusiness = async (businessId) => {  
+exports.approveBusiness = async (businessId) => {
     const business = await Business.findByPk(businessId);
     if (!business) throw new Error("Business not found");
 
     // Approve the business and assign the user ID
     business.status = "verified"
     await business.save();
-    const {plainPassword, hashedPassword} = await generatePassword()
+    const { plainPassword, hashedPassword } = await generatePassword()
 
 
     console.log(plainPassword, hashedPassword)
 
     await User.update(
-      { password: hashedPassword },
-      { where: { id: business.userId } }
+        { password: hashedPassword },
+        { where: { id: business.userId } }
     );
 
-    
+
 
     // Send an email notification to the business owner
     const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
@@ -131,13 +131,13 @@ exports.approveBusiness = async (businessId) => {
 exports.updateBusinessPrice = async (price) => {
     const setting = await AdminSettings.findOne({ where: { key: "business_price" } });
 
-  if (!setting) {
-    // If the setting does not exist, create it
-    await AdminSettings.create({ key: "business_price", value: price });
-  } else {
-    // Update the existing setting
-    await setting.update({ value: price });
-  }
+    if (!setting) {
+        // If the setting does not exist, create it
+        await AdminSettings.create({ key: "business_price", value: price });
+    } else {
+        // Update the existing setting
+        await setting.update({ value: price });
+    }
     return { message: "Business price updated successfully" };
 }
 
@@ -158,17 +158,17 @@ exports.approveAService = async (serviceId) => {
     if (!service) throw new Error("Service not found");
 
     // Approve the service
-    const {plainPassword, hashedPassword} = await generatePassword()
+    const { plainPassword, hashedPassword } = await generatePassword()
     await User.update(
-      { password: hashedPassword },
-      { where: { id: service.userId } }
+        { password: hashedPassword },
+        { where: { id: service.userId } }
     );
-    
+
     service.status = "verified";
     await service.save();
 
     // Send an email notification to the service owner
-    const mailContent =  `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
+    const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
     <div style="text-align: center; margin-bottom: 20px;">
         <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1744291750/jafi_logo_2_png_ktsfqn.png" alt="JAFIAI Logo" style="max-width: 150px;">
     </div>
@@ -204,7 +204,7 @@ exports.getClaim = async (claimId) => {
 exports.approveClaim = async (claimId) => {
     const claim = await Claim.findByPk(claimId);
     if (!claim || claim.status !== 'pending' || claim.paymentStatus !== 'paid') {
-      return res.status(400).json({ message: 'Invalid claim approval' });
+        return res.status(400).json({ message: 'Invalid claim approval' });
     }
 
     const business = await Business.findByPk(claim.businessId);
@@ -214,14 +214,14 @@ exports.approveClaim = async (claimId) => {
     const { plainPassword, hashedPassword } = await generatePassword();
     // Create or update the user (depends on your system)
     const user = await User.update(
-      { password: hashedPassword },
-      { where: { email: business.email } }
+        { password: hashedPassword },
+        { where: { email: business.email } }
     );
-    
+
     if (updatedCount === 0) {
-      throw new Error("User with this email does not exist");
+        throw new Error("User with this email does not exist");
     }
-    
+
 
     // Update business info
     business.email = claim.email;
@@ -263,7 +263,7 @@ exports.approveClaim = async (claimId) => {
     `
     await sendMail(claim.email, "JAFI AI Business Claim Approved", mailContent);
 
-    return {message: 'Claim approved and business updated', plainPassword };
+    return { message: 'Claim approved and business updated', plainPassword };
 };
 
 exports.getABusiness = async (id) => {
@@ -302,57 +302,67 @@ exports.getAllReviews = async () => {
 };
 
 exports.getAllReviewers = async () => {
-    const users = await User.findAll({where: {role: 'reviewer'}});
+    const users = await User.findAll({ where: { role: 'reviewer' } });
     if (!users) throw new Error("No users found");
     return users;
 }
 
 exports.deleteUser = async (id) => {
     const user = await User.findOne({ where: { id } });
-  
+
     if (!user) throw new Error("User not found");
-  
+
     await Business.destroy({ where: { userId: id } });
     await Service.destroy({ where: { userId: id } });
     await user.destroy();
-  
+
     return { message: "User and associated business/services deleted successfully" };
 };
 
 exports.deleteBusiness = async (id) => {
     const business = await Business.findOne({ where: { id } });
-  
+
     if (!business) return { message: "Business not found" };
-  
+
     const businessOwner = await User.findOne({ where: { id: business.userId } });
-  
+
     if (!businessOwner) return { message: "Business owner not found" };
-  
+
     if (businessOwner.role === 'superadmin' || businessOwner.role === 'admin') {
-      return { message: "This business was created by an admin and cannot be deleted" };
+        return { message: "This business was created by an admin and cannot be deleted" };
     }
-  
+
     // First delete the business
     await business.destroy();
-  
+
     // Then optionally delete the user (if you really want to)
     await businessOwner.destroy();
-  
+
     return { message: "Business and associated user deleted successfully" };
-  };
-  
+};
+
 
 exports.deleteService = async (id) => {
     const service = await Service.findOne({ where: { id } });
+
+    if (!service) return { message: "Business not found" };
+
     const serviceOwner = await User.findOne({ where: { id: service.userId } });
 
-    if (!service && !serviceOwner) throw new Error("Service not found");
+    if (!serviceOwner) return { message: "Business owner not found" };
 
+    if (serviceOwner.role === 'superadmin' || serviceOwner.role === 'admin') {
+        return { message: "This service was created by an admin and cannot be deleted" };
+    }
+
+    // First delete the service
     await service.destroy();
+
+    // Then optionally delete the user (if you really want to)
     await serviceOwner.destroy();
 
-    return { message: "Service deleted successfully" };
-};
+    return { message: "Service and associated user deleted successfully" };
+}
 
 exports.deleteReviews = async (id) => {
     const reviews = await Review.findAll({ where: { id } });
@@ -365,16 +375,47 @@ exports.deleteReviews = async (id) => {
 };
 
 
-exports.addBusiness = async (businessData, userId) => { 
+exports.deleteReviewer = async (id) => {
+    const reviewer = await User.findOne({ where: { id } });
+
+    if (!reviewer && reviewer.role !== 'reviewer') return { message: "Reviewer not found" };
+    await reviewer.destroy();
+
+    return { message: "Reviewer deleted successfully" };
+};
+
+
+
+exports.addBusiness = async (businessData, userId) => {
     const newBusiness = await Business.create({
-      ...businessData,
-      userId: userId,
-      status: "verified",
-      claimed: false,
-      proof: "No proof needed"
+        ...businessData,
+        userId: userId,
+        status: "verified",
+        claimed: false,
+        proof: "No proof needed"
     });
-  
+
     return {
-      newBusiness
+        newBusiness
     };
 };
+
+
+exports.getMyBusiness = async (userId) => {
+    const business = await Business.findOne({
+        where: { userId },
+        include: [
+            {
+                model: User,
+                as: "user",
+                attributes: ["id", "name", "email"],
+            },
+        ],
+    });
+
+    return business;
+};
+
+
+
+
