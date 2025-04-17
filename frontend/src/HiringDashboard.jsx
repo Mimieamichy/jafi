@@ -228,16 +228,14 @@ export default function HiringDashboard() {
     formDataObj.append("description", formData.description || "");
 
     // Separate new images (File objects) from existing image URLs (strings)
-    const newImages = [];
     workSampleImages.forEach((item) => {
-      if (item instanceof Blob) {
-        newImages.push(item);
+      if (item instanceof File) {
+        // new upload
+        formDataObj.append("workSamples", item, item.name);
+      } else if (typeof item === "string") {
+        // existing URL
+        formDataObj.append("workSamples", item);
       }
-    });
-
-    newImages.forEach((file) => {
-      const fileName = file.name || "untitled";
-      formDataObj.append("workSamples", file, fileName);
     });
 
     fetch(`${baseUrl}/service/${id}`, {

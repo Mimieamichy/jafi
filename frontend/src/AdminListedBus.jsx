@@ -7,14 +7,10 @@ import { useSnackbar } from "notistack";
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function Businesses() {
-
   const authToken = localStorage.getItem("userToken");
-  console.log("token", authToken);
-  
-
 
   //const decodedToken = jwtDecode(authToken);
-  
+
   const { enqueueSnackbar } = useSnackbar();
   // State for existing businesses, view modal, pagination, etc.
   const [businesses, setBusinesses] = useState([]);
@@ -60,7 +56,7 @@ export default function Businesses() {
     "Fashion & Beauty",
     "Fitness & Wellness",
     "Travel & Tours",
-    "Tech Hubs"
+    "Tech Hubs",
   ];
   const daysOfWeek = [
     "Monday",
@@ -81,7 +77,7 @@ export default function Businesses() {
         ? [...prev.day, value]
         : prev.day.filter((day) => day !== value),
     }));
-    console.log(formData.day);
+    
   };
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -91,25 +87,30 @@ export default function Businesses() {
   // Fetch businesses from API
   useEffect(() => {
     const fetchBusinesses = async () => {
+      if (!authToken) {
+        enqueueSnackbar("Not authenticated", { variant: "warning" });
+        return;
+      }
+
       try {
-        const response = await fetch(`${baseUrl}/admin/businesses`);
-        const data = await response.json();
-        console.log("Businesses data:", data);
-        if (Array.isArray(data)) {
-          setBusinesses(data);
-        } else if (data.businesses && Array.isArray(data.businesses)) {
-          setBusinesses(data.businesses);
-        } else {
-          console.error("Unexpected data format:", data);
-          setBusinesses([]);
-        }
-      } catch (error) {
-        console.error("Error fetching businesses:", error);
+        const res = await fetch(`${baseUrl}/admin/businesses`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setBusinesses(Array.isArray(data) ? data : data.businesses || []);
+      } catch (err) {
+        console.error("Error fetching businesses:", err);
+        enqueueSnackbar("Failed to fetch businesses", { variant: "error" });
       }
     };
 
     fetchBusinesses();
-  }, []);
+  }, [authToken, enqueueSnackbar]);
 
   // Adjust current page if needed after data updates.
   useEffect(() => {
@@ -121,17 +122,21 @@ export default function Businesses() {
   // Business Actions
   const handleApprove = async (businessId) => {
     try {
-      const res = await fetch(`${baseUrl}/admin/approveBusiness/${businessId}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
+      const res = await fetch(
+        `${baseUrl}/admin/approveBusiness/${businessId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
       if (!res.ok) throw new Error("Approve failed");
-  
+
+      // Mark the status as 'verified' in local state
       setBusinesses((prev) =>
         prev.map((b) =>
-          b.id === businessId ? { ...b, isApproved: true } : b
+          b.id === businessId ? { ...b, status: "verified" } : b
         )
       );
       enqueueSnackbar("Business approved", { variant: "success" });
@@ -140,7 +145,6 @@ export default function Businesses() {
       enqueueSnackbar("Error approving business", { variant: "error" });
     }
   };
-  
 
   const handleDelete = async (businessId) => {
     try {
@@ -151,7 +155,7 @@ export default function Businesses() {
         },
       });
       if (!res.ok) throw new Error("Delete failed");
-  
+
       setBusinesses((prev) => prev.filter((b) => b.id !== businessId));
       enqueueSnackbar("Business deleted", { variant: "info" });
     } catch (err) {
@@ -193,7 +197,7 @@ export default function Businesses() {
     e.preventDefault();
     const dataToSend = new FormData();
     dataToSend.append("name", formData.name);
-    
+
     dataToSend.append("category", formData.category);
     dataToSend.append("address", formData.address);
     dataToSend.append("phone_number1", formData.phone_number1);
@@ -207,7 +211,6 @@ export default function Businesses() {
     formData.images.forEach((file) => {
       dataToSend.append("images", file);
     });
-    
 
     try {
       const response = await fetch(`${baseUrl}/admin/addBusiness`, {
@@ -223,11 +226,12 @@ export default function Businesses() {
       }
       // Optionally, update the list of businesses here by refetching or appending.
       console.log("Business created successfully.");
-      
+
       setFormData(initialFormState);
       setIsAddModalOpen(false);
       enqueueSnackbar("Business created successfully", {
-        variant: "success",})
+        variant: "success",
+      });
     } catch (error) {
       console.error(error);
     }
@@ -272,9 +276,7 @@ export default function Businesses() {
                       <td className="border p-2">
                         {business.claimed ? "Yes" : "No"}
                       </td>
-                      <td className="border p-2">
-                        {business.status}
-                      </td>
+                      <td className="border p-2">{business.status}</td>
                       <td className="border p-2 space-x-2">
                         <button
                           title="View"
@@ -283,7 +285,7 @@ export default function Businesses() {
                         >
                           <FontAwesomeIcon icon={faEye} />
                         </button>
-                        {!business.isApproved && (
+                        {business.status === "pending" && (
                           <button
                             title="Approve"
                             onClick={() => handleApprove(business.id)}
@@ -292,6 +294,7 @@ export default function Businesses() {
                             <FontAwesomeIcon icon={faCheck} />
                           </button>
                         )}
+
                         <button
                           title="Delete"
                           onClick={() => handleDelete(business.id)}
@@ -341,8 +344,7 @@ export default function Businesses() {
                   {business.claimed ? "Yes" : "No"}
                 </div>
                 <div className="mb-2">
-                  <span className="font-medium">Status:</span>{" "}
-                  {business.status}
+                  <span className="font-medium">Status:</span> {business.status}
                 </div>
                 <div className="flex space-x-4">
                   <button
@@ -352,7 +354,7 @@ export default function Businesses() {
                   >
                     <FontAwesomeIcon icon={faEye} />
                   </button>
-                  {!business.isApproved && (
+                  {business.status === "pending" && (
                     <button
                       title="Approve"
                       onClick={() => handleApprove(business.id)}
@@ -361,6 +363,7 @@ export default function Businesses() {
                       <FontAwesomeIcon icon={faCheck} />
                     </button>
                   )}
+
                   <button
                     title="Delete"
                     onClick={() => handleDelete(business.id)}
@@ -414,8 +417,8 @@ export default function Businesses() {
               <strong>Address:</strong> {selectedBusiness.address}
             </p>
             <p>
-              <strong>Phone:</strong> {selectedBusiness.phone_number1}, {selectedBusiness.phone_number2
-              }
+              <strong>Phone:</strong> {selectedBusiness.phone_number1},{" "}
+              {selectedBusiness.phone_number2}
             </p>
             <p>
               <strong>Email:</strong> {selectedBusiness.email}
@@ -480,7 +483,7 @@ export default function Businesses() {
                   required
                 />
               </div>
-             
+
               <div>
                 <label htmlFor="category" className="font-semibold">
                   Category:
@@ -604,6 +607,7 @@ export default function Businesses() {
                   multiple
                   accept="image/*"
                   className="w-full"
+                 
                 />
                 {previewImages.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">

@@ -1,17 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
-import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faEye,
-  faEyeSlash,
-  faBell,
-  faBars,
-  faTimes,
-  faStar,
-} from "@fortawesome/free-solid-svg-icons";
+import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { jwtDecode } from "jwt-decode";
-import { formatDistanceToNow } from "date-fns";
+import DashboardSection from "./UserBusDashboard";
+import SettingsSection from "./UserBusSettings";
+import ReviewsSection from "./UserBusReviews";
 
 export default function BusinessDashboard() {
   const { enqueueSnackbar } = useSnackbar();
@@ -37,7 +31,7 @@ export default function BusinessDashboard() {
 
   // Parse query string
   const authToken = localStorage.getItem("userToken");
-
+  console.log("token", authToken);
 
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
@@ -45,51 +39,7 @@ export default function BusinessDashboard() {
   const [replyStates, setReplyStates] = useState({});
   const [replyTexts, setReplyTexts] = useState({});
 
-  function ReviewReplies({ reviewId, authToken, baseUrl, enqueueSnackbar }) {
-    const [replies, setReplies] = useState([]);
-
-    useEffect(() => {
-      const fetchReplies = async () => {
-        try {
-          const response = await fetch(
-            `${baseUrl}/review/replies/${reviewId}`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${authToken}`,
-              },
-            }
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-          }
-          const data = await response.json();
-
-          setReplies(data.replies || []);
-        } catch (error) {
-          console.error("Error fetching replies:", error);
-          enqueueSnackbar("Error fetching replies", { variant: "error" });
-        }
-      };
-
-      fetchReplies();
-    }, [reviewId, authToken, baseUrl, enqueueSnackbar]);
-
-    if (replies.length === 0) return null;
-
-    return (
-      <div className="border-l border-gray-300 pl-4 ml-4 mt-2">
-        {replies.map((reply) => (
-          <div key={reply.id} className="mb-2">
-            
-            <p className="text-xs text-gray-400">
-              {new Date(reply.createdAt).toLocaleString()}
-            </p>
-          </div>
-        ))}
-      </div>
-    );
-  }
+  
 
   const toggleReply = (reviewId) => {
     setReplyStates((prev) => ({ ...prev, [reviewId]: !prev[reviewId] }));
@@ -169,9 +119,8 @@ export default function BusinessDashboard() {
           setFormData(data.user); // Set all the data correctly
           setBusNewImages(data.user.images || []); // Set images from data
           setBusId(data.user.uniqueId);
-          setId(data.user.id); 
+          setId(data.user.id);
           console.log("Business:", data);
-          
 
           // Set the first image as profile image if available
           if (data.user.images && data.user.images.length > 0) {
@@ -316,6 +265,18 @@ export default function BusinessDashboard() {
     const formDataBus = new FormData();
     formDataBus.append("email", formData.email || "");
     formDataBus.append("address", formData.address || "");
+    formDataBus.append("city", formData.city || "");
+    formDataBus.append("start", formData.start || "");
+    formDataBus.append("end", formData.end || "");
+    formDataBus.append("state", formData.state || "");
+    formDataBus.append("whatsApp", formData.whatsApp || "");
+    formDataBus.append("x", formData.x || "");
+    formDataBus.append("instagram", formData.instagram || "");
+    formDataBus.append("website", formData.website || "");
+    formDataBus.append("linkedIn", formData.linkedIn || "");
+    formDataBus.append("tiktok", formData.tiktok || "");
+    formDataBus.append("phone_number1", formData.phone_number1 || "");
+    formDataBus.append("phone_number2", formData.phone_number2 || "");
     formDataBus.append("password", formData.password || "");
     formDataBus.append("description", formData.description || "");
 
@@ -449,11 +410,9 @@ export default function BusinessDashboard() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Sidebar for desktop */}
+      {/* Sidebar */}
       <div
-        className={`bg-gray-800 text-white w-64 p-6 hidden transition-all transform ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-64"
-        } md:block fixed md:relative md:flex-none md:w-64 md:translate-x-0`}
+        className={`bg-gray-900 text-white w-64 p-6 hidden md:block fixed md:relative`}
       >
         <h2 className="text-xl font-semibold mb-4">Dashboard</h2>
         <ul>
@@ -479,7 +438,7 @@ export default function BusinessDashboard() {
             }`}
             onClick={() => {
               setActiveSection("reviews");
-              newReviewNotification &&  handleNotificationClick;
+              if (newReviewNotification) handleNotificationClick();
             }}
           >
             Reviews
@@ -495,7 +454,7 @@ export default function BusinessDashboard() {
 
       {/* Main content */}
       <div className="flex-1 p-6">
-        {/* Burger Menu (Mobile) */}
+        {/* Mobile nav */}
         <div className="md:hidden flex justify-between items-center mb-4">
           <FontAwesomeIcon
             icon={faBars}
@@ -503,8 +462,6 @@ export default function BusinessDashboard() {
             onClick={() => setIsSidebarOpen(true)}
           />
         </div>
-
-        {/* Mobile Sidebar Content */}
         {isSidebarOpen && (
           <div className="md:hidden fixed inset-0 z-50 bg-gray-800 bg-opacity-50">
             <div className="w-64 bg-gray-800 text-white p-6 h-full">
@@ -546,7 +503,7 @@ export default function BusinessDashboard() {
                   onClick={() => {
                     setActiveSection("reviews");
                     setIsSidebarOpen(false);
-                    handleNotificationClick; // Acknowledge notifications when navigating to reviews
+                    if (newReviewNotification) handleNotificationClick();
                   }}
                 >
                   Reviews
@@ -565,345 +522,46 @@ export default function BusinessDashboard() {
           </div>
         )}
 
-        {/* Render different sections based on activeSection */}
+        {/* Modular Sections */}
         {activeSection === "dashboard" && (
-          <div className="mt-6">
-            {formData ? (
-              <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-                {/* Top blue Bar */}
-                <div className="h-12 bg-blue-600"></div>
-
-                <div className="p-6">
-                  {/* Notification Icon */}
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="bg-blue-100 text-blue-600 px-3 py-1 hover:bg-blue-600 hover:text-blue-100 rounded-full text-sm font-medium">
-                      {newReviewNotification ? (
-                        <div
-                          className="flex items-center cursor-pointer"
-                          onClick={handleNotificationClick}
-                        >
-                          <FontAwesomeIcon icon={faBell} className="mr-1 " />
-                          <span>{newReviewCount} </span>
-                        </div>
-                      ) : (
-                        <FontAwesomeIcon icon={faBell} />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Profile Image */}
-                  <div className="flex justify-center mb-4">
-                    <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
-                      {profileImage ? (
-                        <img
-                          src={profileImage}
-                          alt="Profile"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="text-2xl font-bold text-gray-600 capitalize">
-                          {formData.name ? formData.name.charAt(0) : "?"}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Service Name (was Alexis Hill) */}
-                  <h2 className="text-center text-2xl font-bold text-gray-800 capitalize mb-1">
-                    {formData.service_name || formData.name || "Service Name"}
-                  </h2>
-
-                  {/* Name (was Product Designer) */}
-                  <h3 className="text-center text-lg text-gray-600 mb-2">
-                    {formData.email || "Email"}
-                  </h3>
-
-                  {/* Category (was email) */}
-                  <p className="text-center text-gray-500 mb-6">
-                    {formData.category || "Category"}
-                  </p>
-
-                  {/* Total Reviews Button (was Diventa PRO) */}
-                  <div className="bg-gray-900 text-white rounded-md py-3 px-4 flex justify-center items-center">
-                    <span className="mr-2">Total Reviews</span>
-                    <span className="bg-blue-600 text-white px-2 py-0.5 text-xs rounded">
-                      {reviews.length || 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex justify-center items-center h-64">
-                <p className="text-gray-500">Loading dashboard data...</p>
-              </div>
-            )}
-          </div>
+          <DashboardSection
+            formData={formData}
+            profileImage={profileImage}
+            reviewsCount={reviews.length}
+            newReviewNotification={newReviewNotification}
+            newReviewCount={newReviewCount}
+            handleNotificationClick={handleNotificationClick}
+          />
         )}
-        {/* Settings Modal */}
         {activeSection === "settings" && (
-          <div className="mt-6">
-            <h2 className="text-2xl font-bold mb-6 text-center">Settings</h2>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="space-y-4">
-                {/* Settings Inputs */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    value={formData?.address || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
-                    placeholder="Address"
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={formData?.email || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    placeholder="Email"
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-
-                  <textarea
-                    type="text"
-                    value={formData?.description || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    className="w-full p-2 border rounded resize-none h-24"
-                  />
-                </div>
-
-                {/* Password Fields */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    New Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={formData?.password || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, password: e.target.value })
-                      }
-                      placeholder="New Password"
-                      className="w-full p-2 border rounded pr-10 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-2 text-gray-500"
-                    >
-                      <FontAwesomeIcon
-                        icon={showPassword ? faEye : faEyeSlash}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Work Samples Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Image Samples (Upload up to 10 images)
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleWorkSampleUpload}
-                    className="w-full p-2 border rounded mt-2 focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                  />
-                </div>
-
-                {/* Work Samples Preview */}
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
-                  {busNewImages.map((item, index) => {
-                    // If item is a File object, use URL.createObjectURL; if it's a string (URL) use it directly.
-                    const src =
-                      typeof item === "string"
-                        ? item
-                        : URL.createObjectURL(item);
-                    return (
-                      <div key={index} className="relative">
-                        <img
-                          src={src}
-                          alt="Preview"
-                          className="w-16 h-16 rounded-md object-cover"
-                        />
-                        <button
-                          type="button"
-                          className="absolute top-0 left-0 bg-red-500 text-white rounded-full p-1 text-xs"
-                          onClick={() => removeImage(index)}
-                        >
-                          <FontAwesomeIcon icon={faTimes} />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <button
-                  onClick={handleSave}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg mt-4 font-medium transition-colors"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
+          <SettingsSection
+            formData={formData}
+            setFormData={setFormData}
+            busNewImages={busNewImages}
+            handleWorkSampleUpload={handleWorkSampleUpload}
+            removeImage={removeImage}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            handleSave={handleSave}
+          />
         )}
-        {/* Reviews Modal */}
-        {/* Reviews Section */}
         {activeSection === "reviews" && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6 text-center">All Reviews</h2>
-
-            {/* Reviews Grid (Responsive) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {reviews.length > 0 ? (
-                reviews.map((review) => (
-                  <div
-                    key={review.id} // Use the unique identifier from the API
-                    className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                  >
-                    {/* Reviewer Name */}
-                    <div className="flex items-center justify-center">
-                      <Link
-                        to="/review-page"
-                        className="font-semibold text-lg capitalize"
-                      >
-                        {review.user_name}
-                      </Link>
-                    </div>
-
-                    {/* Rating */}
-                    <div className="flex justify-center text-yellow-500 mt-2">
-                      {[...Array(5)].map((_, i) => (
-                        <FontAwesomeIcon
-                          key={i}
-                          icon={faStar}
-                          className={`text-xl ${
-                            i < review.star_rating
-                              ? "text-yellow-500"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Review Comment */}
-                    <p className="mt-2 text-center text-gray-600 line-clamp-3">
-                      {review.comment}
-                    </p>
-
-                    {/* Time */}
-                    <p className="text-sm text-gray-500 mt-2 text-center">
-                      {formatDistanceToNow(new Date(review.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </p>
-
-                    {/* Reply Section */}
-                    {review.reply ? (
-                      // If a reply already exists, display it
-                      <div className="border-l-2 border-gray-300 pl-4 ml-4 mt-2">
-                        <p className="font-semibold text-sm">Your Reply:</p>
-                        <p className="text-sm text-gray-600">{review.reply}</p>
-                      </div>
-                    ) : (
-                      // Otherwise, display the "Reply" button and, if toggled, the reply form
-                      <>
-                        <button
-                          onClick={() => toggleReply(review.id)}
-                          className="text-blue-600 hover:underline mt-2 block text-center"
-                        >
-                          Reply
-                        </button>
-                        {replyStates[review.id] && (
-                          <div className="mt-2">
-                            <textarea
-                              className="w-full p-2 border rounded"
-                              placeholder="Write your reply..."
-                              value={replyTexts[review.id] || ""}
-                              onChange={(e) =>
-                                handleReplyChange(review.id, e.target.value)
-                              }
-                            />
-                            <div className="mt-2 flex gap-2">
-                              <button
-                                onClick={() => handleReplySubmit(review.id)}
-                                className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
-                              >
-                                Submit Reply
-                              </button>
-                              <button
-                                onClick={() => cancelReply(review.id)}
-                                className="bg-gray-300 text-gray-800 px-3 py-2 rounded hover:bg-gray-400 transition"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {/* Render replies (if any) with a connecting line */}
-                    <ReviewReplies
-                      reviewId={review.id}
-                      authToken={authToken}
-                      baseUrl={baseUrl}
-                      enqueueSnackbar={enqueueSnackbar}
-                    />
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-full flex justify-center items-center h-64">
-                  <p className="text-gray-500">No reviews yet.</p>
-                </div>
-              )}
-            </div>
-
-            {/* PAGINATION */}
-            {reviews.length > 0 && (
-              <div className="mt-6 flex justify-center items-center space-x-4">
-                <button
-                  onClick={handlePreviousPage}
-                  disabled={currentPage === 1}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-blue-700 transition-colors"
-                >
-                  Previous
-                </button>
-                <span className="font-medium">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md disabled:opacity-50 hover:bg-blue-700 transition-colors"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </div>
+          <ReviewsSection
+            reviews={reviews}
+            authToken={authToken}
+            baseUrl={baseUrl}
+            enqueueSnackbar={enqueueSnackbar}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            handleNextPage={handleNextPage}
+            handlePreviousPage={handlePreviousPage}
+            replyStates={replyStates}
+            toggleReply={toggleReply}
+            replyTexts={replyTexts}
+            handleReplyChange={handleReplyChange}
+            handleReplySubmit={handleReplySubmit}
+            cancelReply={cancelReply}
+          />
         )}
 
         {/* Delete Account Modal */}
@@ -914,19 +572,19 @@ export default function BusinessDashboard() {
                 Delete Account?
               </h3>
               <p className="text-gray-600 mb-6">
-                This action cannot be undone. All your data, including reviews
-                and service information, will be permanently deleted.
+                This action cannot be undone. All your data will be permanently
+                deleted.
               </p>
               <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="order-2 sm:order-1 bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="order-2 sm:order-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteAccount}
-                  className="order-1 sm:order-2 bg-red-500 text-white font-medium py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+                  className="order-1 sm:order-2 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600"
                 >
                   Yes, Delete Account
                 </button>

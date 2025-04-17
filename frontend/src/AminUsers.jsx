@@ -1,11 +1,15 @@
+// src/components/Users.jsx
 import React, { useState, useEffect } from "react";
-// Make sure to install and configure FontAwesome
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { useSnackbar } from "notistack";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 const Users = () => {
+  const authToken = localStorage.getItem("userToken");
+  const { enqueueSnackbar } = useSnackbar();
+
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -13,20 +17,30 @@ const Users = () => {
 
   const itemsPerPage = 20;
   const totalPages = Math.ceil(users.length / itemsPerPage);
-  // Get the users for the current page
   const currentUsers = users.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
+  // Fetch users with Authorization header
   useEffect(() => {
     const fetchUsers = async () => {
+      if (!authToken) {
+        enqueueSnackbar("Not authenticated", { variant: "warning" });
+        return;
+      }
       try {
-        const response = await fetch(`${baseUrl}/admin/users`);
+        const response = await fetch(`${baseUrl}/admin/users`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         console.log("Users data:", data);
 
-        // Adjust based on your API response shape:
         if (Array.isArray(data)) {
           setUsers(data);
         } else if (data.users && Array.isArray(data.users)) {
@@ -37,48 +51,63 @@ const Users = () => {
         }
       } catch (error) {
         console.error("Error fetching users:", error);
+        enqueueSnackbar("Failed to fetch users", { variant: "error" });
       }
     };
 
     fetchUsers();
-  }, []);
+  }, [authToken, enqueueSnackbar]);
 
-  // If the current page becomes invalid (e.g. after deletion), adjust it.
+  // Adjust page if out of bounds
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages > 0 ? totalPages : 1);
     }
   }, [currentPage, totalPages]);
 
-  // Open delete confirmation modal
   const handleOpenDeleteModal = (user) => {
     setSelectedUser(user);
     setShowModal(true);
   };
 
-  // Close modal without deleting
   const handleCloseModal = () => {
     setSelectedUser(null);
     setShowModal(false);
   };
 
-  // Confirm deletion
+  // Confirm deletion with Authorization header
   const handleConfirmDelete = async () => {
     if (!selectedUser) return;
 
-    // (Optional) API call to delete user:
-    // try {
-    //   await fetch(`${baseUrl}/admin/users/${selectedUser.id}`, {
-    //     method: "DELETE",
-    //   });
-    //   setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
-    // } catch (error) {
-    //   console.error("Error deleting user:", error);
-    // }
+    try {
+      const response = await fetch(
+        `${baseUrl}/admin/user/${selectedUser.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || "Failed to delete user");
+      }
 
-    // For demo purposes, remove user from local state.
-    setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
-    handleCloseModal();
+      setUsers((prev) =>
+        prev.filter((u) => u.id !== selectedUser.id)
+      );
+      enqueueSnackbar("User deleted successfully", { variant: "success" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      enqueueSnackbar(
+        error.message || "An error occurred while deleting the user",
+        { variant: "error" }
+      );
+    } finally {
+      handleCloseModal();
+    }
   };
 
   return (
@@ -120,7 +149,7 @@ const Users = () => {
                     </td>
                     <td className="p-2">
                       <button
-                      title="Delete User"
+                        title="Delete User"
                         onClick={() => handleOpenDeleteModal(user)}
                         className="text-red-600 hover:text-red-800"
                       >
@@ -180,9 +209,7 @@ const Users = () => {
       {users.length > 0 && (
         <div className="flex items-center justify-center mt-4 space-x-2">
           <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.max(prev - 1, 1))
-            }
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
             className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
           >
@@ -192,9 +219,7 @@ const Users = () => {
             Page {currentPage} of {totalPages}
           </span>
           <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
             className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
           >
