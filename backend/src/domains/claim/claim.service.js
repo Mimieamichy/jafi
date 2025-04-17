@@ -3,6 +3,9 @@ const User = require("../user/user.model");
 const Claim = require("./claim.model");
 const PaymentService = require("../payments/payments.service");
 
+
+
+
 exports.createClaim = async (businessId, email, phone, proof) => {
   console.log(businessId, email, phone, proof);
   const business = await Business.findByPk(businessId);
@@ -38,17 +41,18 @@ exports.getAClaim = async (claimId) => {
 exports.payForClaim = async (businessId, amount, transaction) => {
   const claim = await Claim.findOne({
     where: { id: businessId },
-    include: [{ model: User, attributes: ["id", "email", "name", "role"] }],
+    include: [{ model: Business, attributes: ["userId", "email", "name"] }],
     transaction,
   });
 
-  if (!claim || !claim.User) {
-    throw new Error("Claim not found or does not have an associated user.");
+  if (!claim || !claim.Business) {
+    throw new Error("Claim not found or does not have an associated business.");
   }
 
-  const userId = claim.User.id;
+  const userId = claim.Business.userId;
   const entity_type = "claim";
 
+  console.log(userId, businessId, entity_type, amount);
   // Create payment
   const response = await PaymentService.createPayment(
     userId,

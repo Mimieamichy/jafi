@@ -150,3 +150,19 @@ exports.verifyPayment = async (reference) => {
     throw new Error('Internal server error');
   }
 };
+
+
+exports.viewPayments = async () => {
+  const transactions = await Payments.findAll({
+      include: [
+          {
+              model: User,
+              attributes: ['id', 'name', 'email', 'role'],
+          },
+      ],
+  });
+
+  if (!transactions) throw new Error("Transactions not found");
+
+  return transactions;
+};

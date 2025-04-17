@@ -177,11 +177,7 @@ exports.updateServicePrice = async (req, res) => {
   const { price } = req.body;
 
   try {
-    const service = await Service.findByPk(id);
-    if (!service) throw new Error("Service not found");
-
-    service.price = price;
-    await service.save();
+    await AdminService.updateSevicePrice(id, price);
 
     return res.status(200).json({ success: true, message: "Service price updated successfully" });
   } catch (error) {
@@ -265,3 +261,13 @@ exports.getClaim = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.getClaims = async (req, res) => {
+  try {
+    const claims = await AdminService.getClaims();
+    return res.status(200).json(claims);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+

@@ -7,7 +7,8 @@ const Review = require('../review/review.model')
 const bcrypt = require("bcryptjs");
 const Claim = require("../claim/claim.model");
 const { generatePassword } = require("../../utils/generatePassword")
-const { sendMail } = require("../../utils/sendEmail")
+const { sendMail } = require("../../utils/sendEmail");
+const Payment = require("../payments/payments.model");
 
 
 
@@ -306,12 +307,30 @@ exports.deleteService = async (id) => {
     return { message: "Service and associated user deleted successfully" };
 }
 
+exports.updateSevicePrice = async (price) => {
+    const setting = await AdminSettings.findOne({ where: { key: "service_price" } });
+
+    if (!setting) {
+        // If the setting does not exist, create it
+        await AdminSettings.create({ key: "service_price", value: price });
+    } else {
+        // Update the existing setting
+        await setting.update({ value: price });
+    }
+    return { message: "Service price updated successfully" };
+}
+
 
 //Claim management
 exports.getClaim = async (claimId) => {
     const claim = await Claim.findByPk(claimId);
     if (!claim) throw new Error("Claim not found");
     return claim;
+}
+
+exports.getClaims = async () => {
+    const claims = await Claim.findAll();
+    return claims;
 }
 
 exports.approveClaim = async (claimId) => {
@@ -421,6 +440,10 @@ exports.deleteReviewer = async (id) => {
 
     return { message: "Reviewer deleted successfully" };
 };
+
+
+//Transaction management{check in payments service}
+
 
 
 
