@@ -154,12 +154,13 @@ exports.verifyPayment = async (reference) => {
 
 exports.viewPayments = async () => {
   const transactions = await Payments.findAll({
-      include: [
-          {
-              model: User,
-              attributes: ['id', 'name', 'email', 'role'],
-          },
-      ],
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["id", "name", "email", "role"],
+      },
+    ],
   });
 
   if (!transactions) throw new Error("Transactions not found");
