@@ -335,8 +335,9 @@ exports.getClaims = async () => {
 
 exports.approveClaim = async (claimId) => {
     const claim = await Claim.findByPk(claimId);
+    
     if (!claim || claim.status !== 'pending' || claim.paymentStatus !== 'paid') {
-        return res.status(400).json({ message: 'Invalid claim approval' });
+        return { message: 'Invalid claim approval' }
     }
 
     const business = await Business.findByPk(claim.businessId);
@@ -351,7 +352,7 @@ exports.approveClaim = async (claimId) => {
     );
 
     if (updatedCount === 0) {
-        throw new Error("User with this email does not exist");
+        return {message: "User with this email does not exist"};
     }
 
 
