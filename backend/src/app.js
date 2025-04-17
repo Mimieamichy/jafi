@@ -22,7 +22,7 @@ app.use(morgan("dev"));
 
 // Rate Limiting (chnage back to 100 on production)
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100});
-//app.use(limiter);
+//app.use(limiter)
 
 // Body Parser
 app.use(express.json());

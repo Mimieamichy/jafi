@@ -24,6 +24,14 @@ proof: {
     type: DataTypes.STRING, // store as file path or URL
     allowNull: false,
 },
+transactionId: {
+    type: DataTypes.STRING,
+    allowNull: true, 
+    references: {
+      model: 'payments', 
+      key: 'payment_reference',
+    }
+},
 status: {
     type: DataTypes.ENUM("pending", "approved", "rejected"),
     defaultValue: "pending",

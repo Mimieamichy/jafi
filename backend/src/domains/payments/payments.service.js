@@ -6,8 +6,8 @@ const https = require('https')
 
 exports.createPayment = async (userId, entityId, entityType, amount) => {
   // Validate entity type
-  if (!['business', 'service'].includes(entityType)) {
-    throw new Error("Invalid entity type. Must be 'listing' or 'service'");
+  if (!['business', 'service', 'claim'].includes(entityType)) {
+    throw new Error("Invalid entity type. Must be 'business' or 'service' or 'claim'");
   }
   
   const payment_reference = `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -166,3 +166,5 @@ exports.viewPayments = async () => {
 
   return transactions;
 };
+
+

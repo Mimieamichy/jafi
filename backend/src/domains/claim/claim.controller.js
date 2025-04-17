@@ -41,12 +41,14 @@ exports.getAClaim = async (req, res) => {
 exports.payForClaim = async (req, res) => {
   const transaction = await sequelize.transaction();
   const amount = req.body.amount;
-  const businessId = req.params
+  const businessId = req.params.businessId
+  const claimId = req.params.claimId
 
   try {
-    const response = await claimService.payForClaim(transaction, amount, businessId);
+    const response = await claimService.payForClaim(businessId, claimId, amount, transaction);
     await transaction.commit();
-    res.status(200).json(response);
+    console.log(response)
+    return res.status(200).json({ success: true, data: response });
   } catch (error) {
     await transaction.rollback();
     res.status(error.status || 500).json({ message: error.message });

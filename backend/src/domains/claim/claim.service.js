@@ -7,15 +7,14 @@ const PaymentService = require("../payments/payments.service");
 
 
 exports.createClaim = async (businessId, email, phone, proof) => {
-  console.log(businessId, email, phone, proof);
   const business = await Business.findByPk(businessId);
   if (!business || business.claim === true) {
-    return { message: "Business not available for claim"};
+    throw new Error("Business not available for claim")
   }
 
   const user = await User.findOne({ where: { email } });
   if (user) {
-    return { message:"User already exists"};
+    throw new Error("User already exists");
   }
 
   const name = business.name;
@@ -38,10 +37,9 @@ exports.getAClaim = async (claimId) => {
   return claim;
 };
 
-exports.payForClaim = async (businessId, amount, transaction) => {
-  console.log(businessId, amount);
+exports.payForClaim = async (businessId, claimId, amount, transaction) => {
   const claim = await Claim.findOne({
-    where: { id: businessId },
+    where: { businessId: businessId, id: claimId },
     include: [{ model: Business, attributes: ["userId", "email", "name"] }],
     transaction,
   });
