@@ -1,3 +1,4 @@
+const Business = require("../business/business.model");
 const Claim = require("../claim/claim.model");
 const PaymentService = require("../payments/payments.service")
 const Service = require("../service/service.model");
@@ -23,9 +24,24 @@ exports.createPayment = async (req, res) => {
             return userId;
 
         }
-        //else {
-        //logic for getting userid for Business
-        //}
+        else if (entityId == 'business') {
+            // Find the service to get the userId
+            const business = await Business.findOne({
+                where: { id: entityId },
+                include: [{ model: User, as: 'user' }] // Assuming the Service model has a relation to User
+            });
+
+            if (!business || !business.user) {
+                return res.status(404).json({ error: "Service not found or does not have an associated user." });
+            }
+
+            userId = business.user.id;
+            return userId;
+
+        } else {
+            //For claims payment (anyone can make a claim to a business or service)
+             userId = null
+        }
 
         // Generate a unique payment reference
         const payment_reference = `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -40,6 +56,7 @@ exports.createPayment = async (req, res) => {
 
         res.status(200).json(transaction);
     } catch (error) {
+        console.log(error)
         res.status(error.status || 500).json({ error: error.message });
     }
 };

@@ -56,7 +56,7 @@ app.use(`${app_url}/review`, reviewRoutes);
 app.use(`${app_url}/business`, businessRoutes);
 app.use(`${app_url}/claim`, claimRoutes);
 app.use(`${app_url}/admin`, adminRoutes);
-app.use(`${app_url}/payments`, paymentsRoutes);
+app.use(`${app_url}/payment`, paymentsRoutes);
 
 
 
