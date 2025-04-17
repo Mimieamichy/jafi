@@ -6,31 +6,23 @@ import { useSnackbar } from "notistack";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
-export default function Businesses() {
+export default function Hirings() {
   const authToken = localStorage.getItem("userToken");
 
   //const decodedToken = jwtDecode(authToken);
 
   const { enqueueSnackbar } = useSnackbar();
   // State for existing businesses, view modal, pagination, etc.
-  const [businesses, setBusinesses] = useState([]);
-  const [selectedBusiness, setSelectedBusiness] = useState(null);
+  const [services, setServices] = useState([]);
+  const [selectedService, setSelectedService] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  const totalPages = Math.ceil(businesses.length / itemsPerPage);
-  const currentBusinesses = businesses.slice(
+  const totalPages = Math.ceil(services.length / itemsPerPage);
+  const currentService = services.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-
-  
-   
-
-  
-
- 
   
   // confirmation–modal state
   const [approveTarget, setApproveTarget] = useState(null);
@@ -40,12 +32,12 @@ export default function Businesses() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // open modals
-  const openApproveModal = (biz) => {
-    setApproveTarget(biz);
+  const openApproveModal = (ser) => {
+    setApproveTarget(ser);
     setShowApproveModal(true);
   };
-  const openDeleteModal = (biz) => {
-    setDeleteTarget(biz);
+  const openDeleteModal = (ser) => {
+    setDeleteTarget(ser);
     setShowDeleteModal(true);
   };
 
@@ -53,18 +45,18 @@ export default function Businesses() {
   const confirmApprove = async () => {
     if (!approveTarget) return;
     try {
-      await fetch(`${baseUrl}/admin/approveBusiness/${approveTarget.id}`, {
+      await fetch(`${baseUrl}/admin/approveService/${approveTarget.id}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${authToken}` },
       });
-      setBusinesses((prev) =>
-        prev.map((b) =>
-          b.id === approveTarget.id ? { ...b, status: "verified" } : b
+      setServices((prev) =>
+        prev.map((s) =>
+          s.id === approveTarget.id ? { ...s, status: "verified" } : s
         )
       );
-      enqueueSnackbar("Business approved", { variant: "success" });
+      enqueueSnackbar("Service approved", { variant: "success" });
     } catch (err) {
-      enqueueSnackbar("Error approving business", { variant: "error" });
+      enqueueSnackbar("Error approving Service", { variant: "error" });
     } finally {
       setShowApproveModal(false);
       setApproveTarget(null);
@@ -74,14 +66,14 @@ export default function Businesses() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await fetch(`${baseUrl}/admin/deleteBusiness/${deleteTarget.id}`, {
+      await fetch(`${baseUrl}/admin/deleteService/${deleteTarget.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${authToken}` },
       });
-      setBusinesses((prev) => prev.filter((b) => b.id !== deleteTarget.id));
-      enqueueSnackbar("Business deleted", { variant: "info" });
+      setServices((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+      enqueueSnackbar("Service deleted", { variant: "info" });
     } catch (err) {
-      enqueueSnackbar("Error deleting business", { variant: "error" });
+      enqueueSnackbar("Error deleting Service", { variant: "error" });
     } finally {
       setShowDeleteModal(false);
       setDeleteTarget(null);
@@ -90,14 +82,14 @@ export default function Businesses() {
 
   // Fetch businesses from API
   useEffect(() => {
-    const fetchBusinesses = async () => {
+    const fetchServices = async () => {
       if (!authToken) {
         enqueueSnackbar("Not authenticated", { variant: "warning" });
         return;
       }
 
       try {
-        const res = await fetch(`${baseUrl}/admin/businesses`, {
+        const res = await fetch(`${baseUrl}/admin/services`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -106,14 +98,16 @@ export default function Businesses() {
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setBusinesses(Array.isArray(data) ? data : data.businesses || []);
+        console.log("service", data);
+        
+        setServices(Array.isArray(data) ? data : data.services || []);
       } catch (err) {
-        console.error("Error fetching businesses:", err);
-        enqueueSnackbar("Failed to fetch businesses", { variant: "error" });
+        console.error("Error fetching Services:", err);
+        enqueueSnackbar("Failed to fetch Services", { variant: "error" });
       }
     };
 
-    fetchBusinesses();
+    fetchServices();
   }, [authToken, enqueueSnackbar]);
 
   // Adjust current page if needed after data updates.
@@ -125,8 +119,8 @@ export default function Businesses() {
 
   
 
-  const handleView = (business) => {
-    setSelectedBusiness(business);
+  const handleView = (service) => {
+    setSelectedService(service);
     setIsViewModalOpen(true);
   };
 
@@ -147,35 +141,34 @@ export default function Businesses() {
               <tr>
                 <th className="border p-2">S/N</th>
                 <th className="border p-2">Name</th>
-                <th className="border p-2">Category</th>
-                
+                <th className="border p-2">Category</th> 
                 <th className="border p-2">Status</th>
                 <th className="border p-2">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {currentBusinesses.length > 0 ? (
-                currentBusinesses.map((business, index) => {
+              {currentService.length > 0 ? (
+                currentService.map((service, index) => {
                   const globalIndex = (currentPage - 1) * itemsPerPage + index;
                   return (
                     <tr key={globalIndex} className="text-center">
                       <td className="border p-2">{globalIndex + 1}</td>
-                      <td className="border p-2 capitalize">{business.name}</td>
-                      <td className="border p-2">{business.category}</td>
+                      <td className="border p-2 capitalize">{service.name}</td>
+                      <td className="border p-2">{service.category}</td>
                      
-                      <td className="border p-2">{business.status}</td>
+                      <td className="border p-2">{service.status}</td>
                       <td className="border p-2 space-x-2">
                         <button
                           title="View"
-                          onClick={() => handleView(business)}
+                          onClick={() => handleView(service)}
                           className="text-blue-600 hover:text-blue-800"
                         >
                           <FontAwesomeIcon icon={faEye} />
                         </button>
                         {/* old: onClick={() => handleApprove(b.id)} */}
-                        {business.status === "pending" && (
+                        {service.status === "pending" && (
                           <button
-                            onClick={() => openApproveModal(business)}
+                            onClick={() => openApproveModal(service)}
                             className="text-green-600 hover:text-green-800"
                             title="Approve"
                           >
@@ -186,7 +179,7 @@ export default function Businesses() {
                         {/* old: onClick={() => handleDelete(b.id)} */}
                         <button
                           title="Delete"
-                          onClick={() => openDeleteModal(business)}
+                          onClick={() => openDeleteModal(service)}
                           className="text-red-600 hover:text-red-800"
                         >
                           <FontAwesomeIcon icon={faTrash} />
@@ -198,7 +191,7 @@ export default function Businesses() {
               ) : (
                 <tr>
                   <td colSpan="6" className="text-center py-4">
-                    No businesses listed yet.
+                    No services listed yet.
                   </td>
                 </tr>
               )}
@@ -209,8 +202,8 @@ export default function Businesses() {
 
       {/* Mobile Card View */}
       <div className="block md:hidden">
-        {currentBusinesses.length > 0 ? (
-          currentBusinesses.map((business, index) => {
+        {currentService.length > 0 ? (
+          currentService.map((service, index) => {
             const globalIndex = (currentPage - 1) * itemsPerPage + index;
             return (
               <div
@@ -222,28 +215,28 @@ export default function Businesses() {
                 </div>
                 <div className="mb-2">
                   <span className="font-medium capitalize">Name:</span>{" "}
-                  {business.name}
+                  {service.name}
                 </div>
                 <div className="mb-2">
                   <span className="font-medium">Category:</span>{" "}
-                  {business.category}
+                  {service.category}
                 </div>
                 
                 <div className="mb-2">
-                  <span className="font-medium">Status:</span> {business.status}
+                  <span className="font-medium">Status:</span> {service.status}
                 </div>
                 <div className="flex space-x-4">
                   <button
                     title="View"
-                    onClick={() => handleView(business)}
+                    onClick={() => handleView(service)}
                     className="text-blue-600 hover:text-blue-800"
                   >
                     <FontAwesomeIcon icon={faEye} />
                   </button>
                   {/* old: onClick={() => handleApprove(b.id)} */}
-                  {business.status === "pending" && (
+                  {service.status === "pending" && (
                     <button
-                      onClick={() => openApproveModal(business)}
+                      onClick={() => openApproveModal(service)}
                       className="text-green-600 hover:text-green-800"
                       title="Approve"
                     >
@@ -254,7 +247,7 @@ export default function Businesses() {
                   {/* old: onClick={() => handleDelete(b.id)} */}
                   <button
                     title="Delete"
-                    onClick={() => openDeleteModal(business)}
+                    onClick={() => openDeleteModal(service)}
                     className="text-red-600 hover:text-red-800"
                   >
                     <FontAwesomeIcon icon={faTrash} />
@@ -264,12 +257,12 @@ export default function Businesses() {
             );
           })
         ) : (
-          <div className="text-center py-4">No businesses listed yet.</div>
+          <div className="text-center py-4">No services listed yet.</div>
         )}
       </div>
 
       {/* Pagination Controls */}
-      {businesses.length > 0 && (
+      {services.length > 0 && (
         <div className="flex items-center justify-center mt-4 space-x-2">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -294,47 +287,36 @@ export default function Businesses() {
       )}
 
       {/* Modal for Viewing Business Details (Scrollable) */}
-      {isViewModalOpen && selectedBusiness && (
+      {isViewModalOpen && selectedService && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg max-w-lg w-full mx-2 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">{selectedBusiness.name}</h2>
+            <h2 className="text-xl font-bold mb-4">{selectedService.name}</h2>
             <p>
-              <strong>Category:</strong> {selectedBusiness.category}
+              <strong>Category:</strong> {selectedService.category}
             </p>
             <p>
-              <strong>Address:</strong> {selectedBusiness.address}
+              <strong>Address:</strong> {selectedService.address}
             </p>
             <p>
-              <strong>Phone:</strong> {selectedBusiness.phone_number1},{" "}
-              {selectedBusiness.phone_number2}
+              <strong>Phone:</strong> {selectedService.phone_number}
+              
             </p>
             <p>
-              <strong>Email:</strong> {selectedBusiness.email}
+              <strong>Email:</strong> {selectedService.email}
             </p>
+            
+            
             <p>
-              <strong>Opening Days:</strong>{" "}
-              {selectedBusiness.day && Array.isArray(selectedBusiness.day)
-                ? selectedBusiness.day.join(", ")
-                : selectedBusiness.day || "N/A"}
+              <strong>Description:</strong> {selectedService.description}
             </p>
-            <p>
-              <strong>Opening Time:</strong> {selectedBusiness.start} -{" "}
-              {selectedBusiness.end}
-            </p>
-            <p>
-              <strong>Description:</strong> {selectedBusiness.description}
-            </p>
-            <p>
-              <strong>Claimed:</strong>{" "}
-              {selectedBusiness.claimed ? "Yes" : "No"}
-            </p>
+            
             <p>
               <strong>Approved:</strong>{" "}
-              {selectedBusiness.isApproved ? "Yes" : "No"}
+              {selectedService.status}
             </p>
-            {selectedBusiness.images && selectedBusiness.images.length > 0 && (
+            {selectedService.images && selectedService.images.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-3">
-                {selectedBusiness.images.map((img, idx) => (
+                {selectedService.images.map((img, idx) => (
                   <img
                     key={idx}
                     src={img}

@@ -185,14 +185,26 @@ export default function BusinessPage() {
     }
   }, [location, enqueueSnackbar]);
 
+  const handleClaimChange = e => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // update pob when user picks a file
+  const handleClaimFileChange = e => {
+    const file = e.target.files[0] || null;
+    setFormData(prev => ({ ...prev, pob: file }));
+  };
+
+
   const handleClaimSubmit = async (e) => {
     e.preventDefault();
     try {
       const data = new FormData();
       data.append("email", formData.email);
       data.append("phone", formData.phone);
-      if (formData.pob) {
-        data.append("pob", formData.pob, formData.pob.name);
+      if (formData.pob instanceof File) {
+        data.append('pob', formData.pob, formData.pob.name);
       }
 
       
@@ -644,7 +656,7 @@ export default function BusinessPage() {
                 required
                 name="email"
                 value={formData.email}
-                onChange={(e) => setFormData({...formData,email: e.target.value})}
+                onChange={handleClaimChange}
               />
 
               <label className="block mb-2 font-semibold">Phone:</label>
@@ -654,7 +666,7 @@ export default function BusinessPage() {
                 className="border w-full p-2 mb-4"
                 required
                 value={formData.phone}
-                onChange={(e) =>  setFormData({...formData,phone: e.target.value})}
+                onChange={handleClaimChange}
               />
 
               <label className="block mb-2 font-semibold">
@@ -663,10 +675,10 @@ export default function BusinessPage() {
               <input
                 name="pob"
                 type="file"
-                value={formData.pob}
+               
                 accept="image/*,application/pdf,application/msword,.docx"
                 className="border w-full p-2 mb-4"
-                onChange={(e) => setFormData({...formData,pob: e.target.value})}
+                onChange={handleClaimFileChange}
               />
 
               <div className="flex justify-end gap-2">
