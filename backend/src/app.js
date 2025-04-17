@@ -22,7 +22,7 @@ app.use(morgan("dev"));
 
 // Rate Limiting (chnage back to 100 on production)
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100});
-//app.use(limiter);
+//app.use(limiter)
 
 // Body Parser
 app.use(express.json());
@@ -31,7 +31,7 @@ app.use(passport.initialize());
 
 // Serve static frontend files
 app.use(cors({
-    origin: ['https://jafiai.vercel.app', 'http://localhost:5173'],
+    origin: ['https://jafiai.vercel.app', 'http://localhost:5173', 'https://jafi-0fve.onrender.com'],
     credentials: true,
 }))
 
