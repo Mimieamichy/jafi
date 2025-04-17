@@ -83,7 +83,7 @@ const Users = () => {
 
   return (
     <div className="mx-auto max-w-7xl p-4">
-      <h2 className="text-xl font-bold mb-4">Users</h2>
+      <h2 className="text-xl font-bold mb-4">All Users</h2>
 
       {/* Desktop Table View */}
       <div className="hidden md:block mb-4">
@@ -111,7 +111,7 @@ const Users = () => {
                     <td className="p-2">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="p-2">{user.name}</td>
+                    <td className="p-2 capitalize">{user.name}</td>
                     <td className="p-2">{user.email}</td>
                     <td className="p-2">
                       {Array.isArray(user.role)
@@ -120,6 +120,7 @@ const Users = () => {
                     </td>
                     <td className="p-2">
                       <button
+                      title="Delete User"
                         onClick={() => handleOpenDeleteModal(user)}
                         className="text-red-600 hover:text-red-800"
                       >
@@ -151,7 +152,7 @@ const Users = () => {
                 {(currentPage - 1) * itemsPerPage + index + 1}
               </div>
               <div className="mb-2">
-                <span className="font-medium">Name:</span> {user.name}
+                <span className="font-medium capitalize">Name:</span> {user.name}
               </div>
               <div className="mb-2">
                 <span className="font-medium">Email:</span> {user.email}

@@ -3,15 +3,15 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
-import { useSnackbar } from "notistack"; 
-import { jwtDecode } from "jwt-decode"; 
+import { useSnackbar } from "notistack";
+import { jwtDecode } from "jwt-decode";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function SignIn() {
   const { enqueueSnackbar } = useSnackbar(); // Use Snackbar for notifications
   const navigate = useNavigate();
-  const location = useLocation();  // To get the 'redirect' URL parameter
+  const location = useLocation(); // To get the 'redirect' URL parameter
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -46,27 +46,35 @@ export default function SignIn() {
         throw new Error(loginData.message || "Login failed");
       }
 
-      const token = loginData.token;  
-      localStorage.setItem("userToken", token);  
+      const token = loginData.token;
+      localStorage.setItem("userToken", token);
 
-      const decodedToken = jwtDecode(token); 
-      const role = decodedToken.role;  
+      const decodedToken = jwtDecode(token);
+      const role = decodedToken.role;
       localStorage.setItem("userRole", role);
-      localStorage.setItem("userData", JSON.stringify(decodedToken)); 
+      localStorage.setItem("userData", JSON.stringify(decodedToken));
       enqueueSnackbar("Login Successful!", { variant: "success" });
 
-      // const params = new URLSearchParams(location.search);
-      // const redirect = params.get("redirect") || location.pathname;
+      // const params = new URLSearchParam
 
       if (role === "business") {
-        navigate("/bus-dashboard"); 
-      } else if (role === "service") {
-        navigate("/hiring-dashboard"); 
+        navigate("/bus-dashboard");
+      }
+     else if (role === "superadmin") {
+        navigate("/admin");
+      }
+      else if (role === "service") {
+        navigate("/hiring-dashboard");
       }
     } catch (error) {
       console.error("Login or role fetch error:", error);
-      setError(error.message || "An error occurred during login. Please try again.");
-      enqueueSnackbar(error.message || "An error occurred during login. Please try again.", { variant: "error" }); // Error Notification
+      setError(
+        error.message || "An error occurred during login. Please try again."
+      );
+      enqueueSnackbar(
+        error.message || "An error occurred during login. Please try again.",
+        { variant: "error" }
+      ); // Error Notification
     }
   };
 
@@ -75,10 +83,12 @@ export default function SignIn() {
     // Get the intended redirect destination after login
     const params = new URLSearchParams(location.search);
     const redirectPath = params.get("redirect") || "/"; // Default to home if no redirect specified
-    
+
     // Create the Google auth URL with proper redirect parameter
     // This fixes the encoding issue that was causing the TokenError
-    window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(redirectPath)}`;
+    window.location.href = `${baseUrl}/review/google?redirect=${encodeURIComponent(
+      redirectPath
+    )}`;
   };
 
   return (
@@ -113,7 +123,11 @@ export default function SignIn() {
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
           >
-            {showPassword ? <FontAwesomeIcon icon={faEye} /> : <FontAwesomeIcon icon={faEyeSlash} />}
+            {showPassword ? (
+              <FontAwesomeIcon icon={faEye} />
+            ) : (
+              <FontAwesomeIcon icon={faEyeSlash} />
+            )}
           </button>
         </div>
 

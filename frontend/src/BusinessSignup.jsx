@@ -39,6 +39,13 @@ export default function BusinessSignup() {
     "Aircrafts",
     "Nigerian Made",
     "Nightlife & Entertainment",
+    "Restaurants & Cafes",
+    "Real Estate",
+    "Education & Training",
+    "Fashion & Beauty",
+    "Fitness & Wellness",
+    "Travel & Tours",
+    "Tech Hubs"
   ];
 
   const daysOfWeek = [
@@ -86,7 +93,7 @@ export default function BusinessSignup() {
         ? [...prev.day, value]
         : prev.day.filter((day) => day !== value),
     }));
-    console.log(formData.days);
+    console.log(formData.day);
   };
 
   const handleImageChange = (e) => {
