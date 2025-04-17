@@ -4,7 +4,7 @@ const sequelize = require('../../config/database')
 
 exports.createClaim = async (req, res) => {
     try {
-        const {id} = req.params
+        const id = req.params.businessId
         const { pob, email, phone } = req.body;
 
       console.log(id, pob, email, phone);
