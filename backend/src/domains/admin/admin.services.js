@@ -367,4 +367,4 @@ exports.addBusiness = async (businessData) => {
       newBusiness,
       plainPassword,
     };
-  };
+};
