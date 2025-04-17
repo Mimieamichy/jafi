@@ -193,7 +193,7 @@ exports.deleteService = async (req, res) => {
 }
 
 
-exports.deleteReviews = async (req, res) => {
+exports.deleteReview = async (req, res) => {
   const id = req.params.id;
   try {
     await AdminService.deleteReviews(id);

@@ -52,7 +52,6 @@ exports.updateBusiness = async (req, res) => {
     const userId = req.user.id;
     const businessData = req.body;
 
-    console.log(businessData);
 
     // Handle images
     const images = req.files?.["images"]? req.files["images"].map(file => file.path) : [];

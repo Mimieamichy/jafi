@@ -87,14 +87,18 @@ exports.approveBusiness = async (businessId) => {
 
     // Approve the business and assign the user ID
     business.status = "verified"
-    const {plainPassword, hashedPassword} = generatePassword()
+    await business.save();
+    const {plainPassword, hashedPassword} = await generatePassword()
+
+
+    console.log(plainPassword, hashedPassword)
 
     await User.update(
       { password: hashedPassword },
       { where: { id: business.userId } }
     );
 
-    await business.save();
+    
 
     // Send an email notification to the business owner
     const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
@@ -154,7 +158,7 @@ exports.approveAService = async (serviceId) => {
     if (!service) throw new Error("Service not found");
 
     // Approve the service
-    const {plainPassword, hashedPassword} = generatePassword()
+    const {plainPassword, hashedPassword} = await generatePassword()
     await User.update(
       { password: hashedPassword },
       { where: { id: service.userId } }
@@ -228,7 +232,7 @@ exports.approveClaim = async (claimId) => {
     await business.save();
 
     // Mark claim approved
-    claim.status = 'verified';
+    claim.status = 'approved';
     await claim.save();
 
 

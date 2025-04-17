@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReviews, deleteService, deleteUser, addBusiness} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness} = require('./admin.controller')
 
 
+const { uploadMiddleware } = require("../../application/middlewares/cloudinary");
+const { authenticate } = require('../../application/middlewares/authenticate');
+const { authorize } = require('../../application/middlewares/authorize');
 
+router.use(authenticate, authorize(["superadmin"])); 
 
 router.get('/service', getAService);
 router.get('/business', getABusiness);
@@ -22,9 +26,9 @@ router.post('/updateAdminPassword', updateAdminPassword);
 router.post('/updateBusinessPrice', updateBusinessPrice);
 router.post("/updateServicePrice", updateServicePrice);
 router.delete('/business/:id', deleteBusiness);
-router.delete('/reviews/:id', deleteReviews);
+router.delete('/review/:id', deleteReview);
 router.delete('/service/:id', deleteService);
 router.delete('/user/:id', deleteUser);
-router.post('/addBusiness', addBusiness)
+router.post('/addBusiness', uploadMiddleware, addBusiness)
 
 module.exports = router;

@@ -171,8 +171,6 @@ exports.getAllReviews = async () => {
       },
     ],
     order: [["createdAt", "DESC"]],
-    raw: false, // so we can use instance methods
-    nest: true,
   });
 
   // Manually attach the correct listing (either Business or Service)

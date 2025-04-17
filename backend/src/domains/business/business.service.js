@@ -1,7 +1,7 @@
 const Business = require("./business.model");
 const User = require("../user/user.model");
 const PaymentService = require("../payments/payments.service");
-const { generatePassword } = require("../../utils/generatePassword");
+const bcrypt = require("bcryptjs")
 
 exports.registerBusiness = async (businessData) => {
   const existingUser = await User.findOne({
@@ -71,29 +71,25 @@ exports.getAllBusinesses = async () => {
 
 exports.updateBusiness = async (businessId, userId, businessData, password, email) => {
   const business = await Business.findByPk(businessId);
-  if (!business) throw new Error("Service not found");
+  if (!business) throw new Error("Business not found");
 
   if (business.userId !== userId) throw new Error("Unauthorized to update this business");
 
-  let finalPassword = password;
+  // Find the user
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error("User not found");
 
-  if (!password || password.trim() === "") {
-      const user = await User.findByPk(userId, {
-          attributes: ["password"]
-      });
-      if (!user) throw new Error("User not found");
-      finalPassword = user.password;
-  } else {
-    const { hashedPassword } = await generatePassword(password);
-    finalPassword = hashedPassword;
+  // Only hash and update password if it's defined and not empty
+  const updatedFields = { email };
+
+  if (password && password.trim() !== "") {
+    updatedFields.password = await bcrypt.hash(password, 10);
   }
 
-  console.log(finalPassword)
-  await User.update(
-      { password: finalPassword, email: email },
-      { where: { id: userId } }
-  );
+  // Update user record
+  await User.update(updatedFields, { where: { id: userId } });
 
+  // Update business
   business.set(businessData);
   await business.save();
 

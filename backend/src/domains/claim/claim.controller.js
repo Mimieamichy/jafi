@@ -4,10 +4,11 @@ const sequelize = require('../../config/database')
 
 exports.createClaim = async (req, res) => {
     try {
-        const {businessId} = req
-        const { pob, email, phone_number } = req.body;
+        const {id} = req.params
+        const { pob, email, phone } = req.body;
 
-      const claim = await claimService.createClaim(businessId, email, phone_number, pob);
+      console.log(id, pob, email, phone);
+      const claim = await claimService.createClaim(id, email, phone, pob);
       res.status(201).json(claim);
     } catch (error) {
       console.log(error)

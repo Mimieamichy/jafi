@@ -3,6 +3,7 @@ const User = require("../user/user.model");
 const OTPService = require("../otp/otp.service");
 const PaymentService = require("../payments/payments.service");
 const { generatePassword } = require("../../utils/generatePassword")
+const bcrypt = require('bcryptjs')
 
 
 
@@ -84,33 +85,29 @@ exports.getAllServices = async () => {
 exports.updateService = async (serviceId, userId, serviceData, password, email) => {
     const service = await Service.findByPk(serviceId);
     if (!service) throw new Error("Service not found");
-
+  
     if (service.userId !== userId) throw new Error("Unauthorized to update this service");
-
-    let finalPassword = password;
-
-    if (!password || password.trim() === "") {
-        const user = await User.findByPk(userId, {
-            attributes: ["password"]
-        });
-        if (!user) throw new Error("User not found");
-        finalPassword = user.password;
-    } else {
-        const { hashedPassword } = await generatePassword(password);
-        finalPassword = hashedPassword;
-
+  
+    // Find the user
+    const user = await User.findByPk(userId);
+    if (!user) throw new Error("User not found");
+  
+    // Only hash and update password if it's defined and not empty
+    const updatedFields = { email };
+  
+    if (password && password.trim() !== "") {
+      updatedFields.password = await bcrypt.hash(password, 10);
     }
-
-    await User.update(
-        { password: finalPassword, email: email },
-        { where: { id: userId } }
-    );
-
+  
+    // Update user record
+    await User.update(updatedFields, { where: { id: userId } });
+  
+    // Update service
     service.set(serviceData);
     await service.save();
-
+  
     return service;
-};
+  };
 
 
 
