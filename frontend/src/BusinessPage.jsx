@@ -76,6 +76,8 @@ export default function BusinessPage() {
         const response = await fetch(`${baseUrl}/business/${id}`);
         const data = await response.json();
         setBusiness(data);
+        const claimbusId = data.id
+        localStorage.setItem("claimbusId", claimbusId);
         console.log("Fetched business:", data);
         setUniqueId(data.uniqueId);
       } catch (error) {

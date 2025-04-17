@@ -3,8 +3,8 @@ import { useSnackbar } from "notistack";
 
 export default function ClaimPricing() {
   const { enqueueSnackbar } = useSnackbar();
-  const location = useLocation();
-  const busId = location.state?.serviceId || localStorage.getItem("busId");
+ 
+  const busId = localStorage.getItem("claimbusId");
   const busIdNum = parseInt(busId);
   const baseUrl = import.meta.env.VITE_BACKEND_URL;
   console.log(busIdNum);
