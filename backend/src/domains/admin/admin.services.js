@@ -309,12 +309,14 @@ exports.getAllReviewers = async () => {
 
 exports.deleteUser = async (id) => {
     const user = await User.findOne({ where: { id } });
-
+  
     if (!user) throw new Error("User not found");
-
+  
+    await Business.destroy({ where: { userId: id } });
+    await Service.destroy({ where: { userId: id } });
     await user.destroy();
-
-    return { message: "User deleted successfully" };
+  
+    return { message: "User and associated business/services deleted successfully" };
 };
 
 exports.deleteBusiness = async (id) => {
