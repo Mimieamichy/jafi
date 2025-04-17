@@ -220,7 +220,6 @@ exports.getMyBusiness = async (userId) => {
         include: [
             {
                 model: User,
-                as: "user",
                 attributes: ["id", "name", "email"],
             },
         ],

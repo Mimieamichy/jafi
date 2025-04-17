@@ -109,6 +109,7 @@ exports.webhook = async (req, res) => {
   if (event.event === 'charge.success') {
     const { reference, status } = event.data;
 
+    console.log(reference, status)
     // Find payment by reference
     const payment = await Payment.findOne({ where: { payment_reference: reference } });
 

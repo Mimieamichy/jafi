@@ -40,6 +40,10 @@ paymentStatus: {
     type: DataTypes.ENUM("unpaid", "paid"),
     defaultValue: "unpaid",
 },
+},
+{ 
+    tableName: "claims", 
+    timestamps: true 
 });
 
 Claim.belongsTo(Business, {
