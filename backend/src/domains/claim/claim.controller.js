@@ -7,7 +7,7 @@ exports.createClaim = async (req, res) => {
     const id = req.params.businessId
     const { email, phone } = req.body;
 
-    const pob = req.files?.["images"]?.[0]?.path || "";
+    const pob = req.files?.["pob"]?.[0]?.path || "";
     const claim = await claimService.createClaim(id, email, phone, pob);
     res.status(201).json(claim);
   } catch (error) {

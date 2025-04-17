@@ -4,6 +4,7 @@ const Claim = require("./claim.model");
 const PaymentService = require("../payments/payments.service");
 
 exports.createClaim = async (businessId, email, phone, proof) => {
+  console.log(businessId, email, phone, proof);
   const business = await Business.findByPk(businessId);
   if (!business || business.claim === true) {
     return { message: "Business not available for claim"};
