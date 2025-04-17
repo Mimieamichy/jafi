@@ -430,7 +430,7 @@ export default function Businesses() {
               <strong>Category:</strong> {selectedBusiness.category}
             </p>
             <p>
-              <strong>Address:</strong> {selectedBusiness.address}
+              <strong>Address:</strong> {selectedBusiness.address},{selectedBusiness.city},{selectedBusiness.state}
             </p>
             <p>
               <strong>Phone:</strong> {selectedBusiness.phone_number1},{" "}
@@ -438,6 +438,24 @@ export default function Businesses() {
             </p>
             <p>
               <strong>Email:</strong> {selectedBusiness.email}
+            </p>
+            <p>
+              <strong>Whatsapp:</strong> {selectedBusiness.whatsApp || ""}
+            </p>
+            <p>
+              <strong>X:</strong> {selectedBusiness.x || ""}
+            </p>
+            <p>
+              <strong>Instagram:</strong> {selectedBusiness.instagram || ""}
+            </p>
+            <p>
+              <strong>LinkedIn:</strong> {selectedBusiness.linkedIn || ""}
+            </p>
+            <p>
+              <strong>Tiktok:</strong> {selectedBusiness.tiktok || ""}
+            </p>
+            <p>
+              <strong>Website:</strong> {selectedBusiness.website || ""}
             </p>
             <p>
               <strong>Opening Days:</strong>{" "}

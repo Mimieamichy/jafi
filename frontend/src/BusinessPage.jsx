@@ -213,14 +213,19 @@ export default function BusinessPage() {
         body: data,
       });
       if (response.ok) {
+        enqueueSnackbar("Claim submitted", { variant: "success" });
         navigate("/claim-pricing");
         console.log("response", response);
         
       } else {
-        const errorData = await response.text();
+        const errorData = await response.message();
+        enqueueSnackbar("Claim error:", errorData, { variant: "error" });
+        
         console.error("Claim error:", errorData);
+        
       }
     } catch (error) {
+      enqueueSnackbar("Error submitting claim:", error, { variant: "error" });
       console.error("Error submitting claim:", error);
     }
   };
