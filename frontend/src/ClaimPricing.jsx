@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+
 import { useSnackbar } from "notistack";
 
 export default function ClaimPricing() {
@@ -6,9 +6,13 @@ export default function ClaimPricing() {
  
   const busId = localStorage.getItem("claimbusId");
   const busIdNum = parseInt(busId);
+  const claimId = localStorage.getItem("claimid");
+  const claimNum = parseInt(claimId);
+
   const baseUrl = import.meta.env.VITE_BACKEND_URL;
   console.log(busIdNum);
   console.log(busId);
+
   
   
 
@@ -21,7 +25,7 @@ export default function ClaimPricing() {
     }
 
     try {
-      const response = await fetch(`${baseUrl}/claim/pay/${busIdNum}`, {
+      const response = await fetch(`${baseUrl}/claim/pay/${busIdNum}/${claimNum}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

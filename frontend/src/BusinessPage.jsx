@@ -218,9 +218,14 @@ export default function BusinessPage() {
         enqueueSnackbar("Claim submitted", { variant: "success" });
         navigate("/claim-pricing");
         console.log("response", response);
+        const data = await response.json();
+        console.log("climid", data);
+        
+        const claimid = data.claim.id
+        localStorage.setItem("claimid", claimid);
         
       } else {
-        const errorData = await response.message();
+        const errorData = await response.text();
         enqueueSnackbar("Claim error:", errorData, { variant: "error" });
         
         console.error("Claim error:", errorData);
