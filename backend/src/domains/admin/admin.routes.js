@@ -10,8 +10,8 @@ const { authorize } = require('../../application/middlewares/authorize');
 
 router.use(authenticate, authorize(["superadmin"])); 
 
-router.get('/service', getAService);
-router.get('/business', getABusiness);
+router.get('/service/:id', getAService);
+router.get('/business/:id', getABusiness);
 router.get('/businesses', getAllBusinesses);
 router.get('/services', getAllServices);
 router.get('/reviews', getAllReviews);

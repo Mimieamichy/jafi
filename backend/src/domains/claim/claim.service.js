@@ -16,8 +16,8 @@ exports.createClaim = async (businessId, email, phone, proof) => {
 
   const name = business.name;
   const role = "business";
-  await User.create({ email, name, role });
   const claim = await Claim.create({ businessId, email, phone, proof });
+  await User.create({ email, name, role });
   return { message: "Claim submitted", claim };
 };
 
