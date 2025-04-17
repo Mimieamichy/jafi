@@ -7,9 +7,10 @@ const {
   payForClaim,
   verifyClaimPayment,
 } = require("./claim.controller");
+const { uploadMiddleware } = require("../../application/middlewares/cloudinary");
 
 //public routes
-router.post('/:businessId', createClaim)
+router.post('/:businessId', uploadMiddleware, createClaim)
 router.post('/pay/:businessId', payForClaim);
 router.get('/verify/:pay_ref', verifyClaimPayment);
 router.get('/', getClaims);
