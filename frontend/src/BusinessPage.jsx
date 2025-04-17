@@ -6,11 +6,19 @@ import "slick-carousel/slick/slick-theme.css";
 import { jwtDecode } from "jwt-decode";
 import { useSnackbar } from "notistack";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar } from "@fortawesome/free-solid-svg-icons";
+import { faStar,  faGlobe } from "@fortawesome/free-solid-svg-icons";
 import {
   faStar as solidStar,
   faStarHalfAlt,
 } from "@fortawesome/free-solid-svg-icons";
+import {
+  faTiktok,
+  faWhatsapp,
+  faInstagram,
+  faLinkedin,
+  faXTwitter
+} from "@fortawesome/free-brands-svg-icons";
+
 import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
@@ -47,7 +55,7 @@ export default function BusinessPage() {
   const [reviewImageModalOpen, setReviewImageModalOpen] = useState(false);
   const [reviewModalImages, setReviewModalImages] = useState([]);
   const [reviewModalIndex, setReviewModalIndex] = useState(0);
-
+  
   // Settings for business images carousel (header section)
   const sliderSettings = {
     dots: true,
@@ -320,6 +328,8 @@ export default function BusinessPage() {
             {business.state}
           </p>
           <p className="text-sm text-gray-500 m-2">Email: {business.email}</p>
+          
+          
           <p className="text-sm text-gray-500 m-2">
             Opens at: {business.start} - {business.end}
           </p>
@@ -346,6 +356,68 @@ export default function BusinessPage() {
           <div className="flex items-center">
             <span className="mr-2">Rating:</span>
             {renderStars(business.average_rating)}
+          </div>
+          <div className="mt-4 m-2 flex space-x-4">
+            {business?.whatsApp && (
+              <a
+                href={business.whatsApp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-600/20"
+              >
+                <FontAwesomeIcon icon={faWhatsapp} size="lg" />
+              </a>
+            )}
+            {business?.x && (
+              <a
+                href={business.x}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-black hover:text-black/20"
+              >
+                <FontAwesomeIcon icon={faXTwitter} size="lg" />
+              </a>
+            )}
+            {business?.instagram && (
+              <a
+                href={business.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-pink-500 hover:text-pink-500/20"
+              >
+                <FontAwesomeIcon icon={faInstagram} size="lg" />
+              </a>
+            )}
+            {business?.linkedIn && (
+              <a
+                href={business.linkedIn}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-700 hover:text-blue-700/20"
+              >
+                <FontAwesomeIcon icon={faLinkedin} size="lg" />
+              </a>
+            )}
+            {business?.tiktok && (
+              <a
+                href={business.tiktok}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-700 hover:text-blue-700/20"
+              >
+                <FontAwesomeIcon icon={faTiktok} size="lg" />
+              </a>
+            )}
+            {business?.website && (
+              <a
+                href={business.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-700 hover:text-blue-700/20"
+              >
+                <FontAwesomeIcon icon={faGlobe} size="lg" />
+              </a>
+            )}
           </div>
           <div className="flex justify-between items-center mt-4 flex-wrap gap-4">
             <button
@@ -480,6 +552,7 @@ export default function BusinessPage() {
                   />
                 ))}
               </div>
+
               <textarea
                 name="comment"
                 rows="4"
@@ -563,6 +636,7 @@ export default function BusinessPage() {
                 type="email"
                 className="border w-full p-2 mb-4"
                 required
+                name="email"
                 value={claimEmail}
                 onChange={(e) => setClaimEmail(e.target.value)}
               />
@@ -570,6 +644,7 @@ export default function BusinessPage() {
               <label className="block mb-2 font-semibold">Phone:</label>
               <input
                 type="tel"
+                name="phone"
                 className="border w-full p-2 mb-4"
                 required
                 value={claimPhone}
@@ -580,6 +655,7 @@ export default function BusinessPage() {
                 Proof of Business (POB):
               </label>
               <input
+                name="claim"
                 type="file"
                 accept="image/*,application/pdf,application/msword,.docx"
                 className="border w-full p-2 mb-4"
