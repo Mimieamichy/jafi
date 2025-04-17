@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getClaims} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getClaims, updateMyBusiness} = require('./admin.controller')
 
 
 const { uploadMiddleware } = require("../../application/middlewares/cloudinary");
@@ -11,7 +11,7 @@ const { authorize } = require('../../application/middlewares/authorize');
 router.use(authenticate, authorize(["admin", "superadmin"])); 
 router.post('/addBusiness', uploadMiddleware, addBusiness)
 router.get("/myBusiness", getMyBusiness);
-//update my business functionality router.put('/myBusiness/:id, updateMyBusiness)
+router.put('/myBusiness/:id', updateMyBusiness)
 
 
 

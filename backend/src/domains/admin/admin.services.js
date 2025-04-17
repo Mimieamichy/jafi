@@ -228,6 +228,33 @@ exports.getMyBusiness = async (userId) => {
     return business;
 };
 
+exports.updateMyBusiness = async (businessId, userId, businessData, password, email) => {
+    const business = await Business.findByPk(businessId);
+    if (!business) throw new Error("Business not found");
+  
+    if (business.userId !== userId) throw new Error("Unauthorized to update this business");
+  
+    // Find the user
+    const user = await User.findByPk(userId);
+    if (!user) throw new Error("User not found");
+  
+    // Only hash and update password if it's defined and not empty
+    const updatedFields = { email };
+  
+    if (password && password.trim() !== "") {
+      updatedFields.password = await bcrypt.hash(password, 10);
+    }
+  
+    // Update user record
+    await User.update(updatedFields, { where: { id: userId } });
+  
+    // Update business
+    business.set(businessData);
+    await business.save();
+  
+    return business;
+};
+  
 
 //Service management
 exports.getAllServices = async () => {

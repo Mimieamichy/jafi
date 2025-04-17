@@ -137,6 +137,31 @@ exports.getMyBusiness = async (req, res) => {
   }
 }
 
+exports.updateMyBusiness = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const businessData = req.body;
+
+
+    // Handle images
+    const images = req.files?.["images"]? req.files["images"].map(file => file.path) : [];
+    businessData.images = images;
+    
+    const password = businessData.password;
+    const email = businessData.email
+    delete businessData.password;
+    delete businessData.email
+
+
+    const business = await BusinessService.updateMyBusiness(id, userId, businessData, password, email);
+    res.status(200).json(business);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ error: error.message });
+  }
+};
+
 
 
 
