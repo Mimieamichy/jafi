@@ -1,206 +1,270 @@
+// src/components/Reviews.jsx
 import { useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faTrash, faStar } from "@fortawesome/free-solid-svg-icons";
+
+
+
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function Reviews() {
-  const [reviews, setReviews] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedReview, setSelectedReview] = useState(null);
-  const [newReview, setNewReview] = useState({
-    name: "",
-    rating: "",
-    comment: "",
-    companyName: "",
-  });
+  const authToken = localStorage.getItem("userToken");
 
-  // Load reviews from localStorage on mount
+  const [reviewers, setReviewers] = useState([]);
+  const [allReviews, setAllReviews] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // modal state
+  const [viewTarget, setViewTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const renderStars = (n) =>
+    [...Array(Number(n))].map((_, i) => (
+      <FontAwesomeIcon
+        key={i}
+        icon={faStar}
+        className="text-yellow-500 mr-0.5"
+      />
+    ));
+
+    const reviewsForTarget = viewTarget
+  ? allReviews.filter(rv => rv.userId === viewTarget.id)
+  : [];
+
+  
+
+  /* ---------- fetch reviewers & reviews ---------- */
   useEffect(() => {
-    const storedReviews = JSON.parse(localStorage.getItem("businessReviews")) || [];
-    setReviews(storedReviews);
-  }, []);
+    if (!authToken) return;
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authToken}`,
+    };
 
-  // Handle input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewReview({ ...newReview, [name]: value });
-  };
+    // reviewers
+    fetch(`${baseUrl}/admin/reviewers`, { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        console.log("Reviewers →", data);
+        setReviewers(Array.isArray(data) ? data : data.reviewers || []);
+      })
+      .catch((err) => console.error("reviewers err", err));
 
-  // Handle adding a new review
-  const handleAddReview = (e) => {
-    e.preventDefault();
-    if (
-      !newReview.name ||
-      !newReview.rating ||
-      !newReview.comment ||
-      !newReview.companyName
-    ) {
-      alert("All fields are required!");
-      return;
+    // reviews
+    fetch(`${baseUrl}/admin/reviews`, { headers })
+      .then((r) => r.json())
+      .then((data) => {
+        console.log("Reviews →", data);
+        setAllReviews(Array.isArray(data) ? data : data.reviews || []);
+      })
+      .catch((err) => console.error("reviews err", err));
+  }, [authToken]);
+
+  /* ---------- pagination ---------- */
+  const itemsPerPage = 20;
+  const totalPages = Math.ceil(reviewers.length / itemsPerPage);
+  const pageSlice = reviewers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  /* ---------- delete reviewer ---------- */
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await fetch(`${baseUrl}/admin/deleteReviewer/${deleteTarget.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      setReviewers((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+    } catch {
+      alert("Delete failed");
+    } finally {
+      setDeleteTarget(null);
+      setShowDeleteModal(false);
     }
-
-    const updatedReviews = [...reviews, { id: Date.now(), ...newReview }];
-    setReviews(updatedReviews);
-    localStorage.setItem("businessReviews", JSON.stringify(updatedReviews));
-
-    // Reset form & close modal
-    setNewReview({
-      name: "",
-      rating: "",
-      comment: "",
-      companyName: "",
-    });
-    setShowModal(false);
   };
 
-  // Handle deleting a review
-  const handleDeleteReview = (id) => {
-    const updatedReviews = reviews.filter((review) => review.id !== id);
-    setReviews(updatedReviews);
-    localStorage.setItem("businessReviews", JSON.stringify(updatedReviews));
-  };
-
-  // Handle viewing a review
-  const handleViewReview = (review) => {
-    setSelectedReview(review);
-  };
-
+  /* ---------- render ---------- */
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Reviews</h2>
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          Write a Review
-        </button>
-      </div>
+      <h2 className="text-2xl font-bold mb-4">Reviewers</h2>
 
-      {/* Reviews Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">Reviewer Name</th>
-              <th className="border p-2">Rating</th>
-              <th className="border p-2">Business Reviewed</th>
-              <th className="border p-2">Actions</th>
+      {/* -------- Desktop table -------- */}
+      <div className="hidden md:block overflow-x-auto border border-gray-300 rounded">
+        <table className="w-full border-collapse">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-2 border">S/N</th>
+              <th className="p-2 border">Reviewer&#39;s Name</th>
+              <th className="p-2 border">Reviewer&#39;s Email</th>
+              <th className="p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {reviews.length === 0 ? (
+            {pageSlice.length === 0 ? (
               <tr>
-                <td colSpan="4" className="p-4 text-center">
-                  No reviews yet.
+                <td colSpan={4} className="p-4 text-center">
+                  No reviewers found.
                 </td>
               </tr>
             ) : (
-              reviews.map((review) => (
-                <tr key={review.id} className="border-t">
-                  <td className="border p-2">{review.name}</td>
-                  <td className="border p-2">⭐ {review.rating}</td>
-                  <td className="border p-2">{review.companyName}</td>
-                  <td className="border p-2 flex space-x-2">
-                    <button
-                      onClick={() => handleViewReview(review)}
-                      className="px-2 py-1 bg-green-500 text-white rounded"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => handleDeleteReview(review.id)}
-                      className="px-2 py-1 bg-red-500 text-white rounded"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
+              pageSlice.map((r, idx) => {
+                const sn = (currentPage - 1) * itemsPerPage + idx + 1;
+                return (
+                  <tr key={r.id} className="border-t text-center">
+                    <td className="p-2 border">{sn}</td>
+                    <td className="p-2 border capitalize">{r.name}</td>
+                    <td className="p-2 border">{r.email}</td>
+                    <td className="p-2 border space-x-2">
+                      <button
+                        title="View"
+                        onClick={() => setViewTarget(r)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <FontAwesomeIcon icon={faEye} />
+                      </button>
+                      <button
+                        title="Delete"
+                        onClick={() => {
+                          setDeleteTarget(r);
+                          setShowDeleteModal(true);
+                        }}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Review Submission Modal */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-md w-96">
-            <h3 className="text-xl font-bold mb-4">Write a Review</h3>
-            <form onSubmit={handleAddReview} className="space-y-3">
-              <input
-                type="text"
-                name="reviewerName"
-                placeholder="Your Name"
-                value={newReview.name}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="number"
-                name="rating"
-                placeholder="Rating (1-5)"
-                value={newReview.rating}
-                onChange={handleChange}
-                min="1"
-                max="5"
-                className="w-full p-2 border rounded"
-              />
-              <textarea
-                name="reviewText"
-                placeholder="Write your review..."
-                value={newReview.comment}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="text"
-                name="businessName"
-                placeholder="Business Name"
-                value={newReview.companyName}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-gray-400 text-white rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                  Submit
-                </button>
+      {/* -------- Mobile cards -------- */}
+      <div className="md:hidden space-y-4">
+        {pageSlice.length === 0 ? (
+          <p className="text-center text-gray-500">No reviewers found.</p>
+        ) : (
+          pageSlice.map((r, idx) => {
+            const sn = (currentPage - 1) * itemsPerPage + idx + 1;
+            return (
+              <div
+                key={r.id}
+                className="border border-gray-300 rounded p-4 space-y-2"
+              >
+                <div>
+                  <strong>S/N:</strong> {sn}
+                </div>
+                <div>
+                  <strong>Reviewer&#39;s Name:</strong> {r.name}
+                </div>
+                <div>
+                  <strong>Reviewer&#39;s Email:</strong> {r.email}
+                </div>
+                <div className="flex space-x-4 pt-1">
+                  <button
+                    title="View"
+                    onClick={() => setViewTarget(r)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <FontAwesomeIcon icon={faEye} />
+                  </button>
+                  <button
+                    title="Delete"
+                    onClick={() => {
+                      setDeleteTarget(r);
+                      setShowDeleteModal(true);
+                    }}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                </div>
               </div>
-            </form>
+            );
+          })
+        )}
+      </div>
+
+      {/* -------- Pagination -------- */}
+      {reviewers.length > 0 && (
+        <div className="flex justify-center space-x-3 mt-4">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span>
+            Page {currentPage}/{totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage((p) => Math.min(p + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* -------- View Modal -------- */}
+      {viewTarget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-lg max-h-[80vh] overflow-y-auto space-y-3">
+            <h3 className="text-xl font-bold">{viewTarget.name}</h3>
+            {reviewsForTarget.length === 0 ? (
+  <p className="text-gray-600">No reviews from this user.</p>
+) : (
+  reviewsForTarget.map(rv => (
+    <div key={rv.id} className="border-t pt-2">
+      <p><strong>Listing Name:</strong> {rv.listingName}</p>
+      <p><strong>Rating:</strong> {renderStars(rv.star_rating || rv.star)}</p>
+      <p><strong>Comment:</strong> {rv.comment}</p>
+    </div>
+  ))
+)}
+
+            <button
+              onClick={() => setViewTarget(null)}
+              className="mt-2 px-4 py-2 bg-gray-500 text-white rounded"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
 
-      {/* View Review Modal */}
-      {selectedReview && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-md w-96">
-            <h3 className="text-xl font-bold mb-2">Review Details</h3>
-            <p>
-              <strong>Name:</strong> {selectedReview.name}
-            </p>
-            <p>
-              <strong>Rating:</strong> ⭐ {selectedReview.rating}
-            </p>
-            <p>
-              <strong>Business:</strong> {selectedReview.companyName}
-            </p>
+      {/* -------- Delete Modal -------- */}
+      {showDeleteModal && deleteTarget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+            <h4 className="text-lg font-bold mb-4">Delete Reviewer?</h4>
             <p className="mb-4">
-              <strong>Review:</strong> {selectedReview.comment}
+              Are you sure you want to delete{" "}
+              <strong>{deleteTarget.name}</strong>?
             </p>
-            <button
-              onClick={() => setSelectedReview(null)}
-              className="px-4 py-2 bg-gray-400 text-white rounded"
-            >
-              Close
-            </button>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
