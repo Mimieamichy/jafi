@@ -321,15 +321,26 @@ exports.deleteUser = async (id) => {
 
 exports.deleteBusiness = async (id) => {
     const business = await Business.findOne({ where: { id } });
+  
+    if (!business) return { message: "Business not found" };
+  
     const businessOwner = await User.findOne({ where: { id: business.userId } });
-
-    if (!business && !businessOwner) throw new Error("Business not found");
-
+  
+    if (!businessOwner) return { message: "Business owner not found" };
+  
+    if (businessOwner.role === 'superadmin' || businessOwner.role === 'admin') {
+      return { message: "This business was created by an admin and cannot be deleted" };
+    }
+  
+    // First delete the business
     await business.destroy();
+  
+    // Then optionally delete the user (if you really want to)
     await businessOwner.destroy();
-
-    return { message: "Business deleted successfully" };
-};
+  
+    return { message: "Business and associated user deleted successfully" };
+  };
+  
 
 exports.deleteService = async (id) => {
     const service = await Service.findOne({ where: { id } });
@@ -354,17 +365,16 @@ exports.deleteReviews = async (id) => {
 };
 
 
-exports.addBusiness = async (businessData) => { 
+exports.addBusiness = async (businessData, userId) => { 
     const newBusiness = await Business.create({
       ...businessData,
-      userId: newUser.id,
+      userId: userId,
       status: "verified",
       claimed: false,
+      proof: "No proof needed"
     });
   
     return {
-      user: newUser,
-      newBusiness,
-      plainPassword,
+      newBusiness
     };
 };

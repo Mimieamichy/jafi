@@ -25,9 +25,9 @@ router.post("/approveService/:id", approveService);
 router.post('/updateAdminPassword', updateAdminPassword);
 router.post('/updateBusinessPrice', updateBusinessPrice);
 router.post("/updateServicePrice", updateServicePrice);
-router.delete('/business/:id', deleteBusiness);
-router.delete('/review/:id', deleteReview);
-router.delete('/service/:id', deleteService);
+router.delete('/deleteBusiness/:id', deleteBusiness);
+router.delete('/deleteReview/:id', deleteReview);
+router.delete('/deleteService/:id', deleteService);
 router.delete('/user/:id', deleteUser);
 router.post('/addBusiness', uploadMiddleware, addBusiness)
 

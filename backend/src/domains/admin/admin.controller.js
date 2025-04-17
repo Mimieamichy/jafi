@@ -175,9 +175,10 @@ exports.getAllReviewers = async(req, res) => {
 exports.deleteBusiness = async (req, res) => {
   const id = req.params.id;
   try {
-    await AdminService.deleteBusiness(id);
-    return res.status(200).json({ success: true, message: "Business deleted successfully" });
+    const response = await AdminService.deleteBusiness(id);
+    return res.status(200).json({ success: true, message: response });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ success: false, message: error.message });
   }
 }
@@ -216,17 +217,20 @@ exports.deleteUser = async (req, res) => {
 
 exports.addBusiness = async (req, res) => {
   const businessData = { ...req.body };
+  const userId = req.user.id
+  console.log(businessData)
   if (req.files) {
     if (req.files["images"]) {
       businessData.images = req.files["images"].map((file) => file.path);
     }
   }
   try {
-    const business = await AdminService.addBusiness(businessData);
+    const business = await AdminService.addBusiness(businessData, userId);
     if (!business) throw new Error("Business creation failed");
     
     return res.status(201).json({ success: true, message: "Business created successfully", business: business });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ success: false, message: error.message });
   }
 }
