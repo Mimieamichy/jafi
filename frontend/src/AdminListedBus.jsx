@@ -156,6 +156,8 @@ export default function Businesses() {
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        console.log("databus", data);
+        
         setBusinesses(Array.isArray(data) ? data : data.businesses || []);
       } catch (err) {
         console.error("Error fetching businesses:", err);

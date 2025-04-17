@@ -213,7 +213,7 @@ export default function BusinessPage() {
         body: data,
       });
       if (response.ok) {
-        navigate("/pricing");
+        navigate("/claim-pricing");
         console.log("response", response);
         
       } else {

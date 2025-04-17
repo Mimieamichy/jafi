@@ -1,206 +1,232 @@
-import { useState, useEffect } from "react";
+// src/components/Claims.jsx
+import { useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faDownload } from "@fortawesome/free-solid-svg-icons";
+import { useSnackbar } from "notistack";
+
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function Claims() {
-  const [reviews, setReviews] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedReview, setSelectedReview] = useState(null);
-  const [newReview, setNewReview] = useState({
-    name: "",
-    rating: "",
-    comment: "",
-    companyName: "",
-  });
+  const authToken = localStorage.getItem("userToken");
+  const { enqueueSnackbar } = useSnackbar();
 
-  // Load reviews from localStorage on mount
+  /* ---------------- state ---------------- */
+  const [claims, setClaims] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // approve‑confirmation modal
+  const [approveTarget, setApproveTarget] = useState(null);
+
+  /* ---------------- fetch all claims ---------------- */
   useEffect(() => {
-    const storedReviews = JSON.parse(localStorage.getItem("businessReviews")) || [];
-    setReviews(storedReviews);
-  }, []);
+    if (!authToken) return;
 
-  // Handle input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewReview({ ...newReview, [name]: value });
-  };
+    fetch(`${baseUrl}/admin/claims`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        // expect either [] or {claims:[…]}
+        console.log("datac", data);
 
-  // Handle adding a new review
-  const handleAddReview = (e) => {
-    e.preventDefault();
-    if (
-      !newReview.name ||
-      !newReview.rating ||
-      !newReview.comment ||
-      !newReview.companyName
-    ) {
-      alert("All fields are required!");
-      return;
+        const arr = Array.isArray(data)
+          ? data
+          : Array.isArray(data.claims)
+          ? data.claims
+          : [];
+        setClaims(arr);
+      })
+      .catch((err) => console.error("claims‑fetch error", err));
+  }, [authToken]);
+
+  /* ---------------- approve handler ---------------- */
+  const approveClaim = async (id) => {
+    try {
+      await fetch(`${baseUrl}/admin/approveClaim/${id}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      // mark as approved locally so the button disappears
+      /* after approve succeeds */
+      setClaims((prev) =>
+        prev.map((claim) =>
+          claim.id === id ? { ...claim, status: "approved" } : claim
+        )
+      );
+      enqueueSnackbar("Claim Successful", { variant: "success" });
+    } catch (err) {
+      enqueueSnackbar(err, "Approve failed", { variant: "error" });
+    } finally {
+      setApproveTarget(null);
     }
-
-    const updatedReviews = [...reviews, { id: Date.now(), ...newReview }];
-    setReviews(updatedReviews);
-    localStorage.setItem("businessReviews", JSON.stringify(updatedReviews));
-
-    // Reset form & close modal
-    setNewReview({
-      name: "",
-      rating: "",
-      comment: "",
-      companyName: "",
-    });
-    setShowModal(false);
   };
 
-  // Handle deleting a review
-  const handleDeleteReview = (id) => {
-    const updatedReviews = reviews.filter((review) => review.id !== id);
-    setReviews(updatedReviews);
-    localStorage.setItem("businessReviews", JSON.stringify(updatedReviews));
-  };
+  /* ---------------- pagination ---------------- */
+  const itemsPerPage = 20;
+  const totalPages = Math.ceil(claims.length / itemsPerPage);
+  const pageSlice = claims.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
-  // Handle viewing a review
-  const handleViewReview = (review) => {
-    setSelectedReview(review);
-  };
-
+  /* ---------------- render ---------------- */
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Reviews</h2>
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          Write a Review
-        </button>
-      </div>
+      <h2 className="text-2xl font-bold mb-4">Pending Claims</h2>
 
-      {/* Reviews Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">Reviewer Name</th>
-              <th className="border p-2">Rating</th>
-              <th className="border p-2">Business Reviewed</th>
-              <th className="border p-2">Actions</th>
+      {/* ------------ DESKTOP TABLE ------------ */}
+      <div className="hidden md:block overflow-x-auto border border-gray-300 rounded">
+        <table className="w-full border-collapse">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-2 border">S/N</th>
+              <th className="p-2 border">Email</th>
+              <th className="p-2 border">Phone&nbsp;Number</th>
+              <th className="p-2 border">POB</th>
+              <th className="p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {reviews.length === 0 ? (
+            {pageSlice.length === 0 ? (
               <tr>
-                <td colSpan="4" className="p-4 text-center">
-                  No reviews yet.
+                <td colSpan={5} className="p-4 text-center">
+                  No claims found.
                 </td>
               </tr>
             ) : (
-              reviews.map((review) => (
-                <tr key={review.id} className="border-t">
-                  <td className="border p-2">{review.name}</td>
-                  <td className="border p-2">⭐ {review.rating}</td>
-                  <td className="border p-2">{review.companyName}</td>
-                  <td className="border p-2 flex space-x-2">
-                    <button
-                      onClick={() => handleViewReview(review)}
-                      className="px-2 py-1 bg-green-500 text-white rounded"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => handleDeleteReview(review.id)}
-                      className="px-2 py-1 bg-red-500 text-white rounded"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
+              pageSlice.map((c, idx) => {
+                const sn = (currentPage - 1) * itemsPerPage + idx + 1;
+                return (
+                  <tr key={c.id} className="border-t text-center">
+                    <td className="p-2 border">{sn}</td>
+                    <td className="p-2 border">{c.email}</td>
+                    <td className="p-2 border">{c.phone}</td>
+                    <td className="p-2 border">
+                      <a
+                        href={c.proof}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download
+                        className="text-blue-600 hover:underline"
+                      >
+                        <FontAwesomeIcon icon={faDownload} />
+                        Download
+                      </a>
+                    </td>
+                    <td className="p-2 border">
+                      {c.status === "pending" && (
+                        <button
+                          title="Approve"
+                          onClick={() => setApproveTarget(c)}
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          <FontAwesomeIcon icon={faCheck} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Review Submission Modal */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-md w-96">
-            <h3 className="text-xl font-bold mb-4">Write a Review</h3>
-            <form onSubmit={handleAddReview} className="space-y-3">
-              <input
-                type="text"
-                name="reviewerName"
-                placeholder="Your Name"
-                value={newReview.name}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="number"
-                name="rating"
-                placeholder="Rating (1-5)"
-                value={newReview.rating}
-                onChange={handleChange}
-                min="1"
-                max="5"
-                className="w-full p-2 border rounded"
-              />
-              <textarea
-                name="reviewText"
-                placeholder="Write your review..."
-                value={newReview.comment}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="text"
-                name="businessName"
-                placeholder="Business Name"
-                value={newReview.companyName}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-gray-400 text-white rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                  Submit
-                </button>
+      {/* ------------ MOBILE CARDS ------------ */}
+      <div className="md:hidden space-y-4">
+        {pageSlice.length === 0 ? (
+          <p className="text-center text-gray-500">No claims found.</p>
+        ) : (
+          pageSlice.map((c, idx) => {
+            const sn = (currentPage - 1) * itemsPerPage + idx + 1;
+            return (
+              <div
+                key={c.id}
+                className="border border-gray-300 rounded p-4 space-y-2"
+              >
+                <div>
+                  <strong>S/N:</strong> {sn}
+                </div>
+                <div>
+                  <strong>Email:</strong> {c.email}
+                </div>
+                <div>
+                  <strong>Phone:</strong> {c.phone}
+                </div>
+                <div>
+                  <strong>POB:</strong>{" "}
+                  <a
+                    href={c.proof}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    className="text-blue-600 hover:underline"
+                  >
+                    <FontAwesomeIcon icon={faDownload} />
+                    Download
+                  </a>
+                </div>
+
+                {c.status === "pending" && (
+                  <button
+                    title="Approve"
+                    onClick={() => setApproveTarget(c)}
+                    className="text-green-600 hover:text-green-800"
+                  >
+                    <FontAwesomeIcon icon={faCheck} /> Approve
+                  </button>
+                )}
               </div>
-            </form>
-          </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* ------------ Pagination ------------ */}
+      {claims.length > 0 && (
+        <div className="flex justify-center space-x-3 mt-4">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span>
+            Page {currentPage}/{totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       )}
 
-      {/* View Review Modal */}
-      {selectedReview && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-md w-96">
-            <h3 className="text-xl font-bold mb-2">Review Details</h3>
-            <p>
-              <strong>Name:</strong> {selectedReview.name}
-            </p>
-            <p>
-              <strong>Rating:</strong> ⭐ {selectedReview.rating}
-            </p>
-            <p>
-              <strong>Business:</strong> {selectedReview.companyName}
-            </p>
+      {/* ------------ Approve Confirmation Modal ------------ */}
+      {approveTarget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+            <h4 className="text-lg font-bold mb-4">Approve Claim?</h4>
             <p className="mb-4">
-              <strong>Review:</strong> {selectedReview.comment}
+              Approve claim for&nbsp;<strong>{approveTarget.email}</strong>?
             </p>
-            <button
-              onClick={() => setSelectedReview(null)}
-              className="px-4 py-2 bg-gray-400 text-white rounded"
-            >
-              Close
-            </button>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setApproveTarget(null)}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => approveClaim(approveTarget.id)}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Approve
+              </button>
+            </div>
           </div>
         </div>
       )}

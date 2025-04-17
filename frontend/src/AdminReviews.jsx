@@ -3,8 +3,6 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faTrash, faStar } from "@fortawesome/free-solid-svg-icons";
 
-
-
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function Reviews() {
@@ -13,11 +11,15 @@ export default function Reviews() {
   const [reviewers, setReviewers] = useState([]);
   const [allReviews, setAllReviews] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+ 
 
   // modal state
   const [viewTarget, setViewTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  
+  
 
   const renderStars = (n) =>
     [...Array(Number(n))].map((_, i) => (
@@ -28,11 +30,9 @@ export default function Reviews() {
       />
     ));
 
-    const reviewsForTarget = viewTarget
-  ? allReviews.filter(rv => rv.userId === viewTarget.id)
-  : [];
-
-  
+  const reviewsForTarget = viewTarget
+    ? allReviews.filter((rv) => rv.userId === viewTarget.id)
+    : [];
 
   /* ---------- fetch reviewers & reviews ---------- */
   useEffect(() => {
@@ -57,6 +57,7 @@ export default function Reviews() {
       .then((data) => {
         console.log("Reviews →", data);
         setAllReviews(Array.isArray(data) ? data : data.reviews || []);
+        
       })
       .catch((err) => console.error("reviews err", err));
   }, [authToken]);
@@ -86,6 +87,8 @@ export default function Reviews() {
     }
   };
 
+  
+
   /* ---------- render ---------- */
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
@@ -99,6 +102,7 @@ export default function Reviews() {
               <th className="p-2 border">S/N</th>
               <th className="p-2 border">Reviewer&#39;s Name</th>
               <th className="p-2 border">Reviewer&#39;s Email</th>
+              <th className="p-2 border">Total Reviews</th>
               <th className="p-2 border">Actions</th>
             </tr>
           </thead>
@@ -112,11 +116,13 @@ export default function Reviews() {
             ) : (
               pageSlice.map((r, idx) => {
                 const sn = (currentPage - 1) * itemsPerPage + idx + 1;
+                const reviewCount = allReviews.filter(rv => rv.userId === r.id).length;
                 return (
                   <tr key={r.id} className="border-t text-center">
                     <td className="p-2 border">{sn}</td>
                     <td className="p-2 border capitalize">{r.name}</td>
                     <td className="p-2 border">{r.email}</td>
+                    <td className="p-2 border">{reviewCount}</td>
                     <td className="p-2 border space-x-2">
                       <button
                         title="View"
@@ -151,6 +157,7 @@ export default function Reviews() {
         ) : (
           pageSlice.map((r, idx) => {
             const sn = (currentPage - 1) * itemsPerPage + idx + 1;
+            const reviewCount = allReviews.filter(rv => rv.userId === r.id).length;
             return (
               <div
                 key={r.id}
@@ -164,6 +171,9 @@ export default function Reviews() {
                 </div>
                 <div>
                   <strong>Reviewer&#39;s Email:</strong> {r.email}
+                </div>
+                <div>
+                  <strong>Total Reviews:</strong> {reviewCount}
                 </div>
                 <div className="flex space-x-4 pt-1">
                   <button
@@ -204,9 +214,7 @@ export default function Reviews() {
             Page {currentPage}/{totalPages}
           </span>
           <button
-            onClick={() =>
-              setCurrentPage((p) => Math.min(p + 1, totalPages))
-            }
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
             className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
           >
@@ -221,16 +229,23 @@ export default function Reviews() {
           <div className="bg-white p-6 rounded-lg w-full max-w-lg max-h-[80vh] overflow-y-auto space-y-3">
             <h3 className="text-xl font-bold">{viewTarget.name}</h3>
             {reviewsForTarget.length === 0 ? (
-  <p className="text-gray-600">No reviews from this user.</p>
-) : (
-  reviewsForTarget.map(rv => (
-    <div key={rv.id} className="border-t pt-2">
-      <p><strong>Listing Name:</strong> {rv.listingName}</p>
-      <p><strong>Rating:</strong> {renderStars(rv.star_rating || rv.star)}</p>
-      <p><strong>Comment:</strong> {rv.comment}</p>
-    </div>
-  ))
-)}
+              <p className="text-gray-600">No reviews from this user.</p>
+            ) : (
+              reviewsForTarget.map((rv) => (
+                <div key={rv.id} className="border-t pt-2">
+                  <p>
+                    <strong>Listing Name:</strong> {rv.listingName}
+                  </p>
+                  <p>
+                    <strong>Rating:</strong>{" "}
+                    {renderStars(rv.star_rating || rv.star)}
+                  </p>
+                  <p>
+                    <strong>Comment:</strong> {rv.comment}
+                  </p>
+                </div>
+              ))
+            )}
 
             <button
               onClick={() => setViewTarget(null)}
