@@ -184,6 +184,8 @@ export default function BusinessPage() {
       if (claimPobFile) {
         formData.append("pob", claimPobFile, claimPobFile.name);
       }
+
+      
       const response = await fetch(`${baseUrl}/claim/${id}`, {
         method: "POST",
         body: formData,
