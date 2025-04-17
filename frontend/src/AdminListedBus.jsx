@@ -77,12 +77,66 @@ export default function Businesses() {
         ? [...prev.day, value]
         : prev.day.filter((day) => day !== value),
     }));
-    
   };
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormState);
   const [previewImages, setPreviewImages] = useState([]);
+  // confirmation–modal state
+  const [approveTarget, setApproveTarget] = useState(null);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // open modals
+  const openApproveModal = (biz) => {
+    setApproveTarget(biz);
+    setShowApproveModal(true);
+  };
+  const openDeleteModal = (biz) => {
+    setDeleteTarget(biz);
+    setShowDeleteModal(true);
+  };
+
+  // confirm actions
+  const confirmApprove = async () => {
+    if (!approveTarget) return;
+    try {
+      await fetch(`${baseUrl}/admin/approveBusiness/${approveTarget.id}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      setBusinesses((prev) =>
+        prev.map((b) =>
+          b.id === approveTarget.id ? { ...b, status: "verified" } : b
+        )
+      );
+      enqueueSnackbar("Business approved", { variant: "success" });
+    } catch (err) {
+      enqueueSnackbar("Error approving business", { variant: "error" });
+    } finally {
+      setShowApproveModal(false);
+      setApproveTarget(null);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await fetch(`${baseUrl}/admin/deleteBusiness/${deleteTarget.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      setBusinesses((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+      enqueueSnackbar("Business deleted", { variant: "info" });
+    } catch (err) {
+      enqueueSnackbar("Error deleting business", { variant: "error" });
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteTarget(null);
+    }
+  };
 
   // Fetch businesses from API
   useEffect(() => {
@@ -119,50 +173,6 @@ export default function Businesses() {
     }
   }, [currentPage, totalPages]);
 
-  // Business Actions
-  const handleApprove = async (businessId) => {
-    try {
-      const res = await fetch(
-        `${baseUrl}/admin/approveBusiness/${businessId}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-      if (!res.ok) throw new Error("Approve failed");
-
-      // Mark the status as 'verified' in local state
-      setBusinesses((prev) =>
-        prev.map((b) =>
-          b.id === businessId ? { ...b, status: "verified" } : b
-        )
-      );
-      enqueueSnackbar("Business approved", { variant: "success" });
-    } catch (err) {
-      console.error(err);
-      enqueueSnackbar("Error approving business", { variant: "error" });
-    }
-  };
-
-  const handleDelete = async (businessId) => {
-    try {
-      const res = await fetch(`${baseUrl}/admin/deleteBusiness/${businessId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-      if (!res.ok) throw new Error("Delete failed");
-
-      setBusinesses((prev) => prev.filter((b) => b.id !== businessId));
-      enqueueSnackbar("Business deleted", { variant: "info" });
-    } catch (err) {
-      console.error(err);
-      enqueueSnackbar("Error deleting business", { variant: "error" });
-    }
-  };
 
   const handleView = (business) => {
     setSelectedBusiness(business);
@@ -285,19 +295,21 @@ export default function Businesses() {
                         >
                           <FontAwesomeIcon icon={faEye} />
                         </button>
+                        {/* old: onClick={() => handleApprove(b.id)} */}
                         {business.status === "pending" && (
                           <button
-                            title="Approve"
-                            onClick={() => handleApprove(business.id)}
+                            onClick={() => openApproveModal(business)}
                             className="text-green-600 hover:text-green-800"
+                            title="Approve"
                           >
                             <FontAwesomeIcon icon={faCheck} />
                           </button>
                         )}
 
+                        {/* old: onClick={() => handleDelete(b.id)} */}
                         <button
                           title="Delete"
-                          onClick={() => handleDelete(business.id)}
+                          onClick={() => openDeleteModal(business)}
                           className="text-red-600 hover:text-red-800"
                         >
                           <FontAwesomeIcon icon={faTrash} />
@@ -354,19 +366,21 @@ export default function Businesses() {
                   >
                     <FontAwesomeIcon icon={faEye} />
                   </button>
+                  {/* old: onClick={() => handleApprove(b.id)} */}
                   {business.status === "pending" && (
                     <button
-                      title="Approve"
-                      onClick={() => handleApprove(business.id)}
+                      onClick={() => openApproveModal(business)}
                       className="text-green-600 hover:text-green-800"
+                      title="Approve"
                     >
                       <FontAwesomeIcon icon={faCheck} />
                     </button>
                   )}
 
+                  {/* old: onClick={() => handleDelete(b.id)} */}
                   <button
                     title="Delete"
-                    onClick={() => handleDelete(business.id)}
+                    onClick={() => openDeleteModal(business)}
                     className="text-red-600 hover:text-red-800"
                   >
                     <FontAwesomeIcon icon={faTrash} />
@@ -607,7 +621,6 @@ export default function Businesses() {
                   multiple
                   accept="image/*"
                   className="w-full"
-                 
                 />
                 {previewImages.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -639,6 +652,58 @@ export default function Businesses() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Confirmation Modal */}
+      {showApproveModal && approveTarget && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+            <h3 className="text-lg font-bold mb-4">Confirm Approve</h3>
+            <p className="mb-4">
+              Approve <strong>{approveTarget.name}</strong>?
+            </p>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowApproveModal(false)}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmApprove}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Approve
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && deleteTarget && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+            <h3 className="text-lg font-bold mb-4">Confirm Delete</h3>
+            <p className="mb-4">
+              Delete <strong>{deleteTarget.name}</strong>?
+            </p>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

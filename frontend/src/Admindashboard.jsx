@@ -10,7 +10,7 @@ import Overview from "./AdminOverview";
 import Claims from "./Claims";
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState("");
+  const [activeTab, setActiveTab] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSidebarToggle = () => {

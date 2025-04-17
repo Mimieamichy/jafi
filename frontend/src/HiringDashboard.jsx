@@ -254,6 +254,8 @@ export default function HiringDashboard() {
           enqueueSnackbar("Profile updated successfully!", {
             variant: "success",
           });
+
+          window.location.reload();
         } else {
           enqueueSnackbar("Failed to update profile. Please try again.", {
             variant: "error",

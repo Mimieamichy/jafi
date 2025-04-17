@@ -234,7 +234,7 @@ export default function PaginatedReviews() {
             >
               &times;
             </button>
-            <h3 className="text-lg font-semibold mb-4">Reply to Review</h3>
+            <h3 className="text-lg font-semibold mb-4">Reply</h3>
             <p className="text-gray-800 whitespace-pre-line">{selectedReply}</p>
           </div>
         </div>

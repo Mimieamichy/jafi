@@ -35,9 +35,11 @@ export default function BusinessPage() {
 
   // Claim modal state
   const [showClaimModal, setShowClaimModal] = useState(false);
-  const [claimEmail, setClaimEmail] = useState("");
-  const [claimPhone, setClaimPhone] = useState("");
-  const [claimPobFile, setClaimPobFile] = useState(null);
+ const [formData, setFormData] = useState({
+  email: "",
+  phone: "",
+  pob:null
+ })
 
   // Review form state
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -186,20 +188,22 @@ export default function BusinessPage() {
   const handleClaimSubmit = async (e) => {
     e.preventDefault();
     try {
-      const formData = new FormData();
-      formData.append("email", claimEmail);
-      formData.append("phone", claimPhone);
-      if (claimPobFile) {
-        formData.append("pob", claimPobFile, claimPobFile.name);
+      const data = new FormData();
+      data.append("email", formData.email);
+      data.append("phone", formData.phone);
+      if (formData.pob) {
+        data.append("pob", formData.pob, formData.pob.name);
       }
 
       
       const response = await fetch(`${baseUrl}/claim/${id}`, {
         method: "POST",
-        body: formData,
+        body: data,
       });
       if (response.ok) {
         navigate("/pricing");
+        console.log("response", response);
+        
       } else {
         const errorData = await response.text();
         console.error("Claim error:", errorData);
@@ -639,8 +643,8 @@ export default function BusinessPage() {
                 className="border w-full p-2 mb-4"
                 required
                 name="email"
-                value={claimEmail}
-                onChange={(e) => setClaimEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) => setFormData({...formData,email: e.target.value})}
               />
 
               <label className="block mb-2 font-semibold">Phone:</label>
@@ -649,19 +653,20 @@ export default function BusinessPage() {
                 name="phone"
                 className="border w-full p-2 mb-4"
                 required
-                value={claimPhone}
-                onChange={(e) => setClaimPhone(e.target.value)}
+                value={formData.phone}
+                onChange={(e) =>  setFormData({...formData,phone: e.target.value})}
               />
 
               <label className="block mb-2 font-semibold">
                 Proof of Business (POB):
               </label>
               <input
-                name="claim"
+                name="pob"
                 type="file"
+                value={formData.pob}
                 accept="image/*,application/pdf,application/msword,.docx"
                 className="border w-full p-2 mb-4"
-                onChange={(e) => setClaimPobFile(e.target.files[0])}
+                onChange={(e) => setFormData({...formData,pob: e.target.value})}
               />
 
               <div className="flex justify-end gap-2">
