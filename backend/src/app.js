@@ -44,6 +44,8 @@ const reviewRoutes = require("./domains/review/review.routes");
 const businessRoutes = require("./domains/business/business.routes")
 const claimRoutes = require("./domains/claim/claim.routes")
 const adminRoutes = require("./domains/admin/admin.routes");
+const paymentsRoutes = require("./domains/payments/payments.route")
+
 
 
 
@@ -54,6 +56,7 @@ app.use(`${app_url}/review`, reviewRoutes);
 app.use(`${app_url}/business`, businessRoutes);
 app.use(`${app_url}/claim`, claimRoutes);
 app.use(`${app_url}/admin`, adminRoutes);
+app.use(`${app_url}/payments`, paymentsRoutes);
 
 
 

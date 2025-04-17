@@ -42,6 +42,7 @@ exports.payForClaim = async (req, res) => {
   const transaction = await sequelize.transaction();
   const amount = req.body.amount;
   const businessId = req.params
+
   try {
     const response = await claimService.payForClaim(transaction, amount, businessId);
     await transaction.commit();

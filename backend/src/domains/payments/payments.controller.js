@@ -63,5 +63,12 @@ exports.verifyPayment = async (req, res) => {
 }
 
 
-exports
+exports.viewPayments = async (req, res) => {
+    try {
+        const payments = await PaymentService.viewPayments();
+        res.status(200).json(payments);
+    } catch (error) {
+        res.status(error.status || 500).json({ error: error.message });
+    }
+};
 

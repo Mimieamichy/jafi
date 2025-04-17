@@ -39,11 +39,14 @@ exports.getAClaim = async (claimId) => {
 };
 
 exports.payForClaim = async (businessId, amount, transaction) => {
+  console.log(businessId, amount);
   const claim = await Claim.findOne({
     where: { id: businessId },
     include: [{ model: Business, attributes: ["userId", "email", "name"] }],
     transaction,
   });
+
+  console.log(claim)
 
   if (!claim || !claim.Business) {
     throw new Error("Claim not found or does not have an associated business.");
