@@ -127,6 +127,16 @@ exports.deleteBusiness = async (req, res) => {
   }
 }
 
+exports.getMyBusiness = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const business = await AdminService.getMyBusiness(userId);
+    return res.status(200).json({ success: true, business });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 
 
 
