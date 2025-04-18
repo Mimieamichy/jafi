@@ -15,7 +15,7 @@ export default function Settings() {
   const [adminCount, setAdminCount] = useState(0);
 
   const [form, setForm] = useState({ name: "", email: "", role: "admin" });
-  const [oldPw, setOldPw] = useState("");
+
   const [newPw, setNewPw] = useState("");
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
@@ -54,17 +54,17 @@ export default function Settings() {
 
   /* ---------- change password ---------- */
   const changePw = async () => {
-    if (!oldPw || !newPw)
-      return enqueueSnackbar("Enter both passwords", { variant: "warning" });
+    if (!newPw)
+      return enqueueSnackbar("Enter a new password", { variant: "warning" });
     try {
       const r = await fetch(`${baseUrl}/admin/updateAdminPassword`, {
         method: "PUT",
         headers: headersJSON,
-        body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw }),
+        body: JSON.stringify({ newPassword: newPw }),
       });
       if (!r.ok) throw new Error();
       enqueueSnackbar("Password updated", { variant: "success" });
-      setOldPw("");
+
       setNewPw("");
     } catch {
       enqueueSnackbar("Update failed", { variant: "error" });
@@ -103,6 +103,7 @@ export default function Settings() {
 
         <label className="block text-sm mb-1">Name</label>
         <input
+          name="name"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           className="border p-2 w-full rounded mb-2"
@@ -111,6 +112,7 @@ export default function Settings() {
         <label className="block text-sm mb-1">Email</label>
         <input
           type="email"
+          name="email"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           className="border p-2 w-full rounded mb-2"
@@ -118,6 +120,7 @@ export default function Settings() {
 
         <label className="block text-sm mb-1">Role</label>
         <select
+          name="role"
           value={form.role}
           onChange={(e) => setForm({ ...form, role: e.target.value })}
           className="border p-2 w-full rounded"
@@ -144,30 +147,13 @@ export default function Settings() {
 
       {/* ---- Change Password ---- */}
       {/* ---- Change Password ---- */}
+      {/* ---- Change Password ---- */}
       <section>
         <h3 className="font-semibold mb-2">Change Password</h3>
 
-        {/* old password */}
-        <div className="relative mb-2">
-          <input
-            type={showOld ? "text" : "password"}
-            placeholder="Old password"
-            value={oldPw}
-            onChange={(e) => setOldPw(e.target.value)}
-            className="border p-2 w-full rounded pr-10"
-          />
-          <button
-            type="button"
-            onClick={() => setShowOld(!showOld)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
-          >
-            <FontAwesomeIcon icon={showOld ? faEyeSlash : faEye} />
-          </button>
-        </div>
-
-        {/* new password */}
         <div className="relative">
           <input
+            name="password"
             type={showNew ? "text" : "password"}
             placeholder="New password"
             value={newPw}
@@ -185,7 +171,7 @@ export default function Settings() {
 
         <button
           onClick={changePw}
-          className="bg-blue-600 text-white px-4 py-2 rounded mt-3 w-full sm:w-auto"
+          className="bg-green-600 text-white px-4 py-2 rounded mt-3 w-full sm:w-auto"
         >
           Update Password
         </button>
@@ -199,6 +185,7 @@ export default function Settings() {
           <div key={field} className="mb-3 sm:flex sm:items-center">
             <label className="capitalize sm:w-24">{field}</label>
             <input
+              name="price"
               type="number"
               value={price[field]}
               onChange={(e) => setPrice({ ...price, [field]: e.target.value })}

@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faTrash, faCheck } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEye,
+  faTrash,
+  faCheck,
+  faDownload,
+} from "@fortawesome/free-solid-svg-icons";
 import { useSnackbar } from "notistack";
 // import { jwtDecode } from "jwt-decode";
 
@@ -157,7 +162,7 @@ export default function Businesses() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         console.log("databus", data);
-        
+
         setBusinesses(Array.isArray(data) ? data : data.businesses || []);
       } catch (err) {
         console.error("Error fetching businesses:", err);
@@ -174,7 +179,6 @@ export default function Businesses() {
       setCurrentPage(totalPages > 0 ? totalPages : 1);
     }
   }, [currentPage, totalPages]);
-
 
   const handleView = (business) => {
     setSelectedBusiness(business);
@@ -235,8 +239,8 @@ export default function Businesses() {
 
       if (!response.ok) {
         const data = await response.json();
-        console.log("adminBuss",data);
-        
+        console.log("adminBuss", data);
+
         throw new Error("Failed to create business");
       }
       // Optionally, update the list of businesses here by refetching or appending.
@@ -433,7 +437,8 @@ export default function Businesses() {
               <strong>Category:</strong> {selectedBusiness.category}
             </p>
             <p>
-              <strong>Address:</strong> {selectedBusiness.address},{selectedBusiness.city},{selectedBusiness.state}
+              <strong>Address:</strong> {selectedBusiness.address},
+              {selectedBusiness.city},{selectedBusiness.state}
             </p>
             <p>
               <strong>Phone:</strong> {selectedBusiness.phone_number1},{" "}
@@ -476,6 +481,19 @@ export default function Businesses() {
             <p>
               <strong>Claimed:</strong>{" "}
               {selectedBusiness.claimed ? "Yes" : "No"}
+            </p>
+            <p>
+              <strong>POB:</strong>{" "}
+              <a
+                href={selectedBusiness.proof}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="text-blue-600 hover:underline"
+              >
+                <FontAwesomeIcon icon={faDownload} />
+                Download
+              </a>
             </p>
             <p>
               <strong>Approved:</strong>{" "}
