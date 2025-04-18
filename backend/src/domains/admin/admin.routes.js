@@ -5,14 +5,13 @@ const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllService
 
 
 const { uploadMiddleware } = require("../../application/middlewares/cloudinary");
-const { authenticate } = require('../../application/middlewares/authenticate');
-const { authorize } = require('../../application/middlewares/authorize');
+
 
 
 router.get('/businessPrice', getBusinessPrice)
 router.get("/servicePrice", getServicePrice);
-
-
+const { authenticate } = require('../../application/middlewares/authenticate');
+const { authorize } = require('../../application/middlewares/authorize');
 
 
 
