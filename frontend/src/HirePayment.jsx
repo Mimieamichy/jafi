@@ -1,65 +1,89 @@
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useSnackbar } from "notistack";
+
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function HiringPayment() {
   const { enqueueSnackbar } = useSnackbar();
   const location = useLocation();
-  const serviceId =
-    location.state?.serviceId || localStorage.getItem("serviceId");
-  const serviceIdNum = parseInt(serviceId);
-  const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
-  const plan = { price: 150 };
+  /* ---------- service ID that was stashed earlier ---------- */
+  const serviceIdNum = Number(
+    location.state?.serviceId ?? localStorage.getItem("serviceId") ?? 0
+  );
 
-  const handlePayment = async () => {
+  /* ---------- price fetched from backend ---------- */
+  const [price, setPrice] = useState(null); // null ⇒ loading
+  const [loading, setLoad] = useState(true);
+
+  useEffect(() => {
+    const fetchPrice = async () => {
+      try {
+        const r = await fetch(`${baseUrl}/admin/servicePrice`);
+        const data = await r.json(); // expect { price: 150 }
+        console.log("Service price →", data);
+        setPrice(Number(data.servicePrice.value));
+      } catch (e) {
+        console.error(e);
+        enqueueSnackbar("Couldn’t fetch price", { variant: "error" });
+      } finally {
+        setLoad(false);
+      }
+    };
+    fetchPrice();
+  }, [enqueueSnackbar]);
+
+  /* ---------- Paystack redirect ---------- */
+  const payNow = async () => {
     if (!serviceIdNum) {
       enqueueSnackbar("Service ID not found.", { variant: "error" });
       return;
     }
+    if (price == null) return; // still loading / failed
 
     try {
-      const response = await fetch(`${baseUrl}/service/pay/${serviceIdNum}`, {
+      const r = await fetch(`${baseUrl}/service/pay/${serviceIdNum}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ amount: plan.price }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: price }),
       });
-
-      const result = await response.json();
-      console.log("Payment result:", result);
-      const paystackUrl = result?.data?.paymentDetails?.data?.authorization_url;
-
-      if (response.ok && paystackUrl) {
-        window.location.href = paystackUrl; // ✅ Redirect to Paystack
+      const res = await r.json();
+      const paystackUrl = res?.data?.paymentDetails?.data?.authorization_url;
+      if (r.ok && paystackUrl) {
+        window.location.href = paystackUrl; // 🎉
       } else {
         enqueueSnackbar(
-          `Payment failed: ${result.message || "No redirect link received"}`,
-          {
-            variant: "info",
-          }
+          `Payment failed: ${res.message || "no link returned"}`,
+          { variant: "error" }
         );
       }
-    } catch (error) {
-      console.error("Payment error:", error);
-
-      enqueueSnackbar("Something went wrong while initiating payment.", {
-        variant: "error",
-      });
+    } catch (e) {
+      console.error(e);
+      enqueueSnackbar("Couldn’t start payment.", { variant: "error" });
     }
   };
 
+  /* ---------- UI ---------- */
   return (
     <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-4 text-center">Make Payment</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">Make Payment</h2>
+
       <div className="p-4 border rounded-md text-center">
-        <p className="text-lg font-bold">${plan.price}</p>
-        <button
-          onClick={handlePayment}
-          className="bg-blue-600 text-white py-2 px-4 rounded-lg mt-2"
-        >
-          Pay Now
-        </button>
+        {loading ? (
+          <p className="text-gray-600">Loading price…</p>
+        ) : (
+          <>
+            <p className="text-lg font-bold">${price}</p>
+            <button
+              onClick={payNow}
+              disabled={price == null}
+              className="bg-blue-600 text-white py-2 px-4 rounded-lg mt-2 disabled:opacity-50"
+            >
+              Pay Now
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
