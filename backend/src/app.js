@@ -7,7 +7,6 @@ const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const passport = require('./config/passport')
 const app_url = process.env.APP_URL || "/api/v1";
-const bodyParser = require("body-parser");
 
 const app = express();
 
@@ -22,13 +21,6 @@ app.use(compression());
 app.use(morgan("dev"));
 
 
-
-//paysatck webhook
-// Mount webhook route with raw body
-app.post('/api/v1/payment/webhook/paystack', 
-    bodyParser.raw({ type: '*/*' }), 
-    require('./domains/payments/payments.controller').webhook
-  );
 
 // Rate Limiting (chnage back to 100 on production)
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100});

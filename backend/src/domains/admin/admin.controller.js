@@ -78,6 +78,8 @@ exports.updateBusinessPrice = async (req, res) => {
 
     return res.status(200).json({ success: true, message: "Business price updated successfully" });
   } catch (error) {
+    console.log(error);
+    
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -272,6 +274,7 @@ exports.approveClaim = async (req, res) => {
     const response = await AdminService.approveClaim(id);
     return res.status(200).json({ success: true, response });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };

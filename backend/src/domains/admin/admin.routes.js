@@ -12,6 +12,7 @@ router.use(authenticate, authorize(["admin", "superadmin"]));
 router.post('/addBusiness', uploadMiddleware, addBusiness)
 router.get("/myBusiness", getMyBusiness);
 router.put('/myBusiness/:id', uploadMiddleware, updateMyBusiness)
+router.post('/updateAdminPassword', updateAdminPassword);
 
 
 
@@ -30,9 +31,8 @@ router.post('/createAdmin', createAdmin);
 router.post('/approveBusiness/:id', approveBusiness);
 router.post("/approveClaim/:id", approveClaim);
 router.post("/approveService/:id", approveService);
-router.post('/updateAdminPassword', updateAdminPassword);
-router.post('/updateBusinessPrice', updateBusinessPrice);
-router.post("/updateServicePrice", updateServicePrice);
+router.put('/updateBusinessPrice', updateBusinessPrice);
+router.put("/updateServicePrice", updateServicePrice);
 router.delete('/deleteBusiness/:id', deleteBusiness);
 router.delete('/deleteReview/:id', deleteReview);
 router.delete('/deleteReviewer/:id', deleteReviewer);

@@ -360,9 +360,10 @@ exports.getClaims = async () => {
 }
 
 exports.approveClaim = async (claimId) => {
+    console.log(claimId);
     const claim = await Claim.findByPk(claimId);
     
-    if (!claim || claim.status !== 'pending' || claim.paymentStatus !== 'paid') {
+    if (!claim || claim.status !== 'pending') {
         return { message: 'Invalid claim approval' }
     }
 
@@ -372,22 +373,19 @@ exports.approveClaim = async (claimId) => {
     // Generate user credentials
     const { plainPassword, hashedPassword } = await generatePassword();
     // Create or update the user (depends on your system)
-    const user = await User.update(
+    await User.update(
         { password: hashedPassword },
-        { where: { email: business.email } }
+        { where: { email: claim.email } }
     );
-
-    if (updatedCount === 0) {
-        return {message: "User with this email does not exist"};
-    }
-
+      
+    const updatedUser = await User.findOne({ where: { email: claim.email } });
 
     // Update business info
     business.email = claim.email;
-    business.phone = claim.phone;
+    business.phone_number1 = claim.phone;
     business.proof = claim.proof;
-    business.claim = true;
-    business.userId = user.id;
+    business.claimed = true;
+    business.userId = updatedUser.id;
     await business.save();
 
     // Mark claim approved

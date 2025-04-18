@@ -36,10 +36,6 @@ status: {
     type: DataTypes.ENUM("pending", "approved", "rejected"),
     defaultValue: "pending",
 },
-paymentStatus: {
-    type: DataTypes.ENUM("unpaid", "paid"),
-    defaultValue: "unpaid",
-},
 },
 { 
     tableName: "claims", 
