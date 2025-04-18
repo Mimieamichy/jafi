@@ -40,7 +40,6 @@ exports.registerBusiness = async (businessData) => {
   };
 };
 
-
 exports.getABusiness = async (businessId) => {
   const business = await Business.findByPk(businessId, {
     include: {

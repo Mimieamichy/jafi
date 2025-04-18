@@ -5,15 +5,30 @@ const cloudinary = require("../../config/cloudinary");
 const storage = new CloudinaryStorage({
   cloudinary,
   params: (req, file) => {
-    let folder = ""; 
-    if (file.fieldname === "workSamples") folder = "jafiImages/services"
-    if (file.fieldname === "pob") folder = "jafiImages/pob"
-    if (file.fieldname === "reviewImages") folder = "jafiImages/reviews"
-    if (file.fieldname === "images") folder = "jafiImages/business"
-
-    return { folder, allowed_formats: ["jpg", "jpeg", "png", "gif", "svg", "webp", "tiff", "bmp", "heic", "raw", "docx", "pdf"] };
-
-  },
+    let folder = "";
+    let allowedFormats = ["jpg", "jpeg", "png", "gif", "svg", "webp", "tiff", "bmp", "heic"];
+  
+    if (file.fieldname === "workSamples") {
+      folder = "jafiImages/services";
+    } else if (file.fieldname === "pob") {
+      folder = "jafiImages/pob";
+      allowedFormats = ["pdf", "docx"]; // only allow documents for pob
+      return {
+        folder,
+        resource_type: "raw", // needed for non-image files like PDF/DOCX
+        allowed_formats: allowedFormats,
+      };
+    } else if (file.fieldname === "reviewImages") {
+      folder = "jafiImages/reviews";
+    } else if (file.fieldname === "images") {
+      folder = "jafiImages/business";
+    }
+  
+    return {
+      folder,
+      allowed_formats: allowedFormats,
+    };
+  }  
 });
 
 const upload = multer({ storage }).fields([
