@@ -9,7 +9,7 @@ import {
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white py-10 bottom-0 top-0 z-50">
+    <footer className="bg-gray-900 text-white py-10 bottom-0 top-0 ">
       <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between">
         {/* Logo */}
         <a href="/" className="mb-6 md:mb-0">

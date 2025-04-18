@@ -281,12 +281,12 @@ export default function AdminPage() {
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       {/* ---------- header ---------- */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center  mb-4">
         <h2 className="text-2xl font-bold">Listed Businesses</h2>
-        <div className="space-x-2">
+        <div className="space-x-2 ">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-2 py-1 bg-blue-600 text-white rounded"
+            className="px-2 py-1 bg-blue-600 my-2 text-white rounded"
           >
             Add Business
           </button>
@@ -525,9 +525,8 @@ export default function AdminPage() {
       {/* Modal for Adding a Business */}
       {isAddModalOpen && (
         <div
-          className="fixed inset-0 overflow-y-auto bg-black/50 items-start justify-center p-4"
-        >
-          <div className="bg-white p-6 rounded-lg w-full max-w-xl mx-2 max-h-[85vh] overflow-y-auto">
+          className="fixed inset-0 overflow-y-auto bg-black/50 flex items-start justify-center p-4">
+          <div className="bg-white p-6 w-full max-w-xl rounded shadow max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Add Business</h2>
             <form onSubmit={handleCreateBusiness} className="space-y-4">
               <div>

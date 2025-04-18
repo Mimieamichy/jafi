@@ -114,6 +114,13 @@ export default function Navbar() {
     setIsOpen(false);
   };
 
+  const dashboardPath = {
+    business:     "/bus-dashboard",
+    service:      "/hiring-dashboard",
+    admin:        "/admin-page",
+    superadmin:   "/admin",
+  }[userRole] || "/";
+
   return (
     <nav className="bg-white shadow-md p-4 fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto flex justify-between items-center">
@@ -183,15 +190,7 @@ export default function Navbar() {
           </Link>
           {userRole && (
             <Link
-              to={
-                userRole === "business"
-                  ? "/bus-dashboard"
-                  : userRole === "service"
-                  ? "/hiring-dashboard"
-                  : userRole === "superadmin"
-                  ?"/admin"
-                  : "/admin-page"
-              }
+              to={dashboardPath}
               onClick={handleNavClick}
               className="text-gray-600 hover:text-black"
             >
@@ -291,13 +290,7 @@ export default function Navbar() {
           </Link>
           {userRole && (
             <Link
-              to={
-                userRole === "business"
-                  ? "/bus-dashboard"
-                  : userRole === "service"
-                  ? "/hiring-dashboard"
-                  : "/admin"
-              }
+              to={dashboardPath}
               onClick={handleNavClick}
               className="block text-black hover:text-gray-600"
             >

@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import About from "./About";
-import FeaturedListings from "./FeaturedListing";
+//import FeaturedListings from "./FeaturedListing";
 import HeroSection from "./Hero";
 import CustomerReviews from "./Reviews";
 import Services from "./Service";
 import { ReviewsProvider } from "../context/reviewContext";
+import RecentListings from "../RecentListing";
 
 export default function Homepage() {
   const location = useLocation();
@@ -29,7 +30,7 @@ export default function Homepage() {
       </div>
       </ReviewsProvider>
       <div>
-        <FeaturedListings />
+        <RecentListings />
       </div>
       <div id="about">
         <About />
