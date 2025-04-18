@@ -1,12 +1,20 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getClaims, updateMyBusiness} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getClaims, updateMyBusiness, getBusinessPrice, getServicePrice} = require('./admin.controller')
 
 
 const { uploadMiddleware } = require("../../application/middlewares/cloudinary");
 const { authenticate } = require('../../application/middlewares/authenticate');
 const { authorize } = require('../../application/middlewares/authorize');
+
+
+router.get('/businessPrice', getBusinessPrice)
+router.get("/servicePrice", getServicePrice);
+
+
+
+
 
 router.use(authenticate, authorize(["admin", "superadmin"])); 
 router.post('/addBusiness', uploadMiddleware, addBusiness)

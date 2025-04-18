@@ -256,6 +256,17 @@ exports.updateMyBusiness = async (businessId, userId, businessData, password, em
 };
   
 
+exports.getBusinessPrice = async () => {
+    const price = await AdminSettings.find({ where: { key: 'business_price' }, attributes: ["value"] });
+    if (!price) throw new Error("Price not found");
+  
+    return price;
+};
+
+
+
+
+
 //Service management
 exports.getAllServices = async () => {
     const services = await Service.findAll();
@@ -333,6 +344,19 @@ exports.deleteService = async (id) => {
     return { message: "Service and associated user deleted successfully" };
 }
 
+exports.getMyServices = async (userId) => {
+    const services = await Service.findAll({
+        where: { userId },
+        include: [
+            {
+                model: User,
+                attributes: ["id", "name", "email"],
+            },
+        ],
+    });
+
+    return services;
+};
 exports.updateSevicePrice = async (price) => {
     const setting = await AdminSettings.findOne({ where: { key: "service_price" } });
 
@@ -346,6 +370,12 @@ exports.updateSevicePrice = async (price) => {
     return { message: "Service price updated successfully" };
 }
 
+exports.getServicePrice = async () => {
+    const price = await AdminSettings.find({ where: { key: 'service_price' }, attributes: ["value"] });
+    if (!price) throw new Error("Price not found");
+  
+    return price;
+};
 
 //Claim management
 exports.getClaim = async (claimId) => {

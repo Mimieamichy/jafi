@@ -70,11 +70,9 @@ exports.approveBusiness = async (req, res) => {
 };
 
 exports.updateBusinessPrice = async (req, res) => {
-  const { id } = req.params;
   const { price } = req.body;
-
   try {
-    await AdminService.updateBusinessPrice(id, price);
+    await AdminService.updateBusinessPrice(price);
 
     return res.status(200).json({ success: true, message: "Business price updated successfully" });
   } catch (error) {
@@ -165,6 +163,16 @@ exports.updateMyBusiness = async (req, res) => {
 };
 
 
+exports.getBusinessPrice = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const businessPrice = await AdminService.getBusinessPrice(id);
+    return res.status(200).json({ success: true, businessPrice });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 
 
@@ -200,11 +208,10 @@ exports.approveService = async (req, res) => {
 };
 
 exports.updateServicePrice = async (req, res) => {
-  const { id } = req.params;
   const { price } = req.body;
 
   try {
-    await AdminService.updateSevicePrice(id, price);
+    await AdminService.updateSevicePrice(price);
 
     return res.status(200).json({ success: true, message: "Service price updated successfully" });
   } catch (error) {
@@ -221,6 +228,17 @@ exports.deleteService = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 }
+
+exports.getServicePrice = async (req, res) => {
+  try {
+    const price = await AdminService.getServicePrice();
+    return res.status(200).json({ success: true, price });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+
 
 
 
