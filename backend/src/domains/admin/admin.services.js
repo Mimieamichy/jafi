@@ -257,7 +257,7 @@ exports.updateMyBusiness = async (businessId, userId, businessData, password, em
   
 
 exports.getBusinessPrice = async () => {
-    const price = await AdminSettings.find({ where: { key: 'business_price' }, attributes: ["value"] });
+    const price = await AdminSettings.findOne({ where: { key: 'business_price' }, attributes: ["value"] });
     if (!price) throw new Error("Price not found");
   
     return price;
@@ -371,7 +371,7 @@ exports.updateSevicePrice = async (price) => {
 }
 
 exports.getServicePrice = async () => {
-    const price = await AdminSettings.find({ where: { key: 'service_price' }, attributes: ["value"] });
+    const price = await AdminSettings.findOne({ where: { key: 'service_price' }, attributes: ["value"] });
     if (!price) throw new Error("Price not found");
   
     return price;
