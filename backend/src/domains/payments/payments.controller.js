@@ -1,8 +1,12 @@
+require('dotenv').config()
 const Business = require("../business/business.model");
 const Claim = require("../claim/claim.model");
 const PaymentService = require("../payments/payments.service")
 const Service = require("../service/service.model");
 const Payment = require("./payments.model");
+const crypto = require('crypto');
+const secret = process.env.PAYSTACK_SECRET_KEY;
+
 
 exports.createPayment = async (req, res) => {
     try {
@@ -94,9 +98,10 @@ exports.viewPayments = async (req, res) => {
 
 
 exports.webhook = async (req, res) => {
-  const crypto = require('crypto');
-  const secret = process.env.PAYSTACK_SECRET_KEY;
-  const hash = crypto.createHmac('sha512', secret).update(req.body).digest('hex');
+  console.log("WEBHOOK COMING");
+  const hash = crypto.createHmac('sha512', secret)
+    .update(req.rawBody)
+    .digest('hex');
 
   const signature = req.headers['x-paystack-signature'];
 
@@ -104,22 +109,21 @@ exports.webhook = async (req, res) => {
     return res.status(400).send('Invalid signature');
   }
 
-  const event = JSON.parse(req.body.toString());
+  const event = JSON.parse(req.rawBody.toString());
 
   if (event.event === 'charge.success') {
     const { reference, status } = event.data;
 
-    console.log(reference, status)
-    // Find payment by reference
     const payment = await Payment.findOne({ where: { payment_reference: reference } });
-
     if (payment) {
-      if (payment.entity_type == 'claim') {
-           const claim = await Claim.findOne({where: {transacionId: reference}})
-           claim.paymentStatus = 'paid'
-           await claim.save()
+      if (payment.entity_type === 'claim') {
+        const claim = await Claim.findOne({ where: { transactionId: reference } });
+        if (claim) {
+          claim.paymentStatus = 'paid';
+          await claim.save();
+        }
       }
-      
+
       payment.status = status === 'success' ? 'successful' : 'failed';
       await payment.save();
     }

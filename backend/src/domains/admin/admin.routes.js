@@ -11,7 +11,7 @@ const { authorize } = require('../../application/middlewares/authorize');
 router.use(authenticate, authorize(["admin", "superadmin"])); 
 router.post('/addBusiness', uploadMiddleware, addBusiness)
 router.get("/myBusiness", getMyBusiness);
-router.put('/myBusiness/:id', updateMyBusiness)
+router.put('/myBusiness/:id', uploadMiddleware, updateMyBusiness)
 
 
 
