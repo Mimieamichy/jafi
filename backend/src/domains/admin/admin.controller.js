@@ -154,7 +154,7 @@ exports.updateMyBusiness = async (req, res) => {
     delete businessData.email
 
 
-    const business = await BusinessService.updateMyBusiness(id, userId, businessData, password, email);
+    const business = await AdminService.updateMyBusiness(id, userId, businessData, password, email);
     res.status(200).json(business);
   } catch (error) {
     console.log(error);

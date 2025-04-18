@@ -25,7 +25,7 @@ app.use(morgan("dev"));
 
 //paysatck webhook
 // Mount webhook route with raw body
-app.post('/api/payments/webhook/paystack', 
+app.post('/api/v1/payment/webhook/paystack', 
     bodyParser.raw({ type: '*/*' }), 
     require('./domains/payments/payments.controller').webhook
   );
