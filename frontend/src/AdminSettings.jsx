@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { useSnackbar } from "notistack";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faSave, faTimes, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 

@@ -6,7 +6,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { jwtDecode } from "jwt-decode";
 import { useSnackbar } from "notistack";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar,  faGlobe } from "@fortawesome/free-solid-svg-icons";
+import { faStar, faGlobe } from "@fortawesome/free-solid-svg-icons";
 import {
   faStar as solidStar,
   faStarHalfAlt,
@@ -16,7 +16,7 @@ import {
   faWhatsapp,
   faInstagram,
   faLinkedin,
-  faXTwitter
+  faXTwitter,
 } from "@fortawesome/free-brands-svg-icons";
 
 import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
@@ -35,11 +35,11 @@ export default function BusinessPage() {
 
   // Claim modal state
   const [showClaimModal, setShowClaimModal] = useState(false);
- const [formData, setFormData] = useState({
-  email: "",
-  phone: "",
-  pob:null
- })
+  const [formData, setFormData] = useState({
+    email: "",
+    phone: "",
+    pob: null,
+  });
 
   // Review form state
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -57,7 +57,7 @@ export default function BusinessPage() {
   const [reviewImageModalOpen, setReviewImageModalOpen] = useState(false);
   const [reviewModalImages, setReviewModalImages] = useState([]);
   const [reviewModalIndex, setReviewModalIndex] = useState(0);
-  
+
   // Settings for business images carousel (header section)
   const sliderSettings = {
     dots: true,
@@ -76,7 +76,7 @@ export default function BusinessPage() {
         const response = await fetch(`${baseUrl}/business/${id}`);
         const data = await response.json();
         setBusiness(data);
-        const claimbusId = data.id
+        const claimbusId = data.id;
         localStorage.setItem("claimbusId", claimbusId);
         console.log("Fetched business:", data);
         setUniqueId(data.uniqueId);
@@ -187,29 +187,27 @@ export default function BusinessPage() {
     }
   }, [location, enqueueSnackbar]);
 
-  const handleClaimChange = e => {
+  const handleClaimChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // update pob when user picks a file
-  const handleClaimFileChange = e => {
+  const handleClaimFileChange = (e) => {
     const file = e.target.files[0] || null;
-    setFormData(prev => ({ ...prev, pob: file }));
+    setFormData((prev) => ({ ...prev, pob: file }));
   };
-
 
   const handleClaimSubmit = async (e) => {
     e.preventDefault();
     try {
       const data = new FormData();
       data.append("email", formData.email);
-      data.append("phone", formData.phone_number1);
+      data.append("phone", formData.phone);
       if (formData.pob instanceof File) {
-        data.append('pob', formData.pob, formData.pob.name);
+        data.append("pob", formData.pob, formData.pob.name);
       }
 
-      
       const response = await fetch(`${baseUrl}/claim/${id}`, {
         method: "POST",
         body: data,
@@ -220,16 +218,14 @@ export default function BusinessPage() {
         console.log("response", response);
         const data = await response.json();
         console.log("climid", data);
-        
-        const claimid = data.claim.id
+
+        const claimid = data.claim.id;
         localStorage.setItem("claimid", claimid);
-        
       } else {
         const errorData = await response.text();
         enqueueSnackbar("Claim error:", errorData, { variant: "error" });
-        
+
         console.error("Claim error:", errorData);
-        
       }
     } catch (error) {
       enqueueSnackbar("Error submitting claim:", error, { variant: "error" });
@@ -358,8 +354,7 @@ export default function BusinessPage() {
             {business.state}
           </p>
           <p className="text-sm text-gray-500 m-2">Email: {business.email}</p>
-          
-          
+
           <p className="text-sm text-gray-500 m-2">
             Opens at: {business.start} - {business.end}
           </p>
@@ -687,7 +682,6 @@ export default function BusinessPage() {
               <input
                 name="pob"
                 type="file"
-               
                 accept="image/*,application/pdf,application/msword,.docx"
                 className="border w-full p-2 mb-4"
                 onChange={handleClaimFileChange}

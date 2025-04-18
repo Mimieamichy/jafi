@@ -188,7 +188,9 @@ export default function Navbar() {
                   ? "/bus-dashboard"
                   : userRole === "service"
                   ? "/hiring-dashboard"
-                  : "/admin"
+                  : userRole === "superadmin"
+                  ?"/admin"
+                  : "/admin-page"
               }
               onClick={handleNavClick}
               className="text-gray-600 hover:text-black"

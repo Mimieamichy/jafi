@@ -27,7 +27,7 @@ const BusinessPage = lazy(() => import("./BusinessPage"));
 const BusinessProfileCard = lazy(() => import("./BusinessProfileCard"));
 const ReviewersDashboard = lazy(() => import("./Reviewer"));
 const AdminDashboard = lazy(() => import("./Admindashboard"));
-
+const AdminPage = lazy(() => import("./AdminPage"));
 const PaymentSuccess = lazy(() => import("./PaymentSuccess"));
 const NotFound = lazy(() => import("./NotFound"));
 const HireProfileDetails = lazy(() => import("./HirePage"));
@@ -60,6 +60,7 @@ export default function App() {
                 <Route path="/bus-profile" element={<BusinessProfileCard />} />
                 <Route path="/reviewer" element={<ReviewersDashboard />} />
                 <Route path="/admin/*" element={<AdminDashboard />} />
+                <Route path="/admin-page" element={<AdminPage />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/all-listing" element={<AllListings />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />

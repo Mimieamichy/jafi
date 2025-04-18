@@ -67,7 +67,7 @@ const AdminDashboard = () => {
         className={`
           ${sidebarOpen ? "block" : "hidden"} 
           md:block w-64 bg-gray-900 text-white p-5 
-          absolute md:relative z-10
+          absolute md:relative z-10 overflow-y-auto
         `}
       >
         <h2 className="text-xl font-bold mb-4">Admin Dashboard</h2>

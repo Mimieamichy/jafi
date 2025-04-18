@@ -63,6 +63,9 @@ export default function SignIn() {
      else if (role === "superadmin") {
         navigate("/admin");
       }
+     else if (role === "admin") {
+        navigate("/admin-page");
+      }
       else if (role === "service") {
         navigate("/hiring-dashboard");
       }
