@@ -234,6 +234,9 @@ export default function Businesses() {
       });
 
       if (!response.ok) {
+        const data = await response.json();
+        console.log("adminBuss",data);
+        
         throw new Error("Failed to create business");
       }
       // Optionally, update the list of businesses here by refetching or appending.

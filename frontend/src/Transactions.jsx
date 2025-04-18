@@ -8,7 +8,7 @@ const baseUrl = import.meta.env.VITE_BACKEND_URL;
 export default function Transactions() {
   const authToken = localStorage.getItem("userToken");
 
-  const [txs, setTxs] = useState([]);           // all transactions
+  const [txs, setTxs] = useState([]); // all transactions
   const [currentPage, setCurrentPage] = useState(1);
   const [verifyTarget, setVerifyTarget] = useState(null); // tx awaiting confirm
 
@@ -22,9 +22,12 @@ export default function Transactions() {
       .then((r) => r.json())
       .then((data) => {
         console.log("transdata", data);
-        
-        const arr =
-          Array.isArray(data) ? data : Array.isArray(data.transactions) ? data.transactions : [];
+
+        const arr = Array.isArray(data)
+          ? data
+          : Array.isArray(data.transactions)
+          ? data.transactions
+          : [];
         setTxs(arr);
       })
       .catch((err) => console.error("transactions error", err));
@@ -91,15 +94,15 @@ export default function Transactions() {
                 return (
                   <tr key={t.paymentId} className="border-t text-center">
                     <td className="p-2 border">{sn}</td>
-                    <td className="p-2 border">{t.paymentId}</td>
-                    <td className="p-2 border capitalize">{t.name}</td>
+                    <td className="p-2 border">{t.entity_id}</td>
+                    <td className="p-2 border capitalize">{t.user.name}</td>
                     <td className="p-2 border">
                       ₦{Number(t.amount).toLocaleString()}
                     </td>
-                    <td className="p-2 border">{t.listingType}</td>
-                    <td className="p-2 border capitalize">{t.paymentStatus}</td>
+                    <td className="p-2 border">{t.entity_type}</td>
+                    <td className="p-2 border capitalize">{t.status}</td>
                     <td className="p-2 border">
-                      {t.paymentStatus === "unpaid" && (
+                      
                         <button
                           title="Verify payment"
                           onClick={() => setVerifyTarget(t)}
@@ -107,7 +110,7 @@ export default function Transactions() {
                         >
                           <FontAwesomeIcon icon={faCheck} />
                         </button>
-                      )}
+                     
                     </td>
                   </tr>
                 );
@@ -125,22 +128,38 @@ export default function Transactions() {
           slice.map((t, idx) => {
             const sn = (currentPage - 1) * itemsPerPage + idx + 1;
             return (
-              <div key={t.paymentId} className="border border-gray-300 rounded p-4 space-y-2">
-                <div><strong>S/N:</strong> {sn}</div>
-                <div><strong>Payment&nbsp;ID:</strong> {t.paymentId}</div>
-                <div><strong>Name:</strong> {t.name}</div>
-                <div><strong>Amount:</strong> ₦{Number(t.amount).toLocaleString()}</div>
-                <div><strong>Listing&nbsp;Type:</strong> {t.listingType}</div>
-                <div><strong>Status:</strong> {t.paymentStatus}</div>
-                {t.paymentStatus === "unpaid" && (
+              <div
+                key={t.paymentId}
+                className="border border-gray-300 rounded p-4 space-y-2"
+              >
+                <div>
+                  <strong>S/N:</strong> {sn}
+                </div>
+                <div>
+                  <strong>Payment&nbsp;ID:</strong> {t.entity_id}
+                </div>
+                <div>
+                  <strong>Name:</strong> {t.user.name}
+                </div>
+                <div>
+                  <strong>Amount:</strong> ₦{Number(t.amount).toLocaleString()}
+                </div>
+                <div>
+                  <strong>Listing&nbsp;Type:</strong> {t.entity_type}
+                </div>
+                <div>
+                  <strong>Status:</strong> {t.status}
+                </div>
+                
                   <button
                     title="Verify payment"
                     onClick={() => setVerifyTarget(t)}
                     className="text-green-600 hover:text-green-800 mt-1"
                   >
-                    <FontAwesomeIcon icon={faCheck} /> Verify
+                    <FontAwesomeIcon icon={faCheck} />
+                     Verify
                   </button>
-                )}
+                
               </div>
             );
           })
@@ -161,9 +180,7 @@ export default function Transactions() {
             Page {currentPage}/{totalPages}
           </span>
           <button
-            onClick={() =>
-              setCurrentPage((p) => Math.min(p + 1, totalPages))
-            }
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
             className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
           >
@@ -179,8 +196,8 @@ export default function Transactions() {
             <h4 className="text-lg font-bold mb-4">Verify Payment?</h4>
             <p className="mb-4">
               Confirm payment&nbsp;
-              <strong>{verifyTarget.paymentId}</strong> for{" "}
-              <strong>{verifyTarget.name}</strong>?
+              
+              <strong>{verifyTarget.user.name}</strong>?
             </p>
             <div className="flex justify-end space-x-2">
               <button
@@ -190,7 +207,7 @@ export default function Transactions() {
                 Cancel
               </button>
               <button
-                onClick={() => verifyPayment(verifyTarget.referenceId || verifyTarget.paymentId)}
+                onClick={() => verifyPayment(verifyTarget.payment_reference)}
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
                 Verify

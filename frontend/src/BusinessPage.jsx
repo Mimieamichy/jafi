@@ -204,7 +204,7 @@ export default function BusinessPage() {
     try {
       const data = new FormData();
       data.append("email", formData.email);
-      data.append("phone", formData.phone);
+      data.append("phone_number1", formData.phone);
       if (formData.pob instanceof File) {
         data.append('pob', formData.pob, formData.pob.name);
       }

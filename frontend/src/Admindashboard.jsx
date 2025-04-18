@@ -8,6 +8,7 @@ import Reviews from "./AdminReviews";
 import Settings from "./AdminSettings";
 import Overview from "./AdminOverview";
 import Claims from "./Claims";
+import AdminBusiness from "./AdminBusiness";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(null);
@@ -121,6 +122,13 @@ const AdminDashboard = () => {
             Transactions
           </Link>
           <Link
+            to="/admin/adminbus"
+            className={`block p-2 rounded ${activeTab === "adminbus" ? "bg-gray-700" : ""}`}
+            onClick={() => { setActiveTab("adminbus"); setSidebarOpen(false); }}
+          >
+            My Businesses
+          </Link>
+          <Link
             to="/admin/settings"
             className={`block p-2 rounded ${activeTab === "settings" ? "bg-gray-700" : ""}`}
             onClick={() => { setActiveTab("settings"); setSidebarOpen(false); }}
@@ -140,6 +148,7 @@ const AdminDashboard = () => {
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/claims" element={<Claims />} />
           <Route path="/transactions" element={<Transactions />} />
+          <Route path="/adminbus" element={<AdminBusiness />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
