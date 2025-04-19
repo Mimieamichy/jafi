@@ -1,52 +1,118 @@
+import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import privacyChoices from "../assets/jafi privacy choice.pdf";
+import privacyPolicy from "../assets/jafi Privacy Policy 3.pdf";
+import termsOfService from "../assets/jafi Terms of Service.pdf";
+import trustAndSafety from "../assets/jafi Trust and safety.pdf";
 import { faPhone, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import {
   faWhatsapp,
   faFacebookF,
-  faTwitter,
   faInstagram,
+  faTiktok,
 } from "@fortawesome/free-brands-svg-icons";
 
-const Footer = () => {
+const docs = {
+  "Privacy Choices": privacyChoices,
+  "Trust & Safety": trustAndSafety,
+  "Privacy Policy": privacyPolicy,
+  "Terms of Service": termsOfService,
+};
+
+export default function Footer() {
+  const [doc, setDoc] = useState("");
+
+  const handleSelect = (e) => {
+    const val = e.target.value;
+    setDoc(val);
+    if (docs[val]) window.open(docs[val], "_blank", "noopener,noreferrer");
+  };
+
   return (
-    <footer className="bg-gray-900 text-white py-10 bottom-0 top-0 ">
-      <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between">
-        {/* Logo */}
-        <a href="/" className="mb-6 md:mb-0">
-        <img src="../jafi.png" alt="Logo" className="h-10 w-auto" />
+    <footer className="bg-gray-900 text-white py-10">
+      <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        {/* logo */}
+        <a href="/" className="shrink-0">
+          <img src="/jafi.png" alt="JAFI logo" className="h-10 w-auto" />
         </a>
 
-        {/* Contact Details */}
-        <div className="text-center md:text-left ">
-          <p className="text-4xl font-bold p-4">Contact Us</p>
-          <div className="flex items-center justify-center md:justify-start space-x-3 mt-2">
+        {/* contact */}
+        <div className="text-center md:text-left">
+          <p className="text-2xl sm:text-3xl font-bold mb-4">Contact Us</p>
+          <div className="flex justify-center md:justify-start items-center space-x-2">
             <FontAwesomeIcon icon={faPhone} />
-            <span>+123 456 7890</span>
+            <span className="tracking-wide">
+              <a href="tel:08070446107" className="hover:underline">
+                08070446107
+              </a>
+              7
+            </span>
           </div>
-          <div className="flex items-center justify-center md:justify-start space-x-3 mt-2">
+          {/* Contact details */}
+          <div className="flex items-center justify-center cursor-pointer md:justify-start space-x-3 mt-2">
             <FontAwesomeIcon icon={faEnvelope} />
-            <span>info@example.com</span>
+            {/* 👇 this makes it clickable and opens the user’s e‑mail client */}
+            <a
+              href="mailto:info@jafi.ai"
+              className="hover:underline text-white" /* optional styling */
+            >
+              info@jafi.ai
+            </a>
           </div>
         </div>
 
-        {/* Social Media Links */}
-        <div className="flex space-x-4 mt-6 md:mt-0">
-          <a href="#" className="text-white text-xl hover:text-blue-500">
+        {/* social icons */}
+        <div className="flex space-x-4 text-xl">
+          <a
+            href="https://wa.me/message/3PF6SWGMJXQCE1"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-green-400"
+          >
             <FontAwesomeIcon icon={faWhatsapp} />
           </a>
-          <a href="#" className="text-white text-xl hover:text-blue-500">
+          <a
+            href="https://www.facebook.com/share/1C3e1PUmiP/?mibextid=wwXIfr"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-blue-500"
+          >
             <FontAwesomeIcon icon={faFacebookF} />
           </a>
-          <a href="#" className="text-white text-xl hover:text-blue-500">
-            <FontAwesomeIcon icon={faTwitter} />
+          <a
+            href="https://www.tiktok.com/@jafi.ai?_t=ZM-8vThF855inF&_r=1"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-pink-500"
+          >
+            <FontAwesomeIcon icon={faTiktok} />
           </a>
-          <a href="#" className="text-white text-xl hover:text-blue-500">
+          <a
+            href="https://www.instagram.com/jafi.ai?igsh=MTRvNHFvcGl0YXdmcg==&utm_source=qr"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-pink-400"
+          >
             <FontAwesomeIcon icon={faInstagram} />
           </a>
         </div>
+
+        {/* policy dropdown */}
+        <select
+          value={doc}
+          onChange={handleSelect}
+          className="bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="" disabled>
+            Legal &amp; Policies…
+          </option>
+          {Object.keys(docs).map((title) => (
+            <option key={title} value={title}>
+              {title}
+            </option>
+          ))}
+        </select>
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}
