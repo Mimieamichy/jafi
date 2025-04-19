@@ -269,7 +269,7 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden mt-4 space-y-2 bg-white p-4 rounded-lg shadow-md">
           {/* Categories dropdown in mobile */}
-          <div className=" relative">
+          <div className=" relative" ref={dropdownRef}>
             <button
               onClick={() => setShowCategoriesDropdown((v) => !v)}
               className="block w-full text-left hover:bg-gray-100"

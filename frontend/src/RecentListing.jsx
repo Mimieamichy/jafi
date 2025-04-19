@@ -2,8 +2,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar } from "@fortawesome/free-solid-svg-icons";
+// /import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { useSnackbar } from "notistack";
+import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
+import {
+  faStar as solidStar,
+  faStarHalfAlt,
+} from "@fortawesome/free-solid-svg-icons";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL; // ← already in your env
 
@@ -14,6 +19,45 @@ export default function RecentListings() {
   const [listings, setListings] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
+
+ const renderStars = (rating) => {
+     const numericRating = parseFloat(rating);
+     if (isNaN(numericRating)) {
+       console.error("Invalid star rating:", rating);
+       return null;
+     }
+ 
+     // Calculate full stars (integer part)
+     const fullStars = Math.floor(numericRating);
+     // If the rating is not exactly an integer, we display one half star.
+     const hasHalfStar = numericRating - fullStars !== 0;
+     // Total stars must always be 5.
+     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+ 
+     console.log(
+       "Parsed Rating:",
+       numericRating,
+       "Full:",
+       fullStars,
+       "Has Half:",
+       hasHalfStar,
+       "Empty:",
+       emptyStars
+     );
+ 
+     return (
+       <div className="flex justify-center space-x-1 text-yellow-400 mt-1">
+         {Array.from({ length: fullStars }).map((_, idx) => (
+           <FontAwesomeIcon icon={solidStar} key={`full-${idx}`} />
+         ))}
+         {hasHalfStar && <FontAwesomeIcon icon={faStarHalfAlt} />}
+         {Array.from({ length: emptyStars }).map((_, idx) => (
+           <FontAwesomeIcon icon={regularStar} key={`empty-${idx}`} />
+         ))}
+       </div>
+     );
+   };
+ 
 
   /* ---------- fetch once on mount ---------- */
   useEffect(() => {
@@ -121,16 +165,4 @@ export default function RecentListings() {
 }
 
 /* ---------- helper ---------- */
-function renderStars(rating) {
-  return (
-    <div className="flex space-x-1">
-      {[...Array(5)].map((_, i) => (
-        <FontAwesomeIcon
-          key={i}
-          icon={faStar}
-          className={i < rating ? "text-yellow-500" : "text-gray-300"}
-        />
-      ))}
-    </div>
-  );
-}
+

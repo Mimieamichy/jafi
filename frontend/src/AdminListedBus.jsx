@@ -22,11 +22,23 @@ export default function Businesses() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 20;
-  const totalPages = Math.ceil(businesses.length / itemsPerPage);
-  const currentBusinesses = businesses.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+
+  const filteredBusinesses = businesses.filter((b) => {
+    // ← NEW
+    const term = searchTerm.toLowerCase(); // ← NEW
+    return (
+      b.name?.toLowerCase().includes(term) || // ← NEW
+      b.category?.toLowerCase().includes(term) // ← NEW
+    ); // ← NEW
+  });
+
+  const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage); // ← UPDATED
+  const currentBusinesses = filteredBusinesses.slice(
+    // ← UPDATED
+    (currentPage - 1) * itemsPerPage, // ← UPDATED
+    currentPage * itemsPerPage // ← UPDATED
   );
 
   // State for the Add Business Modal & Form
@@ -90,7 +102,6 @@ export default function Businesses() {
   // confirmation–modal state
   const [approveTarget, setApproveTarget] = useState(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
-
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -174,6 +185,11 @@ export default function Businesses() {
   }, [authToken, enqueueSnackbar]);
 
   // Adjust current page if needed after data updates.
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages > 0 ? totalPages : 1);
@@ -267,6 +283,17 @@ export default function Businesses() {
         >
           Add Business
         </button>
+      </div>
+
+      {/* ← NEW: Search bar */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search by name or category"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-1/3 border p-2 rounded"
+        />
       </div>
 
       {/* Desktop Table View */}
