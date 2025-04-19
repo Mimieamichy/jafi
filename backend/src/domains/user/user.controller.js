@@ -65,13 +65,24 @@ exports.getUserById = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await UserService.getAllUsers();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
-    res.status(200).json({ users });
+    const offset = (page - 1) * limit;
+
+    const { rows: users, count: total } = await UserService.getAllUsers({ offset, limit });
+
+    res.status(200).json({
+      users,
+      total,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }
-}
+};
+
 
 exports.updateUser = async (req, res) => {
   try {
@@ -86,10 +97,14 @@ exports.updateUser = async (req, res) => {
 } 
 
 exports.getAllListings = async (req, res) => {
-  const searchTerm = req.query.searchTerm || '';
     try {
-        const listings = await UserService.getAllListings(searchTerm);
-        return res.status(200).json({ listings});
+      const search = req.query.seasearchTermrch || "";
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+  
+      const { listings, total } = await listingService.getAllListings(search, offset, limit);
+        return res.status(200).json({ listings, total});
     } catch (error) {
         console.error(error);
         res.status(error.status || 500).json({ message: error.message });

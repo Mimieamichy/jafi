@@ -87,7 +87,11 @@ exports.deleteReview = async (req, res) => {
 
 exports.getAllReviews = async (req, res) => {
     try {
-        const reviews = await ReviewService.getAllReviews();
+        const search = req.query.search || "";
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+        const reviews = await ReviewService.getAllReviews(search, offset, limit);
         return res.status(200).json({ success: true, reviews });
     } catch (error) {
         console.log(error);
@@ -162,7 +166,6 @@ exports.getAllReviewsWithReplies = async (req, res) => {
 exports.acknowledgeReview = async (req, res) => {
     try{
         const { listingId } = req.params;
-        console.log(listingId)
         const review = await ReviewService.acknowledgeReview(listingId);
         return res.status(200).json({ success: true, review })
     } catch (error) {

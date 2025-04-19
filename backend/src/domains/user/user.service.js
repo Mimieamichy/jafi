@@ -88,12 +88,17 @@ exports.getUserById = async (id) => {
   return user;
 };
 
-exports.getAllUsers = async () => {
-  const users = await User.findAll({
+exports.getAllUsers = async ({ offset, limit }) => {
+  const users = await User.findAndCountAll({
     attributes: ["id", "name", "email", "role"],
+    offset,
+    limit,
+    order: [["createdAt", "DESC"]],
   });
-  return users;
+
+  return users; 
 };
+
 
 exports.updateUser = async (id, data) => {
   const user = await User.findByPk(id);
@@ -114,9 +119,8 @@ exports.getUserRole = async (email) => {
   return user.role;
 };
 
-exports.getAllListings = async (searchTerm) => {
+exports.getAllListings = async (searchTerm, offset, limit) => {
   let searchFilter = {};
-
   if (searchTerm) {
     searchFilter = {
       [Op.or]: [
@@ -127,19 +131,15 @@ exports.getAllListings = async (searchTerm) => {
   }
 
   const services = await Service.findAll({
-    where: searchTerm ? searchFilter : {},
+    where: searchFilter,
     order: [["createdAt", "DESC"]],
   });
 
   const businesses = await Business.findAll({
-    where: searchTerm ? searchFilter : {},
+    where: searchFilter,
     attributes: { exclude: ["proof"] },
     order: [["createdAt", "DESC"]],
   });
-
-  if (!services.length && !businesses.length) {
-    return { message: "No listings found for the provided search term." };
-  }
 
   const combined = [
     ...services.map((service) => ({ type: "service", ...service.toJSON() })),
@@ -149,12 +149,22 @@ exports.getAllListings = async (searchTerm) => {
     })),
   ];
 
-  const allListings = combined.sort(
+  if (!combined.length) {
+    return { message: "No listings found for the provided search term." };
+  }
+
+  const sortedListings = combined.sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
 
-  return allListings;
+  const paginated = sortedListings.slice(offset, offset + limit);
+
+  return {
+    total: combined.length,
+    listings: paginated,
+  };
 };
+
 
 exports.replyToReview = async (reviewId, userId, comment) => {
   const originalReview = await Review.findByPk(reviewId);

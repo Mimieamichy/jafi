@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const Service = require("../service/service.model");
 const Business = require("../business/business.model");
 const sequelize = require("../../config/database");
-
+const { Op } = require("sequelize");
 
 
 
@@ -162,8 +162,18 @@ exports.deleteReview = async (reviewId, userId) => {
   return { message: "Review deleted successfully" };
 };
 
-exports.getAllReviews = async () => {
-  const reviews = await Review.findAll({
+exports.getAllReviews = async (searchTerm = "", offset = 0, limit = 10) => {
+  const whereClause = searchTerm
+    ? {
+        [Op.or]: [
+          { reviewText: { [Op.like]: `%${searchTerm}%` } },
+          { rating: { [Op.like]: `%${searchTerm}%` } },
+        ],
+      }
+    : {};
+
+  const { count, rows } = await Review.findAndCountAll({
+    where: whereClause,
     include: [
       {
         model: User,
@@ -171,11 +181,16 @@ exports.getAllReviews = async () => {
       },
     ],
     order: [["createdAt", "DESC"]],
+    offset,
+    limit,
   });
 
-  // Manually attach the correct listing (either Business or Service)
+  if (count === 0) {
+    throw new Error("No reviews found");
+  }
+
   const enrichedReviews = await Promise.all(
-    reviews.map(async (review) => {
+    rows.map(async (review) => {
       if (review.listingType === "business") {
         review.dataValues.listing = await Business.findOne({
           where: { uniqueId: review.listingId },
@@ -189,8 +204,11 @@ exports.getAllReviews = async () => {
     })
   );
 
-  return enrichedReviews;
+  return {
+    enrichedReviews,
+  };
 };
+
 
 exports.searchReviews = async (searchQuery) => {
     let serviceIds = [];

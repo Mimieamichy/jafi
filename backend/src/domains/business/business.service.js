@@ -2,6 +2,7 @@ const Business = require("./business.model");
 const User = require("../user/user.model");
 const PaymentService = require("../payments/payments.service");
 const bcrypt = require("bcryptjs")
+const {Op} = require('sequelize')
 
 exports.registerBusiness = async (businessData) => {
   const existingUser = await User.findOne({
@@ -53,19 +54,34 @@ exports.getABusiness = async (businessId) => {
   return business;
 };
 
-exports.getAllBusinesses = async () => {
-  const businesses = await Business.findAll({
+exports.getAllBusinesses = async (searchTerm, offset, limit) => {
+  const whereClause = searchTerm
+    ? {
+        [Op.or]: [
+          { name: { [Op.like]: `%${searchTerm}%` } },
+          { category: { [Op.like]: `%${searchTerm}%` } },
+        ],
+      }
+    : {};
+
+  const { count, rows } = await Business.findAndCountAll({
+    where: whereClause,
     include: {
       model: User,
       attributes: ["id", "name", "email", "role"],
     },
+    order: [["createdAt", "DESC"]],
+    offset,
+    limit,
   });
 
-  if (!businesses || businesses.length === 0) {
+  if (count === 0) {
     throw new Error("No businesses found");
   }
 
-  return businesses;
+  return {
+    businesses: rows,
+  };
 };
 
 exports.updateBusiness = async (businessId, userId, businessData, password, email) => {
@@ -94,7 +110,6 @@ exports.updateBusiness = async (businessId, userId, businessData, password, emai
 
   return business;
 };
-
 
 exports.payForBusiness = async (businessId, amount, transaction) => {
   const business = await Business.findOne({
@@ -132,11 +147,31 @@ exports.verifyPayment = async (paymentReference) => {
   return paymentResponse;
 };
 
-exports.getBusinessByUserId = async (userId) => {
-  const business = await Business.findOne({ where: { userId } });
-  if (!business) throw new Error("Business not found");
-
-  return business;
+exports.getBusinessByUserId = async (userId, searchTerm, offset, limit) => {
+    const whereClause = {
+      userId,
+      ...(searchTerm && {
+        [Op.or]: [
+          { name: { [Op.like]: `%${searchTerm}%` } },
+          { category: { [Op.like]: `%${searchTerm}%` } },
+        ],
+      }),
+    };
+  
+    const { count, rows } = await Business.findAndCountAll({
+      where: whereClause,
+      order: [["createdAt", "DESC"]],
+      offset,
+      limit,
+    });
+  
+    if (count === 0) throw new Error("No business found for the given user.");
+  
+    return {
+      total: count,
+      businesses: rows,
+    };
+  
 };
 
 exports.deleteBusiness = async (businessId, userId) => {

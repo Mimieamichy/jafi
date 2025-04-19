@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
 const Claim = require("../claim/claim.model");
 const { generatePassword } = require("../../utils/generatePassword")
 const { sendMail } = require("../../utils/sendEmail");
-const Payment = require("../payments/payments.model");
+const {Op} = require('sequelize')
 
 
 
@@ -29,7 +29,7 @@ exports.createAdmin = async (email, name, role) => {
   <div style="text-align: center; margin-bottom: 20px;">
       <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1744291750/jafi_logo_2_png_ktsfqn.png" alt="JAFIAI Logo" style="max-width: 150px;">
   </div>
-  <h2 style="color: #333; text-align: center;">Reset Your Password</h2>
+  <h2 style="color: #333; text-align: center;">Login with your Password</h2>
   <p style="font-size: 16px; color: #555; text-align: center;">
       You have been added as an admin for JAFIAI. Use the link to access your account. Your password is: ${plainPassword}
       If you did not request this, you can safely ignore this email.
@@ -51,10 +51,26 @@ exports.createAdmin = async (email, name, role) => {
     return newUser
 }
 
-exports.getAllUsers = async () => {
-    const users = await User.findAll();
-    if (!users) throw new Error("No users found");
-    return users;
+exports.getAllUsers = async (searchTerm, offset, limit) => {
+    const searchFilter = searchTerm
+    ? {
+        [Op.or]: [
+          { name: { [Op.like]: `%${searchTerm}%` } },
+          { email: { [Op.like]: `%${searchTerm}%` } },
+        ],
+      }
+    : {};
+
+  // Query to find users with pagination and optional search filtering
+  const { count, rows } = await User.findAndCountAll({
+    where: searchFilter,
+    attributes: ["id", "name", "email", "role"],
+    order: [["createdAt", "DESC"]],
+    offset,
+    limit,
+  });
+
+  return { users: rows};
 }
 
 exports.updateAdminPassword = async (userId, newPassword) => {
@@ -64,7 +80,6 @@ exports.updateAdminPassword = async (userId, newPassword) => {
             [Op.or]: [{ role: "admin" }, { role: "superadmin" }],
         },
     });
-
 
     if (!user) throw new Error("Not an admin");
 
@@ -91,10 +106,26 @@ exports.deleteUser = async (id) => {
 
 
 //Business management
-exports.getAllBusinesses = async () => {
-    const businesses = await Business.findAll();
-    if (!businesses) throw new Error("No businesses found");
-    return businesses;
+exports.getAllBusinesses = async (searchTerm, offset, limit) => {
+    const searchFilter = searchTerm
+    ? {
+        [Op.or]: [
+          { name: { [Op.like]: `%${searchTerm}%` } },
+          { category: { [Op.like]: `%${searchTerm}%` } },
+        ],
+      }
+    : {};
+
+  // Query to find businesses with pagination and optional search filtering
+  const { count, rows } = await Business.findAndCountAll({
+    where: searchFilter,
+    attributes: ["id", "name", "category", "userId"],
+    order: [["createdAt", "DESC"]],
+    offset,
+    limit,
+  });
+
+  return { businesses: rows};
 }
 
 exports.approveBusiness = async (businessId) => {
@@ -214,7 +245,17 @@ exports.addBusiness = async (businessData, userId) => {
 };
 
 
-exports.getMyBusiness = async (userId) => {
+exports.getMyBusiness = async (userId, searchTerm, offset, limit) => {
+    const searchFilter = searchTerm
+      ? {
+          [Op.or]: [
+            { name: { [Op.like]: `%${searchTerm}%` } },
+            { category: { [Op.like]: `%${searchTerm}%` } },
+          ],
+        }
+      : {};
+
+    // Find the business associated with the userId
     const business = await Business.findOne({
         where: { userId },
         include: [
@@ -223,7 +264,16 @@ exports.getMyBusiness = async (userId) => {
                 attributes: ["id", "name", "email"],
             },
         ],
+        where: searchFilter, 
+        order: [["createdAt", "DESC"]],
+        limit,
+        offset,
     });
+
+    // If no business found for this user
+    if (!business) {
+      throw new Error("Business not found for this user");
+    }
 
     return business;
 };
@@ -268,10 +318,28 @@ exports.getBusinessPrice = async () => {
 
 
 //Service management
-exports.getAllServices = async () => {
-    const services = await Service.findAll();
-    if (!services) throw new Error("No services found");
-    return services;
+exports.getAllServices = async (searchTerm, offset, limit) => {
+    const searchFilter = searchTerm
+    ? {
+        [Op.or]: [
+          { name: { [Op.like]: `%${searchTerm}%` } },
+          { category: { [Op.like]: `%${searchTerm}%` } },
+        ],
+      }
+    : {};
+
+  const services = await Service.findAll({
+    where: searchFilter, 
+    limit, 
+    offset, 
+    order: [["createdAt", "DESC"]], 
+  });
+
+  if (!services || services.length === 0) {
+    throw new Error("No services found");
+  }
+
+  return services;
 }
 
 exports.getAService = async (serviceId) => {
@@ -305,7 +373,7 @@ exports.approveAService = async (serviceId) => {
     </p>
     <div style="text-align: center; margin: 20px 0;">
         <p style="font-size: 16px; color: #555;">Your password is: <strong>${plainPassword}</strong></p>
-        <a href="${process.env.FRONTEND_URL}/login" 
+        <a href="${process.env.FRONTEND_URL}/signin" 
            style="display: inline-block; padding: 12px 20px; background-color: #5271FF; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
            Login Now
         </a>
@@ -344,19 +412,30 @@ exports.deleteService = async (id) => {
     return { message: "Service and associated user deleted successfully" };
 }
 
-exports.getMyServices = async (userId) => {
-    const services = await Service.findAll({
-        where: { userId },
-        include: [
-            {
-                model: User,
-                attributes: ["id", "name", "email"],
-            },
+exports.getMyServices = async (userId, searchTerm, limit, offset) => {
+  const searchFilter = searchTerm
+    ? {
+        [Op.or]: [
+          { name: { [Op.like]: `%${searchTerm}%` } },
+          { category: { [Op.like]: `%${searchTerm}%` } },
         ],
-    });
+      }
+    : {};
 
-    return services;
+  const services = await Service.findAll({
+    where: { searchFilter, userId },
+    limit,
+    offset,
+    order: [["createdAt", "DESC"]],
+  });
+
+  if (!services || services.length === 0) {
+    throw new Error("No services found");
+  }
+
+  return services;
 };
+
 exports.updateSevicePrice = async (price) => {
     const setting = await AdminSettings.findOne({ where: { key: "service_price" } });
 
@@ -384,13 +463,31 @@ exports.getClaim = async (claimId) => {
     return claim;
 }
 
-exports.getClaims = async () => {
-    const claims = await Claim.findAll();
-    return claims;
-}
+exports.getAllClaims = async (searchTerm, offset, limit) => {
+  const searchFilter = searchTerm
+    ? {
+        [Op.or]: [
+          { email: { [Op.like]: `%${searchTerm}%` } },
+          { phone: { [Op.like]: `%${searchTerm}%` } },
+        ],
+      }
+    : {};
+
+  const claims = await Claim.findAll({
+    where: searchFilter,
+    limit, 
+    offset, 
+    order: [["createdAt", "DESC"]], 
+  });
+
+  if (!claims || claims.length === 0) {
+    throw new Error("No claims found");
+  }
+
+  return claims;
+};
 
 exports.approveClaim = async (claimId) => {
-    console.log(claimId);
     const claim = await Claim.findByPk(claimId);
     
     if (!claim || claim.status !== 'pending') {
@@ -418,9 +515,9 @@ exports.approveClaim = async (claimId) => {
     business.userId = updatedUser.id;
     await business.save();
 
-    // Mark claim approved
-    claim.status = 'approved';
-    await claim.save();
+    // Delete claim record
+    await claim.destroy()
+
 
 
     // Send an email notification to the CLAIMED business owner
@@ -434,7 +531,7 @@ exports.approveClaim = async (claimId) => {
           </p>
           <div style="text-align: center; margin: 20px 0;">
               <p style="font-size: 16px; color: #555;">Your password is: <strong>${plainPassword}</strong></p>
-              <a href="${process.env.FRONTEND_URL}/login" 
+              <a href="${process.env.FRONTEND_URL}/signin" 
                  style="display: inline-block; padding: 12px 20px; background-color: #5271ff; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
                  Login Now
               </a>
@@ -456,26 +553,62 @@ exports.approveClaim = async (claimId) => {
 
 //Review management
 
-exports.getAllReviews = async () => {
+exports.getAllReviews = async (searchTerm, offset, limit) => {
+    const searchFilter = {};
+  
+    // If a searchTerm is provided, filter reviews by business name or category
+    if (searchTerm) {
+      searchFilter[Op.or] = [
+        { "$business.name$": { [Op.like]: `%${searchTerm}%` } },
+        { "$business.category$": { [Op.like]: `%${searchTerm}%` } },
+      ];
+    }
+  
     const reviews = await Review.findAll({
-        include: [
-            {
-                model: User,
-                attributes: ['id', 'name', 'email', 'role'],
-            },
-        ],
+      include: [
+        {
+          model: User,
+          attributes: ["id", "name", "email", "role"],
+        },
+        {
+          model: Business,
+          attributes: ["name", "category"],
+        },
+      ],
+      where: searchFilter, // Apply search filter for business name/category
+      limit,
+      offset,
+      order: [["createdAt", "DESC"]],
     });
-
-    if (!reviews) throw new Error("Reviews not found");
-
+  
+    if (!reviews || reviews.length === 0) {
+      throw new Error("No reviews found");
+    }
+  
     return reviews;
-};
+  };
 
-exports.getAllReviewers = async () => {
-    const users = await User.findAll({ where: { role: 'reviewer' } });
-    if (!users) throw new Error("No users found");
+exports.getAllReviewers = async (searchTerm, offset, limit) => {
+    const whereClause = { role: 'reviewer'};
+  
+    // If a search term is provided, add the condition to search by email
+    if (searchTerm) {
+      whereClause.email = { [Op.like]: `%${searchTerm}%` };
+    }
+  
+    const users = await User.findAll({
+      where: whereClause,
+      limit,
+      offset,
+      order: [["createdAt", "DESC"]],
+    });
+  
+    if (!users || users.length === 0) {
+      throw new Error("No reviewers found");
+    }
+  
     return users;
-}
+  };
 
 exports.deleteReviews = async (id) => {
     const reviews = await Review.findAll({ where: { id } });
