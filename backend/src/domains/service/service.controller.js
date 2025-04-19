@@ -50,7 +50,9 @@ exports.getAService = async (req, res) => {
 
 exports.getAllServices = async (req, res) => {
   try {
-    const services = await ServiceService.getAllServices();
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const services = await ServiceService.getAllServices(offset, limit);
     res.status(200).json(services);
   } catch (error) {
     console.log(error);
@@ -82,7 +84,6 @@ exports.updateService = async (req, res) => {
     res.status(404).json({ error: error.message });
   }
 };
-
 
 exports.payForService = async (req, res) => {
   const { serviceId } = req.params;

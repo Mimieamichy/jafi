@@ -2,7 +2,7 @@ const Business = require("../business/business.model");
 const User = require("../user/user.model");
 const Claim = require("./claim.model");
 const PaymentService = require("../payments/payments.service");
-
+const { Op } = require("sequelize");
 
 
 
@@ -14,7 +14,12 @@ exports.createClaim = async (businessId, email, phone, proof) => {
 
   const user = await User.findOne({ where: { email } });
   if (user) {
-    throw new Error("User already exists");
+    return { message: "User already exists"};
+  }
+
+  const existingClaim = await Claim.findOne({ where: { businessId } });
+  if (existingClaim) {
+    return {message: "A pending claim already exists for this business"};
   }
 
   const name = business.name;
@@ -24,9 +29,29 @@ exports.createClaim = async (businessId, email, phone, proof) => {
   return { message: "Claim submitted", claim };
 };
 
-exports.getClaims = async () => {
-  const claims = await Claim.findAll();
-  res.status(200).json(claims);
+exports.getAllClaims = async (searchTerm, offset, limit) => {
+  const searchFilter = searchTerm
+    ? {
+        [Op.or]: [
+          { email: { [Op.like]: `%${searchTerm}%` } },
+        ],
+      }
+    : {};
+
+  const { count, rows } = await Claim.findAndCountAll({
+    where: searchFilter,
+    include: [
+      {
+        model: Business,
+        attributes: ["name", "category"], // Add more fields if necessary
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+    offset,
+    limit,
+  });
+
+  return { claims: rows};
 };
 
 exports.getAClaim = async (claimId) => {

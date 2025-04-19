@@ -3,6 +3,10 @@ const AdminService = require("./admin.services");
 //users management
 exports.getAllUsers = async (req, res) => {
   try {
+    const searchTerm = req.query.search || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
     const users = await AdminService.getAllUsers();
     return res.status(200).json({ success: true, users });
   } catch (error) {
@@ -41,6 +45,7 @@ exports.updateAdminPassword = async (req, res) => {
     await AdminService.updateAdminPassword(id, newPassword);
     return res.status(200).json({ success: true, message: "Password updated successfully" });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -52,6 +57,10 @@ exports.updateAdminPassword = async (req, res) => {
 // Business management
 exports.getAllBusinesses = async (req, res) => {
   try {
+    const searchTerm = req.query.search || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
     const businesses = await AdminService.getAllBusinesses();
     return res.status(200).json({ success: true, businesses });
   } catch (error) {
@@ -129,8 +138,12 @@ exports.deleteBusiness = async (req, res) => {
 
 exports.getMyBusiness = async (req, res) => {
   const userId = req.user.id;
+  const searchTerm = req.query.search || "";
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
   try {
-    const business = await AdminService.getMyBusiness(userId);
+    const business = await AdminService.getMyBusiness(userId, searchTerm, offset, limit);
     return res.status(200).json({ success: true, business });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -179,6 +192,10 @@ exports.getBusinessPrice = async (req, res) => {
 // Service management
 exports.getAllServices = async (req, res) => {
   try {
+    const searchTerm = req.query.search || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
     const services = await AdminService.getAllServices();
     return res.status(200).json({ success: true, services });
   } catch (error) {
@@ -200,7 +217,7 @@ exports.getAService = async (req, res) => {
 exports.approveService = async (req, res) => {
   const { id } = req.params;
   try {
-    await AdminService.getAService(id);
+    await AdminService.approveAService(id);
     return res.status(200).json({ success: true, message: "Service approved successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -245,7 +262,11 @@ exports.getServicePrice = async (req, res) => {
 // Review management
 exports.getAllReviews = async (req, res) => {
   try {
-    const reviews = await AdminService.getAllReviews()
+    const searchTerm = req.query.search || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const reviews = await AdminService.getAllReviews();
     return res.status(200).json({ success: true, reviews });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -254,6 +275,10 @@ exports.getAllReviews = async (req, res) => {
 
 exports.getAllReviewers = async(req, res) => {
   try {
+    const searchTerm = req.query.search || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
     const reviewers = await AdminService.getAllReviewers()
     return res.status(200).json({ success: true, reviewers });
   } catch (error) {
@@ -308,9 +333,13 @@ exports.getClaim = async (req, res) => {
   }
 };
 
-exports.getClaims = async (req, res) => {
+exports.getAllClaims = async (req, res) => {
   try {
-    const claims = await AdminService.getClaims();
+    const searchTerm = req.query.search || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const claims = await AdminService.getAllClaims();
     return res.status(200).json(claims);
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

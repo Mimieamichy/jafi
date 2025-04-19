@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getClaims, updateMyBusiness, getBusinessPrice, getServicePrice} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getBusinessPrice, getServicePrice} = require('./admin.controller')
 
 
-const { uploadMiddleware } = require("../../application/middlewares/cloudinary");
-
+const { cloudUpload } = require("../../application/middlewares/cloudinary");
 
 
 router.get('/businessPrice', getBusinessPrice)
@@ -16,10 +15,10 @@ const { authorize } = require('../../application/middlewares/authorize');
 
 
 router.use(authenticate, authorize(["admin", "superadmin"])); 
-router.post('/addBusiness', uploadMiddleware, addBusiness)
+router.post('/addBusiness', cloudUpload, addBusiness)
 router.get("/myBusiness", getMyBusiness);
-router.put('/myBusiness/:id', uploadMiddleware, updateMyBusiness)
-router.post('/updateAdminPassword', updateAdminPassword);
+router.put('/myBusiness/:id', cloudUpload, updateMyBusiness)
+router.put('/updateAdminPassword', updateAdminPassword);
 
 
 
@@ -32,7 +31,7 @@ router.get('/services', getAllServices);
 router.get('/reviews', getAllReviews);
 router.get('/users', getAllUsers);
 router.get('/claim', getClaim);
-router.get('/claims', getClaims);
+router.get('/claims', getAllClaims);
 router.get('/reviewers', getAllReviewers)
 router.post('/createAdmin', createAdmin);
 router.post('/approveBusiness/:id', approveBusiness);

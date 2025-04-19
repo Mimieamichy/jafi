@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const Service = require("../service/service.model");
 const Business = require("../business/business.model");
 const sequelize = require("../../config/database");
-
+const { Op } = require("sequelize");
 
 
 
@@ -191,6 +191,8 @@ exports.getAllReviews = async () => {
 
   return enrichedReviews;
 };
+
+
 
 exports.searchReviews = async (searchQuery) => {
     let serviceIds = [];

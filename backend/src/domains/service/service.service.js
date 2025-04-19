@@ -81,7 +81,6 @@ exports.getAllServices = async () => {
 
     return services;
 };
-
 exports.updateService = async (serviceId, userId, serviceData, password, email) => {
     const service = await Service.findByPk(serviceId);
     if (!service) throw new Error("Service not found");
@@ -107,9 +106,7 @@ exports.updateService = async (serviceId, userId, serviceData, password, email) 
     await service.save();
   
     return service;
-  };
-
-
+};
 
 exports.payForService = async (serviceId, amount, transaction) => {
     const service = await Service.findOne({
