@@ -7,7 +7,7 @@ exports.getAllUsers = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-    const users = await AdminService.getAllUsers(searchTerm, offset, limit);
+    const users = await AdminService.getAllUsers();
     return res.status(200).json({ success: true, users });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -61,7 +61,7 @@ exports.getAllBusinesses = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-    const businesses = await AdminService.getAllBusinesses(searchTerm, offset, limit);
+    const businesses = await AdminService.getAllBusinesses();
     return res.status(200).json({ success: true, businesses });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -196,7 +196,7 @@ exports.getAllServices = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-    const services = await AdminService.getAllServices(searchTerm, offset, limit);
+    const services = await AdminService.getAllServices();
     return res.status(200).json({ success: true, services });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -266,7 +266,7 @@ exports.getAllReviews = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-    const reviews = await AdminService.getAllReviews(searchTerm, offset, limit);
+    const reviews = await AdminService.getAllReviews();
     return res.status(200).json({ success: true, reviews });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -279,7 +279,7 @@ exports.getAllReviewers = async(req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-    const reviewers = await AdminService.getAllReviewers(searchTerm, offset, limit)
+    const reviewers = await AdminService.getAllReviewers()
     return res.status(200).json({ success: true, reviewers });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -339,7 +339,7 @@ exports.getAllClaims = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-    const claims = await AdminService.getAllClaims(searchTerm, offset, limit);
+    const claims = await AdminService.getAllClaims();
     return res.status(200).json(claims);
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

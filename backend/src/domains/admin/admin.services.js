@@ -246,36 +246,17 @@ exports.addBusiness = async (businessData, userId) => {
 
 
 exports.getMyBusiness = async (userId, searchTerm, offset, limit) => {
-    const searchFilter = searchTerm
-      ? {
-          [Op.or]: [
-            { name: { [Op.like]: `%${searchTerm}%` } },
-            { category: { [Op.like]: `%${searchTerm}%` } },
-          ],
-        }
-      : {};
+  const business = await Business.findOne({
+      where: { userId },
+      include: [
+          {
+              model: User,
+              attributes: ["id", "name", "email"],
+          },
+      ],
+  });
 
-    // Find the business associated with the userId
-    const business = await Business.findOne({
-        where: { userId },
-        include: [
-            {
-                model: User,
-                attributes: ["id", "name", "email"],
-            },
-        ],
-        where: searchFilter, 
-        order: [["createdAt", "DESC"]],
-        limit,
-        offset,
-    });
-
-    // If no business found for this user
-    if (!business) {
-      throw new Error("Business not found for this user");
-    }
-
-    return business;
+  return business;
 };
 
 exports.updateMyBusiness = async (businessId, userId, businessData, password, email) => {
@@ -319,26 +300,8 @@ exports.getBusinessPrice = async () => {
 
 //Service management
 exports.getAllServices = async (searchTerm, offset, limit) => {
-    const searchFilter = searchTerm
-    ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${searchTerm}%` } },
-          { category: { [Op.like]: `%${searchTerm}%` } },
-        ],
-      }
-    : {};
-
-  const services = await Service.findAll({
-    where: searchFilter, 
-    limit, 
-    offset, 
-    order: [["createdAt", "DESC"]], 
-  });
-
-  if (!services || services.length === 0) {
-    throw new Error("No services found");
-  }
-
+  const services = await Service.findAll();
+  if (!services) throw new Error("No services found");
   return services;
 }
 
@@ -463,29 +426,10 @@ exports.getClaim = async (claimId) => {
     return claim;
 }
 
-exports.getAllClaims = async (searchTerm, offset, limit) => {
-  const searchFilter = searchTerm
-    ? {
-        [Op.or]: [
-          { email: { [Op.like]: `%${searchTerm}%` } },
-          { phone: { [Op.like]: `%${searchTerm}%` } },
-        ],
-      }
-    : {};
-
-  const claims = await Claim.findAll({
-    where: searchFilter,
-    limit, 
-    offset, 
-    order: [["createdAt", "DESC"]], 
-  });
-
-  if (!claims || claims.length === 0) {
-    throw new Error("No claims found");
-  }
-
+exports.getAllClaims = async () => {
+  const claims = await Claim.findAll();
   return claims;
-};
+}
 
 exports.approveClaim = async (claimId) => {
     const claim = await Claim.findByPk(claimId);
@@ -554,61 +498,26 @@ exports.approveClaim = async (claimId) => {
 //Review management
 
 exports.getAllReviews = async (searchTerm, offset, limit) => {
-    const searchFilter = {};
-  
-    // If a searchTerm is provided, filter reviews by business name or category
-    if (searchTerm) {
-      searchFilter[Op.or] = [
-        { "$business.name$": { [Op.like]: `%${searchTerm}%` } },
-        { "$business.category$": { [Op.like]: `%${searchTerm}%` } },
-      ];
-    }
-  
-    const reviews = await Review.findAll({
-      include: [
-        {
-          model: User,
-          attributes: ["id", "name", "email", "role"],
-        },
-        {
-          model: Business,
-          attributes: ["name", "category"],
-        },
-      ],
-      where: searchFilter, // Apply search filter for business name/category
-      limit,
-      offset,
-      order: [["createdAt", "DESC"]],
-    });
-  
-    if (!reviews || reviews.length === 0) {
-      throw new Error("No reviews found");
-    }
-  
-    return reviews;
-  };
+  const reviews = await Review.findAll({
+    include: [
+      {
+        model: User,
+        attributes: ["id", "name", "email", "role"],
+      },
+    ],
+  });
 
-exports.getAllReviewers = async (searchTerm, offset, limit) => {
-    const whereClause = { role: 'reviewer'};
-  
-    // If a search term is provided, add the condition to search by email
-    if (searchTerm) {
-      whereClause.email = { [Op.like]: `%${searchTerm}%` };
-    }
-  
-    const users = await User.findAll({
-      where: whereClause,
-      limit,
-      offset,
-      order: [["createdAt", "DESC"]],
-    });
-  
-    if (!users || users.length === 0) {
-      throw new Error("No reviewers found");
-    }
-  
+  if (!reviews) throw new Error("Reviews not found");
+
+  return reviews;
+};
+
+
+  exports.getAllReviewers = async () => {
+    const users = await User.findAll({ where: { role: 'reviewer' } });
+    if (!users) throw new Error("No users found");
     return users;
-  };
+}
 
 exports.deleteReviews = async (id) => {
     const reviews = await Review.findAll({ where: { id } });

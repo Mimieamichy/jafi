@@ -55,17 +55,7 @@ exports.getABusiness = async (businessId) => {
 };
 
 exports.getAllBusinesses = async (searchTerm, offset, limit) => {
-  const whereClause = searchTerm
-    ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${searchTerm}%` } },
-          { category: { [Op.like]: `%${searchTerm}%` } },
-        ],
-      }
-    : {};
-
-  const { count, rows } = await Business.findAndCountAll({
-    where: whereClause,
+  const businesses = await Business.findAll({
     include: {
       model: User,
       attributes: ["id", "name", "email", "role"],
@@ -75,13 +65,11 @@ exports.getAllBusinesses = async (searchTerm, offset, limit) => {
     limit,
   });
 
-  if (count === 0) {
+  if (!businesses || businesses.length === 0) {
     throw new Error("No businesses found");
   }
 
-  return {
-    businesses: rows,
-  };
+  return businesses;
 };
 
 exports.updateBusiness = async (businessId, userId, businessData, password, email) => {
