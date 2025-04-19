@@ -98,13 +98,13 @@ exports.updateUser = async (req, res) => {
 
 exports.getAllListings = async (req, res) => {
     try {
-      const search = req.query.seasearchTermrch || "";
+      const search = req.query.searchTerm || "";
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const offset = (page - 1) * limit;
   
-      const { listings, total } = await listingService.getAllListings(search, offset, limit);
-        return res.status(200).json({ listings, total});
+      const { listings, total } = await UserService.getAllListings(search, offset, limit);
+        return res.status(200).json({ listings});
     } catch (error) {
         console.error(error);
         res.status(error.status || 500).json({ message: error.message });
