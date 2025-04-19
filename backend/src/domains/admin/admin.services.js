@@ -51,27 +51,12 @@ exports.createAdmin = async (email, name, role) => {
     return newUser
 }
 
-exports.getAllUsers = async (searchTerm, offset, limit) => {
-    const searchFilter = searchTerm
-    ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${searchTerm}%` } },
-          { email: { [Op.like]: `%${searchTerm}%` } },
-        ],
-      }
-    : {};
-
-  // Query to find users with pagination and optional search filtering
-  const { count, rows } = await User.findAndCountAll({
-    where: searchFilter,
+exports.getAllUsers = async () => {
+  const users = await User.findAll({
     attributes: ["id", "name", "email", "role"],
-    order: [["createdAt", "DESC"]],
-    offset,
-    limit,
   });
-
-  return { users: rows};
-}
+  return users;
+};
 
 exports.updateAdminPassword = async (userId, newPassword) => {
     const user = await User.findOne({
@@ -106,27 +91,20 @@ exports.deleteUser = async (id) => {
 
 
 //Business management
-exports.getAllBusinesses = async (searchTerm, offset, limit) => {
-    const searchFilter = searchTerm
-    ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${searchTerm}%` } },
-          { category: { [Op.like]: `%${searchTerm}%` } },
-        ],
-      }
-    : {};
-
-  // Query to find businesses with pagination and optional search filtering
-  const { count, rows } = await Business.findAndCountAll({
-    where: searchFilter,
-    attributes: ["id", "name", "category", "userId"],
-    order: [["createdAt", "DESC"]],
-    offset,
-    limit,
+exports.getAllBusinesses = async () => {
+  const businesses = await Business.findAll({
+    include: {
+      model: User,
+      attributes: ["id", "name", "email", "role"],
+    },
   });
 
-  return { businesses: rows};
-}
+  if (!businesses || businesses.length === 0) {
+    throw new Error("No businesses found");
+  }
+
+  return businesses;
+};
 
 exports.approveBusiness = async (businessId) => {
     const business = await Business.findByPk(businessId);
@@ -299,7 +277,7 @@ exports.getBusinessPrice = async () => {
 
 
 //Service management
-exports.getAllServices = async (searchTerm, offset, limit) => {
+exports.getAllServices = async () => {
   const services = await Service.findAll();
   if (!services) throw new Error("No services found");
   return services;

@@ -67,25 +67,20 @@ exports.getAService = async (serviceId) => {
     return service;
 };
 
-exports.getAllServices = async (offset, limit) => {
-    const { count, rows } = await Service.findAndCountAll({
-        where: whereClause,
+exports.getAllServices = async () => {
+    const services = await Service.findAll({
         include: {
-          model: User,
-          attributes: ["id", "name", "email", "role"],
+            model: User,
+            attributes: ["id", "name", "email", "role"],
         },
-        order: [["createdAt", "DESC"]],
-        offset,
-        limit,
-      });
-    
-      if (count === 0) {
-        throw new Error("No services found");
-      }
-    
-      return { services: rows};
-};
 
+    });
+    if (!services || services.length === 0) {
+        throw new Error("No services found");
+    }
+
+    return services;
+};
 exports.updateService = async (serviceId, userId, serviceData, password, email) => {
     const service = await Service.findByPk(serviceId);
     if (!service) throw new Error("Service not found");
