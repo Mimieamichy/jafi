@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { useSnackbar } from "notistack";
 
-const baseUrl = import.meta.env.VITE_BACKEND_URL;   // ← already in your env
+const baseUrl = import.meta.env.VITE_BACKEND_URL; // ← already in your env
 
 export default function RecentListings() {
   const { enqueueSnackbar } = useSnackbar();
@@ -25,24 +25,30 @@ export default function RecentListings() {
         /* log everything you receive */
         console.log("LISTINGS API →", data);
 
-        const rows =
-          Array.isArray(data)            ? data :
-          Array.isArray(data.listings)   ? data.listings :
-          data.listing                   ? [data.listing] :
-          [];
+        const rows = Array.isArray(data)
+          ? data
+          : Array.isArray(data.listings)
+          ? data.listings
+          : data.listing
+          ? [data.listing]
+          : [];
 
         /* most‑recent first (uses createdAt if available) */
         rows.sort((a, b) => {
           if (a.createdAt && b.createdAt) {
             return new Date(b.createdAt) - new Date(a.createdAt);
           }
-          return 0;           // fallback keeps original order
-        });
+          return 0;
 
-        setListings(rows);
+          // fallback keeps original order
+        });
+        const top18 = rows.slice(0, 18);
+        setListings(top18);
       } catch (e) {
         console.error("listings fetch error", e);
-        enqueueSnackbar("Failed to load featured listings", { variant: "error" });
+        enqueueSnackbar("Failed to load featured listings", {
+          variant: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -52,10 +58,10 @@ export default function RecentListings() {
   /* ---------- click on a card ---------- */
   const openListing = (id, type) => {
     if (type === "service") {
-        navigate(`/hire/${id}`);
-      } else if (type === "business") {
-        navigate(`/business/${id}`);
-      }          // adjust the path if needed
+      navigate(`/hire/${id}`);
+    } else if (type === "business") {
+      navigate(`/business/${id}`);
+    } // adjust the path if needed
   };
 
   /* ---------- UI ---------- */
@@ -68,29 +74,29 @@ export default function RecentListings() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {listings
-              .slice(0, showAll ? listings.length : 6)
-              .map((l) => (
-                <div
-                  key={l.id}
-                  onClick={() => openListing(l.id, l.type)}
-                  className="bg-white p-6 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-                >
-                  {/* if backend already sends full url use it; otherwise prefix */}
-                  <img
-                    src={Array.isArray(l.images) ? l.images[0] : l.image}
-                    alt={l.name}
-                    className="w-full h-40 object-cover rounded-md"
-                  />
-                  <h3 className="text-lg font-semibold mt-4">{l.name}</h3>
-                  <p className="text-sm text-gray-400">{l.category}</p>
-                  <p className="text-gray-500">{l.address}</p>
-                  <div className="mt-2">{renderStars(l.rating || l.average_rating || 0)}</div>
-                  {l.time && (
-                    <p className="text-blue-600 font-medium mt-2">{l.time}</p>
-                  )}
+            {listings.slice(0, showAll ? listings.length : 6).map((l) => (
+              <div
+                key={l.id}
+                onClick={() => openListing(l.id, l.type)}
+                className="bg-white p-6 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+              >
+                {/* if backend already sends full url use it; otherwise prefix */}
+                <img
+                  src={Array.isArray(l.images) ? l.images[0] : l.image}
+                  alt={l.name}
+                  className="w-full h-40 object-cover rounded-md"
+                />
+                <h3 className="text-lg font-semibold mt-4 capitalize">{l.name}</h3>
+                <p className="text-sm text-gray-400">{l.category}</p>
+                <p className="text-gray-500">{l.address}</p>
+                <div className="mt-2">
+                  {renderStars(l.rating || l.average_rating || 0)}
                 </div>
-              ))}
+                {l.time && (
+                  <p className="text-blue-600 font-medium mt-2">{l.time}</p>
+                )}
+              </div>
+            ))}
           </div>
 
           {/* toggle button */}

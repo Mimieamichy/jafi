@@ -3,6 +3,7 @@ import { Suspense, lazy } from "react";
 import BlueSpiralLoader from "./BlueSpiralLoader";
 
 
+
 // Lazy-load components
 const Navbar = lazy(() => import("./NavBar"));
 const Homepage = lazy(() => import("./pages/Homepage"));
