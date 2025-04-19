@@ -1,6 +1,14 @@
+/* src/index.css */
+@import "flag-icons/css/flag-icons.min.css";
+
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+
 
 
 /* Custom Swiper Navigation Arrows */

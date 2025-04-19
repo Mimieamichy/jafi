@@ -18,6 +18,8 @@
     "@heroicons/react": "^1.0.6",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
+    "flag-icon-css": "^4.1.7",
+    "flag-icons": "^7.3.2",
     "jwt-decode": "^4.0.0",
     "libphonenumber-js": "^1.12.6",
     "notistack": "^3.0.2",

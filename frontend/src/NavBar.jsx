@@ -114,12 +114,13 @@ export default function Navbar() {
     setIsOpen(false);
   };
 
-  const dashboardPath = {
-    business:     "/bus-dashboard",
-    service:      "/hiring-dashboard",
-    admin:        "/admin-page",
-    superadmin:   "/admin",
-  }[userRole] || "/";
+  const dashboardPath =
+    {
+      business: "/bus-dashboard",
+      service: "/hiring-dashboard",
+      admin: "/admin-page",
+      superadmin: "/admin",
+    }[userRole] || "/";
 
   return (
     <nav className="bg-white shadow-md p-4 fixed top-0 left-0 w-full z-50">
@@ -267,6 +268,37 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden mt-4 space-y-2 bg-white p-4 rounded-lg shadow-md">
+          {/* Categories dropdown in mobile */}
+          <div className=" relative">
+            <button
+              onClick={() => setShowCategoriesDropdown((v) => !v)}
+              className="block w-full text-left hover:bg-gray-100"
+            >
+              Categories
+            </button>
+            {showCategoriesDropdown && (
+              <ul className="bg-white border-l-4 border-blue-600 ml-4">
+                {categories.length ? (
+                  categories.map((c, i) => (
+                    <li
+                      key={i}
+                      onClick={() => {
+                        navigate("/all-listing");
+                        setShowCategoriesDropdown(false);
+                        setIsOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      {c}
+                    </li>
+                  ))
+                ) : (
+                  <li className="px-4 py-2 text-gray-500">No categories</li>
+                )}
+              </ul>
+            )}{" "}
+          </div>
+
           <Link
             to="/"
             onClick={handleNavClick}

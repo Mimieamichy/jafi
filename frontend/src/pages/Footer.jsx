@@ -40,18 +40,19 @@ export default function Footer() {
         <div className="text-center md:text-left">
           <p className="text-2xl sm:text-3xl font-bold mb-4">Contact Us</p>
           <div className="flex justify-center md:justify-start items-center space-x-2">
+
             <FontAwesomeIcon icon={faPhone} />
             <span className="tracking-wide">
               <a href="tel:08070446107" className="hover:underline">
                 08070446107
               </a>
-              7
+              
             </span>
           </div>
           {/* Contact details */}
           <div className="flex items-center justify-center cursor-pointer md:justify-start space-x-3 mt-2">
             <FontAwesomeIcon icon={faEnvelope} />
-            {/* 👇 this makes it clickable and opens the user’s e‑mail client */}
+           
             <a
               href="mailto:info@jafi.ai"
               className="hover:underline text-white" /* optional styling */
@@ -59,18 +60,44 @@ export default function Footer() {
               info@jafi.ai
             </a>
           </div>
+          <div className="flex items-center justify-center md:justify-start space-x-3 mt-2">
+            <FontAwesomeIcon icon={faWhatsapp} className="text-white text-xl"/>
+            
+            <a
+            href="https://wa.me/message/3PF6SWGMJXQCE1"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-blue-500"
+          >
+            <span className="fi fi-ng mr-2" />
+          </a>
+            <a
+            href="https://wa.me/qr/NYBXMQBAOYCRJ1"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-blue-500"
+          >
+            <span className="fi fi-ke mr-2" />
+          </a>
+            <a
+            href="https://wa.link/6h9p7p"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-blue-500"
+          >
+            <span className="fi fi-za mr-2" />
+          </a>
+            
+           
+          
+            
+          </div>
         </div>
 
         {/* social icons */}
         <div className="flex space-x-4 text-xl">
-          <a
-            href="https://wa.me/message/3PF6SWGMJXQCE1"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-green-400"
-          >
-            <FontAwesomeIcon icon={faWhatsapp} />
-          </a>
+        <span className="flag-icon flag-icon-ng" />
+          
           <a
             href="https://www.facebook.com/share/1C3e1PUmiP/?mibextid=wwXIfr"
             target="_blank"
