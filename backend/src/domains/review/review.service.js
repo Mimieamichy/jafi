@@ -162,18 +162,8 @@ exports.deleteReview = async (reviewId, userId) => {
   return { message: "Review deleted successfully" };
 };
 
-exports.getAllReviews = async (searchTerm = "", offset = 0, limit = 10) => {
-  const whereClause = searchTerm
-    ? {
-        [Op.or]: [
-          { reviewText: { [Op.like]: `%${searchTerm}%` } },
-          { rating: { [Op.like]: `%${searchTerm}%` } },
-        ],
-      }
-    : {};
-
-  const { count, rows } = await Review.findAndCountAll({
-    where: whereClause,
+exports.getAllReviews = async () => {
+  const reviews = await Review.findAll({
     include: [
       {
         model: User,
@@ -181,16 +171,11 @@ exports.getAllReviews = async (searchTerm = "", offset = 0, limit = 10) => {
       },
     ],
     order: [["createdAt", "DESC"]],
-    offset,
-    limit,
   });
 
-  if (count === 0) {
-    throw new Error("No reviews found");
-  }
-
+  // Manually attach the correct listing (either Business or Service)
   const enrichedReviews = await Promise.all(
-    rows.map(async (review) => {
+    reviews.map(async (review) => {
       if (review.listingType === "business") {
         review.dataValues.listing = await Business.findOne({
           where: { uniqueId: review.listingId },
@@ -204,10 +189,9 @@ exports.getAllReviews = async (searchTerm = "", offset = 0, limit = 10) => {
     })
   );
 
-  return {
-    enrichedReviews,
-  };
+  return enrichedReviews;
 };
+
 
 
 exports.searchReviews = async (searchQuery) => {

@@ -91,7 +91,7 @@ exports.getAllReviews = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const offset = (page - 1) * limit;
-        const reviews = await ReviewService.getAllReviews(search, offset, limit);
+        const reviews = await ReviewService.getAllReviews();
         return res.status(200).json({ success: true, reviews });
     } catch (error) {
         console.log(error);
