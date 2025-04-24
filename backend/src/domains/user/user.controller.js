@@ -99,7 +99,7 @@ exports.getAllListings = async (req, res) => {
       const offset = (page - 1) * limit;
   
       const listings = await UserService.getAllListings(search, offset, limit);
-        return res.status(200).json({ listings});
+      return res.status(200).json(listings);
     } catch (error) {
         console.error(error);
         res.status(error.status || 500).json({ message: error.message });

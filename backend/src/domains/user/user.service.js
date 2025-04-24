@@ -125,8 +125,7 @@ exports.getAllListings = async (searchTerm, offset, limit) => {
       [Op.or]: [
         { name: { [Op.like]: `%${searchTerm}%` } },
         { category: { [Op.like]: `%${searchTerm}%` } },
-        { city: { [Op.like]: `%${searchTerm}%` } },
-        { state: { [Op.like]: `%${searchTerm}%` } },
+        { address: { [Op.like]: `%${searchTerm}%` } },
       ],
     };
   }
