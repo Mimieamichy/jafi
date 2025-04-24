@@ -4,19 +4,35 @@ import SignupModal from "./SignupModal";
 import { jwtDecode } from "jwt-decode";
 
 export default function Navbar() {
-  const baseUrl = import.meta.env.VITE_BACKEND_URL;
+  // const baseUrl = import.meta.env.VITE_BACKEND_URL;
   const [isOpen, setIsOpen] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [reviewer, setReviewer] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [categories, setCategories] = useState([]); // New state for categories
-  const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false); // Toggles the dropdown
+
+  // Static category list
+  const categories = [
+    "Hotel",
+    "Automotive",
+    "Banking",
+    "Church",
+    "Nigerian made",
+    "Nightlife & Entertainment",
+    "Airplane",
+    "Pharmacy & Groceries",
+    "Beauty and Salon",
+    "Fitness and Gym",
+    "Communication",
+    "Hospital",
+    "Restaurant",
+  ];
+  const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Close dropdown on outside click for reviewer dropdown
+  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -28,24 +44,7 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch categories from the listings API (only used on desktop)
-  useEffect(() => {
-    fetch(`${baseUrl}/user/listings`)
-      .then((res) => res.json())
-      .then((data) => {
-        // Assuming the API returns an object with a listings array.
-        const listings = data.listings || [];
-        const uniqueCats = [
-          ...new Set(listings.map((listing) => listing.category)),
-        ];
-        setCategories(uniqueCats);
-      })
-      .catch((err) =>
-        console.error("Error fetching listings for categories:", err)
-      );
-  }, []);
-
-  // Check for token and reviewer status on mount and URL changes
+  // Authentication token handling
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
@@ -56,12 +55,10 @@ export default function Navbar() {
         if (isExpired) {
           localStorage.removeItem("reviewerToken");
           localStorage.removeItem("reviewer");
-          console.log("Token expired");
         } else {
           localStorage.setItem("reviewerToken", token);
           localStorage.setItem("reviewer", JSON.stringify(decodedToken));
           setReviewer(decodedToken);
-          console.log("Reviewer authenticated:", decodedToken);
           const cleanedUrl = location.pathname;
           window.history.replaceState({}, document.title, cleanedUrl);
         }
@@ -78,10 +75,8 @@ export default function Navbar() {
           if (isExpired) {
             localStorage.removeItem("reviewerToken");
             localStorage.removeItem("reviewer");
-            console.log("Stored token expired");
           } else {
             setReviewer(JSON.parse(localStorage.getItem("reviewer") || "null"));
-            console.log("Using stored reviewer data");
           }
         } catch (error) {
           console.error("Error with stored token:", error);
@@ -91,7 +86,6 @@ export default function Navbar() {
       }
       if (storedRole) {
         setUserRole(storedRole);
-        console.log("User role:", storedRole);
       }
     }
   }, [location]);
@@ -108,7 +102,6 @@ export default function Navbar() {
   };
 
   const handleNavClick = () => setIsOpen(false);
-
   const handleLoginClick = () => {
     navigate("/signin");
     setIsOpen(false);
@@ -125,12 +118,10 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow-md p-4 fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto flex justify-between items-center">
-        {/* Logo */}
         <Link to="/" className="flex items-center">
           <img src="../jafi.png" alt="Logo" className="h-10 w-auto" />
         </Link>
 
-        {/* Desktop Menu */}
         <div className="hidden md:flex space-x-6 items-center">
           <Link
             to="/"
@@ -139,7 +130,7 @@ export default function Navbar() {
           >
             Home
           </Link>
-          {/* Categories Dropdown - only on desktop */}
+
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowCategoriesDropdown((prev) => !prev)}
@@ -148,32 +139,24 @@ export default function Navbar() {
               Categories
             </button>
             {showCategoriesDropdown && (
-              <div className="absolute left-0 mt-2 bg-white border rounded shadow-md w-48 z-10">
+              <div className="absolute left-0 mt-2 bg-white border rounded shadow-md w-48 z-10 max-h-60 overflow-y-auto">
                 <ul>
-                  {categories.length > 0 ? (
-                    categories.map((cat, idx) => (
-                      <li
-                        key={idx}
-                        onClick={() => {
-                          navigate("/all-listing");
-                          setShowCategoriesDropdown(false);
-                        }}
-                        className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                      >
-                        {cat}
-                      </li>
-                    ))
-                  ) : (
-                    <li className="px-4 py-2 text-sm text-gray-500">
-                      No categories
+                  {categories.map((cat, idx) => (
+                    <li
+                      key={idx}
+                      onClick={() => {
+                        navigate("/all-listing");
+                        setShowCategoriesDropdown(false);
+                      }}
+                      className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                    >
+                      {cat}
                     </li>
-                  )}
+                  ))}
                 </ul>
               </div>
             )}
           </div>
-
-          {/* Menu Items */}
 
           <Link
             to="/#about"
@@ -199,18 +182,15 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Conditional Rendering based on authentication status */}
           {!reviewer && userRole === null ? (
-            <>
-              <button
-                onClick={handleLoginClick}
-                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
-              >
-                Login
-              </button>
-            </>
+            <button
+              onClick={handleLoginClick}
+              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
+            >
+              Login
+            </button>
           ) : reviewer ? (
-            <div ref={dropdownRef} className="relative">
+            <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowDropdown((prev) => !prev)}
                 className="text-gray-800 font-medium bg-gray-100 px-4 py-2 rounded hover:bg-gray-200"
@@ -256,7 +236,6 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Toggle */}
         <button
           className="md:hidden text-gray-600 text-xl"
           onClick={() => setIsOpen(!isOpen)}
@@ -265,11 +244,9 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden mt-4 space-y-2 bg-white p-4 rounded-lg shadow-md">
-          {/* Categories dropdown in mobile */}
-          <div className=" relative" ref={dropdownRef}>
+          <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowCategoriesDropdown((v) => !v)}
               className="block w-full text-left hover:bg-gray-100"
@@ -278,25 +255,21 @@ export default function Navbar() {
             </button>
             {showCategoriesDropdown && (
               <ul className="bg-white border-l-4 border-blue-600 ml-4">
-                {categories.length ? (
-                  categories.map((c, i) => (
-                    <li
-                      key={i}
-                      onClick={() => {
-                        navigate("/all-listing");
-                        setShowCategoriesDropdown(false);
-                        setIsOpen(false);
-                      }}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    >
-                      {c}
-                    </li>
-                  ))
-                ) : (
-                  <li className="px-4 py-2 text-gray-500">No categories</li>
-                )}
+                {categories.map((c, i) => (
+                  <li
+                    key={i}
+                    onClick={() => {
+                      navigate("/all-listing");
+                      setShowCategoriesDropdown(false);
+                      setIsOpen(false);
+                    }}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  >
+                    {c}
+                  </li>
+                ))}
               </ul>
-            )}{" "}
+            )}
           </div>
 
           <Link
@@ -331,20 +304,18 @@ export default function Navbar() {
           )}
 
           {!reviewer && userRole === null ? (
+            <button
+              onClick={handleLoginClick}
+              className="block w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md"
+            >
+              Login
+            </button>
+          ) : reviewer ? (
             <>
               <button
-                onClick={handleLoginClick}
-                className="block w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-md"
-              >
-                Login
-              </button>
-            </>
-          ) : reviewer ? (
-            <div>
-              <button
                 onClick={() => {
-                  setIsOpen(false);
                   navigate("/reviewer");
+                  setIsOpen(false);
                 }}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100"
               >
@@ -359,7 +330,7 @@ export default function Navbar() {
               >
                 Logout
               </button>
-            </div>
+            </>
           ) : null}
 
           {userRole ? (
@@ -375,8 +346,8 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => {
-                setIsOpen(false);
                 setShowSignupModal(true);
+                setIsOpen(false);
               }}
               className="block w-full bg-blue-500 text-white px-4 py-2 rounded-md"
             >
@@ -386,7 +357,6 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Signup Modal */}
       {showSignupModal && (
         <SignupModal
           isOpen={showSignupModal}

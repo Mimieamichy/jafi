@@ -1,8 +1,8 @@
 // src/components/Settings.jsx
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { useSnackbar } from "notistack";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faSave, faTimes, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import {  faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
@@ -18,7 +18,7 @@ export default function Settings() {
   const [form, setForm] = useState({ name: "", email: "", role: "admin" });
 
   const [newPw, setNewPw] = useState("");
-  const [showOld, setShowOld] = useState(false);
+  
   const [showNew, setShowNew] = useState(false);
 
   const [price, setPrice] = useState({ business: "", service: "" });
@@ -48,6 +48,7 @@ export default function Settings() {
       setSuperCount((c) => c + (form.role === "superadmin" ? 1 : 0));
       setAdminCount((c) => c + (form.role === "admin" ? 1 : 0));
       setForm({ name: "", email: "", role: "admin" });
+      
     } catch {
       enqueueSnackbar("Add failed", { variant: "error" });
     }

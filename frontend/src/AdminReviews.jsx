@@ -2,12 +2,13 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faTrash, faStar } from "@fortawesome/free-solid-svg-icons";
-
+import { useSnackbar } from "notistack";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function Reviews() {
   const authToken = localStorage.getItem("userToken");
+  const { enqueueSnackbar } = useSnackbar();
 
   const [reviewers, setReviewers] = useState([]);
   const [allReviews, setAllReviews] = useState([]);
@@ -80,8 +81,10 @@ export default function Reviews() {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setReviewers((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+      return enqueueSnackbar("Reviewer deleted successfully", { variant: "success" })
     } catch {
-      alert("Delete failed");
+      
+      return enqueueSnackbar("Delete failed", { variant: "error" })
     } finally {
       setDeleteTarget(null);
       setShowDeleteModal(false);

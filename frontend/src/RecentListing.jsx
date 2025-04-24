@@ -90,7 +90,7 @@ export default function RecentListings() {
         setListings(top18);
       } catch (e) {
         console.error("listings fetch error", e);
-        enqueueSnackbar("Failed to load featured listings", {
+        enqueueSnackbar("Failed to load recent listings", {
           variant: "error",
         });
       } finally {
