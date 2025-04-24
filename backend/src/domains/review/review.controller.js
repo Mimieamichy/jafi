@@ -180,6 +180,7 @@ exports.getAllReviewsByuserId = async (req, res) => {
         const page = req.query.page || 1;
         const offset = (page - 1) * limit;
         const reviews = await ReviewService.getAllReviewsByuserId(userId, limit, offset);
+        console.log(reviews)
         return res.status(200).json({ success: true, reviews });
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
