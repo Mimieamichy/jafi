@@ -14,8 +14,11 @@ const app = express();
 //middlewares
 const { errorHandler } = require("./application/middlewares/errorHandler");
 
-
 // Security Middlewares
+app.options('*', cors({
+    origin: ['http://localhost:5173', 'https://jafiai.vercel.app', 'https://jafi-0fve.onrender.com'],
+    credentials: true,
+}));  
 app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
@@ -26,7 +29,7 @@ const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rate Limiting (chnage back to 100 on production)
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100});
+const limiter = rateLimit({ windowMs: 150 * 60 * 100, max: 100});
 app.use(limiter)
 
 // Body Parser
@@ -34,11 +37,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
-// Serve static frontend files
-app.use(cors({
-    origin: ['https://jafiai.vercel.app', 'http://localhost:5173', 'https://jafi-0fve.onrender.com'],
-    credentials: true,
-}))
 
 
 // Routes
