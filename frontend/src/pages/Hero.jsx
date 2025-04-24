@@ -118,10 +118,10 @@ export default function HeroSection() {
           />
           <input
             type="text"
-            placeholder="Search for a listing by name or category"
+            placeholder="Search for a listing by name, category or location"
             value={searchQuery}
             onChange={handleSearchChange}
-            className="w-full py-3 px-12 bg-black/50 border border-gray-300 rounded-full text-white placeholder-white focus:outline-none"
+            className="w-full py-3 px-12 bg-black/50 border border-gray-300 text-xs md:text-base rounded-full text-white placeholder-white focus:outline-none"
           />
 
           {/* Command-Palette–Style Search Overlay */}
@@ -154,7 +154,11 @@ export default function HeroSection() {
                   </ul>
                 )
                 : (
-                  <p className="px-4 py-2 text-gray-500">{suggestions.message}</p>
+<<<<<<< HEAD
+                  <p className="px-4 py-2 text-gray-500">{suggestions.message || "No Listing Found"}</p>
+=======
+                  <p className="px-4 py-2 text-gray-500">{suggestions.message || "No Listing found"}</p>
+>>>>>>> 864a0d172f633d65c444ed8ab7bd4953fe0f5736
                 )
               ) }
 

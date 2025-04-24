@@ -11,13 +11,26 @@ const Users = () => {
   const { enqueueSnackbar } = useSnackbar();
 
   const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 20;
-  const totalPages = Math.ceil(users.length / itemsPerPage);
-  const currentUsers = users.slice(
+
+  // Filter users by search term (email or role)
+  const filteredUsers = users.filter((user) => {
+    const term = searchTerm.toLowerCase();
+    const emailMatch = user.email?.toLowerCase().includes(term);
+    const roles = Array.isArray(user.role) ? user.role : [user.role];
+    const roleMatch = roles.some(
+      (r) => r && r.toLowerCase().includes(term)
+    );
+    return emailMatch || roleMatch;
+  });
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const currentUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -58,7 +71,7 @@ const Users = () => {
     fetchUsers();
   }, [authToken, enqueueSnackbar]);
 
-  // Adjust page if out of bounds
+  // Adjust page if out of bounds when filtering or pagination changes
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages > 0 ? totalPages : 1);
@@ -95,9 +108,7 @@ const Users = () => {
         throw new Error(errText || "Failed to delete user");
       }
 
-      setUsers((prev) =>
-        prev.filter((u) => u.id !== selectedUser.id)
-      );
+      setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
       enqueueSnackbar("User deleted successfully", { variant: "success" });
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -112,7 +123,18 @@ const Users = () => {
 
   return (
     <div className="mx-auto max-w-7xl p-4">
-      <h2 className="text-xl font-bold mb-4">All Users</h2>
+      <h2 className="text-xl font-bold mb-2">All Users</h2>
+      {/* Search Bar */}
+      <input
+        type="text"
+        placeholder="Search by email or role"
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setCurrentPage(1);
+        }}
+        className="mb-4 p-2 border border-gray-300 rounded w-full max-w-sm"
+      />
 
       {/* Desktop Table View */}
       <div className="hidden md:block mb-4">
@@ -167,9 +189,7 @@ const Users = () => {
       {/* Mobile Card View */}
       <div className="block md:hidden">
         {currentUsers.length === 0 ? (
-          <div className="p-4 text-center text-gray-500 italic">
-            No users found.
-          </div>
+          <div className="p-4 text-center text-gray-500 italic">No users found.</div>
         ) : (
           currentUsers.map((user, index) => (
             <div
@@ -206,7 +226,7 @@ const Users = () => {
       </div>
 
       {/* Pagination Controls */}
-      {users.length > 0 && (
+      {filteredUsers.length > 0 && (
         <div className="flex items-center justify-center mt-4 space-x-2">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -234,8 +254,7 @@ const Users = () => {
           <div className="bg-white p-6 rounded shadow-md w-full max-w-sm mx-2">
             <h3 className="text-lg font-bold mb-4">Confirm Delete</h3>
             <p className="mb-4">
-              Do you want to delete{" "}
-              <strong>{selectedUser.name || "this user"}</strong>?
+              Do you want to delete <strong>{selectedUser.name || "this user"}</strong>?
             </p>
             <div className="flex justify-end space-x-2">
               <button

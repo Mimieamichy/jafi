@@ -10,6 +10,7 @@ import {
   faFacebookF,
   faInstagram,
   faTiktok,
+  faXTwitter
 } from "@fortawesome/free-brands-svg-icons";
 
 const docs = {
@@ -121,6 +122,14 @@ export default function Footer() {
             className="hover:text-pink-400"
           >
             <FontAwesomeIcon icon={faInstagram} />
+          </a>
+          <a
+            href="https://x.com/jafiai?s=21"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-blue-500"
+          >
+            <FontAwesomeIcon icon={faXTwitter} />
           </a>
         </div>
 

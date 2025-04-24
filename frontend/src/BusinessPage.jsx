@@ -353,10 +353,10 @@ export default function BusinessPage() {
             {business.category} | {business.address}, {business.city},{" "}
             {business.state}
           </p>
-          <p className="text-sm text-gray-500 m-2">Email: {business.email}</p>
+          <p className="text-sm text-gray-500 m-2">Email: {business?.email}</p>
 
           <p className="text-sm text-gray-500 m-2">
-            Opens at: {business.start} - {business.end}
+            Opens at: {business?.start} - {business?.end}
           </p>
           <p className="text-sm text-gray-500 m-2">
             Opening days:
