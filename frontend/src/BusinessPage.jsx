@@ -74,6 +74,7 @@ export default function BusinessPage() {
     const fetchBusiness = async () => {
       try {
         const response = await fetch(`${baseUrl}/business/${id}`);
+        
         const data = await response.json();
         setBusiness(data);
         const claimbusId = data.id;
@@ -323,28 +324,25 @@ export default function BusinessPage() {
   }
 
   return (
+    <>
+    <div className="w-full h-64 overflow-hidden">
+        <Slider {...sliderSettings} className="h-full w-full">
+          {business.images?.map((img, idx) => (
+            <div key={idx} className="h-full w-full">
+              <img
+                src={img}
+                alt={`Slide ${idx}`}
+                className="object-cover w-full h-full"
+              />
+            </div>
+          ))}
+        </Slider>
+      </div>
+
     <div className="max-w-4xl mx-auto py-6 px-4">
       {/* HEADER / COVER SECTION */}
       <div className="bg-white rounded-lg shadow p-4 relative">
-        {business.images?.length > 0 ? (
-          <div className="w-full h-64 overflow-hidden bg-gray-100">
-            <Slider key={business.images.length} {...sliderSettings}>
-              {business.images.map((img, index) => (
-                <div key={index}>
-                  <img
-                    src={img}
-                    alt={`Slide ${index}`}
-                    className="object-cover w-full h-64"
-                  />
-                </div>
-              ))}
-            </Slider>
-          </div>
-        ) : (
-          <div className="h-64 bg-gray-200 flex items-center justify-center">
-            <p>No images available</p>
-          </div>
-        )}
+        
 
         {/* Business Info - remains unchanged */}
         <div className="mt-4">
@@ -744,6 +742,7 @@ export default function BusinessPage() {
         </div>
       )}
     </div>
+    </>
   );
 }
 

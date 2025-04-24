@@ -53,6 +53,8 @@ export default function SignIn() {
       const role = decodedToken.role;
       localStorage.setItem("userRole", role);
       localStorage.setItem("userData", JSON.stringify(decodedToken));
+      console.log("userData", decodedToken);
+      
       enqueueSnackbar("Login Successful!", { variant: "success" });
 
       // const params = new URLSearchParam

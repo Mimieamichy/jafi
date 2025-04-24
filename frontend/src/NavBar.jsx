@@ -51,6 +51,8 @@ export default function Navbar() {
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
+        console.log(decodedToken);
+        
         const isExpired = decodedToken.exp * 1000 < Date.now();
         if (isExpired) {
           localStorage.removeItem("reviewerToken");
@@ -189,13 +191,13 @@ export default function Navbar() {
             >
               Login
             </button>
-          ) : reviewer ? (
+          ) : reviewer || userRole ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowDropdown((prev) => !prev)}
                 className="text-gray-800 font-medium bg-gray-100 px-4 py-2 rounded hover:bg-gray-200"
               >
-                {reviewer.name}
+                {"Welcome"}
               </button>
               {showDropdown && (
                 <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg w-48 z-50">

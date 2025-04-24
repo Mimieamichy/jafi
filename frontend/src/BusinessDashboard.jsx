@@ -116,7 +116,8 @@ export default function BusinessDashboard() {
       .then((data) => {
         console.log("business data:", data);
         if (data) {
-          setFormData(data.user); // Set all the data correctly
+          
+          setFormData(data?.user?.businesses.id); // Set all the data correctly
           setBusNewImages(data.user.images || []); // Set images from data
           setBusId(data.user.uniqueId);
           setId(data.user.id);
@@ -240,7 +241,7 @@ export default function BusinessDashboard() {
     }
   };
 
-  // Handle save functionality
+
   // Helper function to convert a URL to a File object
   const urlToFile = async (url, fileName, mimeType) => {
     const res = await fetch(url);
