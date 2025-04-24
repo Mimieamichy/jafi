@@ -48,6 +48,7 @@ export default function HiringSignup() {
     countryCode: "+234",
     otp: "",
     description: "",
+    customCategory: "",
   });
 
   const [otpSent, setOtpSent] = useState(false);
@@ -118,13 +119,19 @@ export default function HiringSignup() {
 
     // Prepare FormData for file upload
     const data = new FormData();
+
     data.append("service", formData.service);
     data.append("name", formData.name);
     data.append("email", formData.email);
     data.append("phone", fullPhoneNumber);
     data.append("address", formData.address);
     data.append("otp", formData.otp);
-    data.append("category", formData.category);
+    data.append(
+      "category",
+      formData.category === "Other"
+        ? formData.customCategory
+        : formData.category
+    );
     data.append("description", formData.description);
 
     // Append images
@@ -328,7 +335,19 @@ export default function HiringSignup() {
                 {cat}
               </option>
             ))}
+            <option value="Other">Other</option>
           </select>
+          {formData.category === "Other" && (
+            <input
+              type="text"
+              name="customCategory"
+              value={formData.customCategory}
+              onChange={handleChange}
+              placeholder="Enter your category"
+              className="w-full p-2 border rounded mt-2"
+              required
+            />
+          )}
 
           <button
             type="submit"

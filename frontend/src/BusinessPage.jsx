@@ -707,7 +707,7 @@ export default function BusinessPage() {
         </div>
       )}
 
-      {/* Review Images Modal */}
+      
       {/* Review Images Modal using react-slick Carousel */}
       {reviewImageModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
@@ -786,7 +786,7 @@ function ReviewCard({
           {expanded ? "Show Less" : "Read More"}
         </button>
       )}
-      {images && images.length > 0 && (
+      {images && images?.length > 0 && (
         <img
           src={images[0]}
           alt="Review thumbnail"

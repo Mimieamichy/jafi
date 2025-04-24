@@ -245,7 +245,7 @@ export default function Navbar() {
       </div>
 
       {isOpen && (
-        <div className="md:hidden mt-4 space-y-2 bg-white p-4 rounded-lg shadow-md">
+        <div className="md:hidden mt-4 space-y-2 bg-white p-4 rounded-lg shadow-md max-h-60 overflow-y-auto">
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowCategoriesDropdown((v) => !v)}
@@ -254,7 +254,7 @@ export default function Navbar() {
               Categories
             </button>
             {showCategoriesDropdown && (
-              <ul className="bg-white border-l-4 border-blue-600 ml-4">
+              <ul className="bg-white border-l-4 ">
                 {categories.map((c, i) => (
                   <li
                     key={i}

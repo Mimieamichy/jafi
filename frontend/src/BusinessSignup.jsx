@@ -25,6 +25,7 @@ export default function BusinessSignup() {
     day: [],
     description: "",
     images: [],
+    logo: null,
     countryCode: "NG", // Default country code
   });
 
@@ -146,6 +147,31 @@ export default function BusinessSignup() {
       }));
     }
   };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return; // no file selected
+  
+    // only allow images
+    if (!file.type.startsWith("image/")) {
+      enqueueSnackbar("Only image files are allowed for your logo.", { variant: "error" });
+      return;
+    }
+  
+    // optional size check (e.g. max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      enqueueSnackbar("Logo must be smaller than 2 MB.", { variant: "error" });
+      return;
+    }
+  
+    // all good—save it
+    setFormData((prev) => ({
+      ...prev,
+      logo: file,
+    }));
+  };
+  
+ 
 
   const handlePhoneChange = (e) => {
     const { value } = e.target;
@@ -313,6 +339,18 @@ export default function BusinessSignup() {
           id="pob"
           accept="image/*, application/*"
           onChange={handlePobChange}
+          className="w-full p-2 border rounded mt-1"
+          required
+        />
+        <label htmlFor="logo" className="font-semibold">
+          Business Logo:
+        </label>
+        <input
+          type="file"
+          name="logo"
+          id="logo"
+          accept="image/*"
+          onChange={handleLogoChange}
           className="w-full p-2 border rounded mt-1"
           required
         />
