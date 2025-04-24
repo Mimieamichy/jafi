@@ -592,7 +592,7 @@ export default function BusinessPage() {
                 type="file"
                 accept="image/*"
                 multiple
-                required
+                
                 onChange={(e) => {
                   const files = Array.from(e.target.files);
                   if (reviewImages.length + files.length > 2) {
@@ -718,7 +718,7 @@ export default function BusinessPage() {
             >
               &times;
             </button>
-            {reviewModalImages.length > 0 && (
+            {reviewModalImages?.length > 0 && (
               <Slider
                 dots={true}
                 infinite={true}
@@ -729,7 +729,7 @@ export default function BusinessPage() {
                 autoplay={true}
                 className="mt-4"
               >
-                {reviewModalImages.map((img, idx) => (
+                {reviewModalImages?.map((img, idx) => (
                   <div key={idx}>
                     <img
                       src={img}

@@ -154,11 +154,7 @@ export default function HeroSection() {
                   </ul>
                 )
                 : (
-<<<<<<< HEAD
                   <p className="px-4 py-2 text-gray-500">{suggestions.message || "No Listing Found"}</p>
-=======
-                  <p className="px-4 py-2 text-gray-500">{suggestions.message || "No Listing found"}</p>
->>>>>>> 864a0d172f633d65c444ed8ab7bd4953fe0f5736
                 )
               ) }
 
