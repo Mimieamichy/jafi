@@ -70,14 +70,9 @@ exports.getAllUsers = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const { rows: users, count: total } = await UserService.getAllUsers({ offset, limit });
+    const users = await UserService.getAllUsers(offset, limit);
 
-    res.status(200).json({
-      users,
-      total,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-    });
+    res.status(200).json(users);
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }
@@ -103,7 +98,7 @@ exports.getAllListings = async (req, res) => {
       const limit = parseInt(req.query.limit) || 10;
       const offset = (page - 1) * limit;
   
-      const { listings, total } = await UserService.getAllListings(search, offset, limit);
+      const listings = await UserService.getAllListings(search, offset, limit);
         return res.status(200).json({ listings});
     } catch (error) {
         console.error(error);

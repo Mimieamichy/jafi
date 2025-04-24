@@ -88,8 +88,8 @@ exports.getUserById = async (id) => {
   return user;
 };
 
-exports.getAllUsers = async ({ offset, limit }) => {
-  const users = await User.findAndCountAll({
+exports.getAllUsers = async (offset, limit) => {
+  const users = await User.findAll({
     attributes: ["id", "name", "email", "role"],
     offset,
     limit,
@@ -98,7 +98,6 @@ exports.getAllUsers = async ({ offset, limit }) => {
 
   return users; 
 };
-
 
 exports.updateUser = async (id, data) => {
   const user = await User.findByPk(id);
@@ -126,6 +125,8 @@ exports.getAllListings = async (searchTerm, offset, limit) => {
       [Op.or]: [
         { name: { [Op.like]: `%${searchTerm}%` } },
         { category: { [Op.like]: `%${searchTerm}%` } },
+        { city: { [Op.like]: `%${searchTerm}%` } },
+        { state: { [Op.like]: `%${searchTerm}%` } },
       ],
     };
   }
@@ -157,12 +158,9 @@ exports.getAllListings = async (searchTerm, offset, limit) => {
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
 
-  const paginated = sortedListings.slice(offset, offset + limit);
+  const allListings = sortedListings.slice(offset, offset + limit);
 
-  return {
-    total: combined.length,
-    listings: paginated,
-  };
+  return allListings
 };
 
 
