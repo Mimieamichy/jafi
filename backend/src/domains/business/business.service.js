@@ -135,19 +135,9 @@ exports.verifyPayment = async (paymentReference) => {
   return paymentResponse;
 };
 
-exports.getBusinessByUserId = async (userId, searchTerm, offset, limit) => {
-    const whereClause = {
-      userId,
-      ...(searchTerm && {
-        [Op.or]: [
-          { name: { [Op.like]: `%${searchTerm}%` } },
-          { category: { [Op.like]: `%${searchTerm}%` } },
-        ],
-      }),
-    };
-  
-    const { count, rows } = await Business.findAndCountAll({
-      where: whereClause,
+exports.getBusinessByUserId = async (userId, offset, limit) => {
+    const business = await Business.findAll({
+      where: userId,
       order: [["createdAt", "DESC"]],
       offset,
       limit,
@@ -155,10 +145,7 @@ exports.getBusinessByUserId = async (userId, searchTerm, offset, limit) => {
   
     if (count === 0) throw new Error("No business found for the given user.");
   
-    return {
-      total: count,
-      businesses: rows,
-    };
+    return business
   
 };
 

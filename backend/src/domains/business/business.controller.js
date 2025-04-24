@@ -113,15 +113,14 @@ exports.verifyBusinessPayment = async (req, res) => {
 exports.getBusinessByUserId = async (req, res) => {
   try {
     const { id } = req.params;
-    const searchTerm = req.query.searchTerm || "";
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
     if (id === undefined || id != req.user.id) {
       throw new Error("Unauthorized to access this business");
     }
-    const user = await BusinessService.getBusinessByUserId(id, searchTerm, offset, limit);
-    res.status(200).json({ user });
+    const business = await BusinessService.getBusinessByUserId(id, offset, limit);
+    res.status(200).json(business );
   } catch (error) {
     console.log(error);
     res.status(error.status || 500).json({ message: error.message });

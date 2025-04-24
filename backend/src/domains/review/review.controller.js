@@ -162,7 +162,6 @@ exports.getAllReviewsWithReplies = async (req, res) => {
     }
 }
 
-
 exports.acknowledgeReview = async (req, res) => {
     try{
         const { listingId } = req.params;
