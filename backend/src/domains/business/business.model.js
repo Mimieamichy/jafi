@@ -76,7 +76,7 @@ const Business = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    tags: {
+    logo: {
       type: DataTypes.STRING,
       allowNull: true,
     },

@@ -9,15 +9,13 @@ const { Op } = require("sequelize");
 
 
 exports.registerReviewerWithGoogle = async (googleUser) => {
-  const { email, displayName } = googleUser;
+  const { email, displayName, photos } = googleUser;
+  const profilePic = photos?.[0]?.value || null;
 
   // Check if user exists
   const existingUser = await User.findOne({ where: { email } });
 
   if (existingUser) {
-    if (existingUser.role !== "reviewer") {
-      return {message: "User already exists with a different role"}
-    }
 
     const token = jwt.sign(
       {
@@ -39,6 +37,7 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
     password: "", // No password since it's Google login
     role: "reviewer",
     name: displayName,
+    profilePic
   });
 
   const token = jwt.sign(
@@ -193,7 +192,6 @@ exports.getAllReviews = async () => {
 };
 
 
-
 exports.searchReviews = async (searchQuery) => {
     let serviceIds = [];
     let businessIds = [];
@@ -301,7 +299,6 @@ exports.getAllReviewsWithReplies = async () => {
   return reviews;
 };
 
-
 exports.acknowledgeReview = async (listingId) => {
   await Review.update(
     { isNew: false }, // values to update
@@ -317,3 +314,23 @@ exports.acknowledgeReview = async (listingId) => {
     return { message: 'Marked as read' };
 };
 
+
+exports.getAllReviewsByuserId = async (userId, limit, offset) => {
+  const reviews = await Review.findAll({
+    where: { userId },
+    include: [
+      {
+        model: User,
+        attributes: ["id", "name", "email", "profilePic"],
+      },
+    ],
+    limit,
+    offset,
+    attributes: ["id", "comment", "createdAt", "reply"],
+    order: [["createdAt", "DESC"]],
+  });
+
+  if (!reviews) throw new Error("No reviews found for this user");
+
+  return reviews;
+}

@@ -43,7 +43,7 @@ const Review = sequelize.define(
     },
     images: {
       type: DataTypes.JSON,
-      allowNull: false,
+      allowNull: true,
     },
     star_rating: {
       type: DataTypes.INTEGER,

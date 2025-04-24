@@ -63,7 +63,9 @@ exports.updateBusiness = async (req, res) => {
 
     // Handle images
     const images = req.files?.["images"]? req.files["images"].map(file => file.path) : [];
+    const logo = req.files?.["logo"]? req.files["logo"].map(file => file.path) : [];
     businessData.images = images;
+    businessData.logo = logo;
     
     const password = businessData.password;
     const email = businessData.email
