@@ -82,5 +82,6 @@ const Service = sequelize.define(
 // Define associations 
 Service.belongsTo(User, {
   foreignKey: "userId",
+  onDelete: "CASCADE"
 });
 module.exports = Service;

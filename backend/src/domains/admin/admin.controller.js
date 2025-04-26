@@ -3,10 +3,6 @@ const AdminService = require("./admin.services");
 //users management
 exports.getAllUsers = async (req, res) => {
   try {
-    const searchTerm = req.query.search || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
     const users = await AdminService.getAllUsers();
     return res.status(200).json({ success: true, users });
   } catch (error) {
@@ -16,8 +12,9 @@ exports.getAllUsers = async (req, res) => {
 
 exports.deleteUser = async (req, res) => {
   const id = req.params.id;
+  const newUserEmail = req.body.email || null
   try {
-    await AdminService.deleteUser(id);
+    await AdminService.deleteUser(id, newUserEmail);
     return res.status(200).json({ success: true, message: "Service deleted successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -56,11 +53,7 @@ exports.updateAdminPassword = async (req, res) => {
 
 // Business management
 exports.getAllBusinesses = async (req, res) => {
-  try {
-    const searchTerm = req.query.search || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
+  try {;
     const businesses = await AdminService.getAllBusinesses();
     return res.status(200).json({ success: true, businesses });
   } catch (error) {

@@ -9,9 +9,9 @@ const { Op } = require("sequelize");
 
 
 exports.registerReviewerWithGoogle = async (googleUser) => {
-  const { email, displayName, photos } = googleUser;
-  const profilePic = photos?.[0]?.value || null;
-  console.log(photos)
+  const { email, displayName, picture } = googleUser;
+  const profilePic = picture || null;
+
 
   // Check if user exists
   const existingUser = await User.findOne({ where: { email } });

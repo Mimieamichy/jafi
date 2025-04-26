@@ -72,6 +72,7 @@ const Review = sequelize.define(
 
 Review.belongsTo(User, {
   foreignKey: "userId",
+  onDelete: "CASCADE"
 })
 
 

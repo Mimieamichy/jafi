@@ -8,7 +8,8 @@ const bcrypt = require("bcryptjs");
 const Claim = require("../claim/claim.model");
 const { generatePassword } = require("../../utils/generatePassword")
 const { sendMail } = require("../../utils/sendEmail");
-const {Op} = require('sequelize')
+const {Op} = require('sequelize');
+const OTP = require("../otp/otp.model");
 
 
 
@@ -76,16 +77,33 @@ exports.updateAdminPassword = async (userId, newPassword) => {
     return { message: "Password updated successfully" };
 }
 
-exports.deleteUser = async (id) => {
-    const user = await User.findOne({ where: { id } });
 
+exports.deleteUser = async (id, email) => {
+    const user = await User.findOne({ where: { id } });
     if (!user) throw new Error("User not found");
 
-    await Business.destroy({ where: { userId: id } });
-    await Service.destroy({ where: { userId: id } });
+    if (!email) {
+        // No email: Delete all related manually if cascade not used
+        await Business.destroy({ where: { userId: id } });
+        await Service.destroy({ where: { userId: id } });
+        await OTP.destroy({ where: { userId: id } });
+        await Review.destroy({ where: { userId: id } });
+    } else {
+        const newOwner = await User.findOne({ where: { email } });
+        if (!newOwner) throw new Error("New owner email not found.");
+
+        // Transfer ownership of businesses
+        await Business.update(
+            { userId: newOwner.id },
+            { where: { userId: id } }
+        );
+        await Service.destroy({ where: { userId: id } });
+        await OTP.destroy({ where: { userId: id } });
+        await Review.destroy({ where: { userId: id } });
+    }
     await user.destroy();
 
-    return { message: "User and associated business/services deleted successfully" };
+    return { message: "User deleted successfully" };
 };
 
 
