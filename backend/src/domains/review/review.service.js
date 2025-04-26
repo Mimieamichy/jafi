@@ -11,6 +11,7 @@ const { Op } = require("sequelize");
 exports.registerReviewerWithGoogle = async (googleUser) => {
   const { email, displayName, photos } = googleUser;
   const profilePic = photos?.[0]?.value || null;
+  console.log(photos)
 
   // Check if user exists
   const existingUser = await User.findOne({ where: { email } });
@@ -138,10 +139,11 @@ exports.createReview = async (userId, entityId, rating, comment, user_name, imag
       );
     }
 
-    return review;
+    return {message: "Review created successfully", review };
   });
 
-  return result;
+  const resultReview = result
+  return {message: resultReview.message, resultReview};
 };
 
 exports.updateReview = async (reviewId, userId, comment) => {
@@ -150,7 +152,7 @@ exports.updateReview = async (reviewId, userId, comment) => {
 
   review.comment = comment
   await review.save();
-  return review;
+  return {message: "Review updated successfully", review };
 };
 
 exports.deleteReview = async (reviewId, userId) => {
@@ -162,7 +164,7 @@ exports.deleteReview = async (reviewId, userId) => {
 };
 
 exports.getAllReviews = async () => {
-  const reviews = await Review.findAll({
+  const allReviews = await Review.findAll({
     include: [
       {
         model: User,
@@ -173,8 +175,8 @@ exports.getAllReviews = async () => {
   });
 
   // Manually attach the correct listing (either Business or Service)
-  const enrichedReviews = await Promise.all(
-    reviews.map(async (review) => {
+  const reviews = await Promise.all(
+    allReviews.map(async (review) => {
       if (review.listingType === "business") {
         review.dataValues.listing = await Business.findOne({
           where: { uniqueId: review.listingId },
@@ -188,9 +190,8 @@ exports.getAllReviews = async () => {
     })
   );
 
-  return enrichedReviews;
+  return {message: "All reviews fetched successfully", reviews };
 };
-
 
 exports.searchReviews = async (searchQuery) => {
     let serviceIds = [];
@@ -231,17 +232,17 @@ exports.searchReviews = async (searchQuery) => {
         order: [['createdAt', 'DESC']],
     });
 
-    return reviews;
+    return {message: "All reviews fetched successfully", reviews };
 };
 
 exports.getReviewById = async (reviewId) => {
   const review = await Review.findByPk(reviewId);
   if (!review) throw new Error("Review not found");
-  return review;
+  return {message: "Review fetched successfully", review };
 };
 
 exports.getReviewsForListings = async (listingId) => {
-  return await Review.findAll({
+  const reviews = await Review.findAll({
     where: { listingId },
     include: [
       {
@@ -251,14 +252,15 @@ exports.getReviewsForListings = async (listingId) => {
     ],
     order: [["createdAt", "DESC"]],
   });
+  return {message: "Reviews fetched successfully", reviews };
 };
 
 exports.getReviewsByUser = async (userId) => {
-  const userReviews = await Review.findAll({ where: { userId } });
-  if (!userReviews || userReviews.length === 0) {
+  const reviews = await Review.findAll({ where: { userId } });
+  if (!reviews || reviews.length === 0) {
     throw new Error("No reviews found for this user");
   }
-  return userReviews;
+  return {message: "User reviews fetched successfully", reviews };
 };
 
 exports.getAReviewwithReplies = async (reviewId) => {
@@ -273,7 +275,7 @@ exports.getAReviewwithReplies = async (reviewId) => {
     order: [["createdAt", "ASC"]],
   });
 
-  return replies;
+  return {message: "Replies fetched successfully", replies };
 };
 
 exports.getAllReviewsWithReplies = async () => {
@@ -296,7 +298,7 @@ exports.getAllReviewsWithReplies = async () => {
 
   if (!reviews) throw new Error("No reviews found");
 
-  return reviews;
+  return {message: "All reviews with replies fetched successfully", reviews };
 };
 
 exports.acknowledgeReview = async (listingId) => {
@@ -310,12 +312,11 @@ exports.acknowledgeReview = async (listingId) => {
     }
   );
 
-    console.log("Review acknowledged");
     return { message: 'Marked as read' };
 };
 
 
-exports.getAllReviewsByuserId = async (userId, limit, offset) => {
+exports.getAllReviewsByuserId = async (userId) => {
   const reviews = await Review.findAll({
     where: { userId },
     include: [
@@ -324,13 +325,10 @@ exports.getAllReviewsByuserId = async (userId, limit, offset) => {
         attributes: ["id", "name", "email", "profilePic"],
       },
     ],
-    limit,
-    offset,
-    attributes: ["id", "comment", "createdAt", "reply"],
     order: [["createdAt", "DESC"]],
   });
 
   if (!reviews) throw new Error("No reviews found for this user");
 
-  return reviews;
+  return {message: "User reviews fetched successfully", reviews };
 }

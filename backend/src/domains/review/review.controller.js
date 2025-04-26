@@ -19,7 +19,7 @@ exports.googleAuthCallback = async (req, res, next) => {
     passport.authenticate("google", { session: false, failureRedirect: '/' }, async (err, user, info) => {
         if (err || !user) {
             console.error("Google authentication error:", err);
-            return res.status(401).json({ success: false, message: "Authentication failed" });
+            return res.status(401).json({message: "Authentication failed" });
         }
 
         try {
@@ -47,6 +47,7 @@ exports.googleAuthCallback = async (req, res, next) => {
         }
     })(req, res, next);
 };
+
 exports.createReview = async (req, res) => {
     try {
         const { rating, comment } = req.body;
@@ -54,8 +55,8 @@ exports.createReview = async (req, res) => {
         const entityId = req.params.entityId;
         const user_name = req.user.name;
         const images = req.files["reviewImages"] ? req.files["reviewImages"].map((file) => file.path) : [];
-        const review = await ReviewService.createReview(userId, entityId, rating, comment, user_name, images);
-        return res.status(201).json({ success: true, review });
+        const response = await ReviewService.createReview(userId, entityId, rating, comment, user_name, images);
+        return res.status(201).json(response);
     } catch (error) {
         console.log(error)
         res.status(error.status || 500).json({ message: error.message });
@@ -67,8 +68,8 @@ exports.updateReview = async (req, res) => {
         const { id } = req.params;
         const { comment } = req.body;
         const userId = req.user.id; 
-        const review = await ReviewService.updateReview(id, userId, comment);
-        return res.status(200).json({ success: true, review });
+        const response = await ReviewService.updateReview(id, userId, comment);
+        return res.status(200).json(response);
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
     }
@@ -78,8 +79,8 @@ exports.deleteReview = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id; 
-        await ReviewService.deleteReview(id, userId);
-        return res.status(200).json({ success: true, message: "Review deleted successfully" });
+        const response = await ReviewService.deleteReview(id, userId);
+        return res.status(200).json(response);
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
     }
@@ -87,12 +88,8 @@ exports.deleteReview = async (req, res) => {
 
 exports.getAllReviews = async (req, res) => {
     try {
-        const search = req.query.search || "";
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const offset = (page - 1) * limit;
-        const reviews = await ReviewService.getAllReviews();
-        return res.status(200).json({ success: true, reviews });
+        const response = await ReviewService.getAllReviews();
+        return res.status(200).json(response);
     } catch (error) {
         console.log(error);
         res.status(error.status || 500).json({ message: error.message });
@@ -102,8 +99,8 @@ exports.getAllReviews = async (req, res) => {
 exports.getReviewById = async (req, res) => {
     try {
         const { id } = req.params;
-        const review = await ReviewService.getReviewById(id);
-        return res.status(200).json({ success: true, review });
+        const response = await ReviewService.getReviewById(id);
+        return res.status(200).json(response);
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
     }
@@ -112,8 +109,8 @@ exports.getReviewById = async (req, res) => {
 exports.getReviewsForListings = async (req, res) => {
     try {
         const { entityId } = req.params;
-        const reviews = await ReviewService.getReviewsForListings(entityId);
-        return res.status(200).json({ success: true, reviews });
+        const response = await ReviewService.getReviewsForListings(entityId);
+        res.status(200).json(response);
     } catch (error) {
         console.log(error);
         res.status(error.status || 500).json({ message: error.message });
@@ -123,8 +120,8 @@ exports.getReviewsForListings = async (req, res) => {
 exports.getReviewsByUser = async (req, res) => {
     try {
         const userId  = req.user.id;
-        const reviews = await ReviewService.getReviewsByUser(userId);
-        return res.status(200).json({ success: true, reviews });
+        const response = await ReviewService.getReviewsByUser(userId);
+        res.status(200).json(response);
     } catch (error) {
         console.log(error);
         res.status(error.status || 500).json({ message: error.message });
@@ -134,30 +131,29 @@ exports.getReviewsByUser = async (req, res) => {
 exports.searchReviews = async (req, res) => {
     try {
         const { searchQuery } = req.query;
-        const reviews = await ReviewService.searchReviews(searchQuery);
-        return res.status(200).json({ success: true, reviews });
+        const response = await ReviewService.searchReviews(searchQuery);
+        return res.status(200).json(response);
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
     }
 }
-
 
 exports.getAReviewwithReplies = async (req, res) => {
     try {
         const { reviewId } = req.params;
-        const replies = await ReviewService.getAReviewwithReplies(reviewId);
-        return res.status(200).json({ success: true, replies });
+        const response = await ReviewService.getAReviewwithReplies(reviewId);
+        res.status(200).json(response);
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
     }
 }
 
-
 exports.getAllReviewsWithReplies = async (req, res) => {
     try {
-        const review = await ReviewService.getAllReviewsWithReplies();
-        return res.status(200).json({ success: true, review });
+        const response = await ReviewService.getAllReviewsWithReplies();
+        res.status(200).json(response);
     } catch (error) {
+        console.log(error)
         res.status(error.status || 500).json({ message: error.message });
     }
 }
@@ -165,8 +161,8 @@ exports.getAllReviewsWithReplies = async (req, res) => {
 exports.acknowledgeReview = async (req, res) => {
     try{
         const { listingId } = req.params;
-        const review = await ReviewService.acknowledgeReview(listingId);
-        return res.status(200).json({ success: true, review })
+        const response = await ReviewService.acknowledgeReview(listingId);
+        res.status(200).json(response)
     } catch (error) {
         console.log(error)
         res.status(error.status || 500).json({ message: error.message });
@@ -176,12 +172,8 @@ exports.acknowledgeReview = async (req, res) => {
 exports.getAllReviewsByuserId = async (req, res) => {
     try {
         const { userId } = req.params;
-        const limit = req.query.limit || 10;
-        const page = req.query.page || 1;
-        const offset = (page - 1) * limit;
-        const reviews = await ReviewService.getAllReviewsByuserId(userId, limit, offset);
-        console.log(reviews)
-        return res.status(200).json({ success: true, reviews });
+        const response = await ReviewService.getAllReviewsByuserId(userId);
+        return res.status(200).json(response);
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
     }

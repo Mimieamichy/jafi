@@ -146,7 +146,7 @@ exports.getAllListings = async (searchTerm) => {
   ];
 
   if (!combined.length) {
-    return {message: "No listings found for the provided search term."}
+    return {message: "No listings found"}
   }
 
   const sortedListings = combined.sort(
@@ -157,7 +157,6 @@ exports.getAllListings = async (searchTerm) => {
 
   return {message: "Listings found", allListings };
 };
-
 
 exports.replyToReview = async (reviewId, userId, comment) => {
   const originalReview = await Review.findByPk(reviewId);

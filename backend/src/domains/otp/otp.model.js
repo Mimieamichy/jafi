@@ -54,6 +54,7 @@ const OTP = sequelize.define(
     }
 );
 
-OTP.belongsTo(User, { foreignKey: "userId", as: "user" });
+OTP.belongsTo(User, { foreignKey: "userId", as: "user", onDelete: "CASCADE" });
+
 
 module.exports = OTP;
