@@ -5,52 +5,47 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const compression = require("compression");
 const rateLimit = require("express-rate-limit");
-const passport = require('./config/passport')
-const app_url = process.env.APP_URL || "/api/v1";
+const passport = require('./config/passport');
+const path = require('path');
 
+const app_url = process.env.APP_URL || "/api/v1";
 const app = express();
 
-
-//middlewares
-const { errorHandler } = require("./application/middlewares/errorHandler");
+// ✅ Proper CORS configuration applied globally
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://jafiai.vercel.app', 'https://jafi-0fve.onrender.com'],
+  credentials: true,
+}));
 
 // Security Middlewares
-app.options('*', cors({
-    origin: ['http://localhost:5173', 'https://jafiai.vercel.app', 'https://jafi-0fve.onrender.com'],
-    credentials: true,
-}));  
 app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
 
-
 // Serve static files from the uploads directory
-const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Rate Limiting (chnage back to 100 on production)
-const limiter = rateLimit({ windowMs: 150 * 60 * 100, max: 100});
-app.use(limiter)
+// Rate Limiting (change max back to 100 in production)
+const limiter = rateLimit({ windowMs: 15 * 60 * 100, max: 100 });
+app.use(limiter);
 
 // Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
-
+// Middlewares
+const { errorHandler } = require("./application/middlewares/errorHandler");
 
 // Routes
 const serviceRoutes = require("./domains/service/service.routes");
 const userRoutes = require("./domains/user/user.routes");
 const otpRoutes = require("./domains/otp/otp.routes");
 const reviewRoutes = require("./domains/review/review.routes");
-const businessRoutes = require("./domains/business/business.routes")
-const claimRoutes = require("./domains/claim/claim.routes")
+const businessRoutes = require("./domains/business/business.routes");
+const claimRoutes = require("./domains/claim/claim.routes");
 const adminRoutes = require("./domains/admin/admin.routes");
-const paymentsRoutes = require("./domains/payments/payments.route")
-
-
-
+const paymentsRoutes = require("./domains/payments/payments.route");
 
 app.use(`${app_url}/service`, serviceRoutes);
 app.use(`${app_url}/user`, userRoutes);
@@ -61,9 +56,14 @@ app.use(`${app_url}/claim`, claimRoutes);
 app.use(`${app_url}/admin`, adminRoutes);
 app.use(`${app_url}/payment`, paymentsRoutes);
 
-
-
 // Error Handling Middleware
 app.use(errorHandler);
 
 module.exports = app;
+
+
+
+// const apicache = require('apicache');
+// const cache = apicache.middleware;
+
+// app.use(`${app_url}/business`, cache('5 minutes'), businessRoutes);
