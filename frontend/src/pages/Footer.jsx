@@ -31,8 +31,9 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-900 text-white py-10">
+      <p className="text-2xl sm:text-3xl font-bold mb-4 text-center">Contact Us</p>
       <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-      <p className="text-2xl sm:text-3xl font-bold mb-4">Contact Us</p>
+      
         {/* logo */}
         <a href="/" className="shrink-0">
           <img src="/jafi.png" alt="JAFI logo" className="h-10 w-auto" />

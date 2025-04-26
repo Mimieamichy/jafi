@@ -23,31 +23,47 @@ export default function BusinessSignup() {
     city: "",
     state: "",
     day: [],
+    tier: "standard", 
     description: "",
     images: [],
     logo: null,
     countryCode: "NG", // Default country code
   });
 
-  const categories = [
-    "Automotives",
-    "Hotels",
-    "Healthcare",
-    "Groceries",
-    "Malls & Supermarkets",
-    "Banking & FinTech",
-    "Churches",
-    "Aircrafts",
-    "Nigerian Made",
+  const standardOptions = [
+    "Beauty & Salon",
+    "Hospital",
     "Nightlife & Entertainment",
-    "Restaurants & Cafes",
-    "Real Estate",
-    "Education & Training",
-    "Fashion & Beauty",
-    "Fitness & Wellness",
-    "Travel & Tours",
-    "Tech Hubs"
+    "Restaurant",
   ];
+
+  const premiumOptions = [
+    "Church",
+    "Communication",
+    "Airplane",
+    "Banking",
+    "Hotel",
+  ];
+
+  // const categories = [
+  //   "Automotives",
+  //   "Hotels",
+  //   "Healthcare",
+  //   "Groceries",
+  //   "Malls & Supermarkets",
+  //   "Banking & FinTech",
+  //   "Churches",
+  //   "Aircrafts",
+  //   "Nigerian Made",
+  //   "Nightlife & Entertainment",
+  //   "Restaurants & Cafes",
+  //   "Real Estate",
+  //   "Education & Training",
+  //   "Fashion & Beauty",
+  //   "Fitness & Wellness",
+  //   "Travel & Tours",
+  //   "Tech Hubs"
+  // ];
 
   const daysOfWeek = [
     "Monday",
@@ -58,6 +74,8 @@ export default function BusinessSignup() {
     "Saturday",
     "Sunday",
   ];
+
+  
 
   const [phoneError, setPhoneError] = useState("");
 
@@ -79,6 +97,15 @@ export default function BusinessSignup() {
       <span>{value}</span>
     </div>
   );
+
+  const handleTierChange = (e) => {
+    const tier = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      tier,
+      category: "",
+    }));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -201,18 +228,18 @@ export default function BusinessSignup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
+    // build FormData payload
     const formPayload = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (key === "images") {
-        formData.images.forEach((file) => {
-          // Append each file along with its filename
-          formPayload.append("images", file, file.name);
-        });
-      } else if (key === "pob" && formData.pob) {
-        // Append the file for pob with its original filename
-        formPayload.append("pob", formData.pob, formData.pob.name);
+    Object.entries(formData).forEach(([key, val]) => {
+      if (key === "images" && Array.isArray(val)) {
+        // append each image file
+        val.forEach(file => formPayload.append("images", file, file.name));
+      } else if ((key === "pob" || key === "logo") && val instanceof File) {
+        // append pob or logo file
+        formPayload.append(key, val, val.name);
       } else {
-        formPayload.append(key, formData[key]);
+        // append all other fields (strings, arrays, etc.)
+        formPayload.append(key, val);
       }
     });
   
@@ -222,31 +249,28 @@ export default function BusinessSignup() {
         body: formPayload,
       });
   
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Business successfully registered:", data);
-        const busId = data.newBusiness.id;
-        console.log(busId);
-        
-        localStorage.setItem("busId", busId);
-        navigate("/pricing");
-      } else {
+      if (!response.ok) {
         const errorText = await response.text();
-        console.error("Error response:", errorText);
-  
-        enqueueSnackbar(
-          "There was an error registering your business. Please try again.",
-          { variant: "error" }
-        );
+        throw new Error(errorText);
       }
-    } catch (error) {
-      console.error("Network error:", error);
-      enqueueSnackbar(
-        "There was a network error. Please check your connection.",
-        { variant: "error" }
-      );
+  
+      const data = await response.json();
+      localStorage.setItem("busId", data.newBusiness.id);
+  
+      // navigate based on chosen tier
+      if (formData.tier === "premium") {
+        navigate("/premium-payment");
+      } else {
+        navigate("/standard-payment");
+      }
+    } catch (err) {
+      console.error("Submission error:", err);
+      enqueueSnackbar("Error registering business. Please try again.", {
+        variant: "error",
+      });
     }
   };
+  
   
   return (
     <div className="max-w-lg w-full mx-auto mt-10 p-4 sm:p-6 bg-white shadow-md rounded-lg">
@@ -386,26 +410,52 @@ export default function BusinessSignup() {
         {phoneError && <div style={{ color: "red" }}>{phoneError}</div>}
 
         {/* Category */}
+        <fieldset className="flex gap-6">
+          <legend className="font-semibold">Plan Type:</legend>
+          <label className="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="tier"
+              value="standard"
+              checked={formData.tier === "standard"}
+              onChange={handleTierChange}
+            />
+            <span>Standard</span>
+          </label>
+          <label className="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="tier"
+              value="premium"
+              checked={formData.tier === "premium"}
+              onChange={handleTierChange}
+            />
+            <span>Premium</span>
+          </label>
+        </fieldset>
+
+        {/* Sub-Category */}
         <label htmlFor="category" className="font-semibold">
-          Category:
+          {formData.tier === "standard" ? "Standard Categories" : "Premium Categories"}:
         </label>
         <select
-          name="category"
           id="category"
+          name="category"
           className="p-2 border rounded-md w-full"
           value={formData.category}
           onChange={handleChange}
           required
         >
           <option value="" disabled>
-            Select Category
+            Select {formData.tier === "standard" ? "Standard" : "Premium"} Option
           </option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
+          {(formData.tier === "standard" ? standardOptions : premiumOptions).map(opt => (
+            <option key={opt} value={opt}>
+              {opt}
             </option>
           ))}
         </select>
+
 
         {/* Opening Days */}
         <fieldset className="border p-2 rounded-md">
@@ -517,7 +567,7 @@ export default function BusinessSignup() {
           type="submit"
           className="bg-blue-600 text-white py-2 rounded-lg cursor-pointer w-full text-center"
         >
-          Next (Choose Plan)
+          {formData.tier === "premium" ? "Proceed to Premium Payment" : "Proceed to Standard Payment"}
         </button>
       </form>
     </div>
