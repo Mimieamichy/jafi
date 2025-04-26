@@ -41,7 +41,9 @@ const CustomerReviews = () => {
     }
   };
 
-  const handleNameNavigate = () => navigate("/reveiwerPage");
+  const handleNameNavigate = (userId) => {
+    navigate(`/reveiwerPage/${userId}`);
+  };
 
   const handleNavigate = () => navigate("/all-listing");
 
@@ -82,7 +84,7 @@ const CustomerReviews = () => {
                 </h3>
                 <p
                   className="text-gray-700 capitalize"
-                  onClick={handleNameNavigate}
+                  onClick={() => handleNameNavigate(review.userId)}
                 >
                   {review.user?.user_name || review.user_name}
                 </p>

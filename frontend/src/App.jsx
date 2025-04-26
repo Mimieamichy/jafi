@@ -55,7 +55,7 @@ export default function App() {
                 <Route path="/review-page" element={<PaginatedReviews />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignupModal />} />
-                <Route path="/reveiwerPage/user/:userId" element={<ReviewerPersonalPage />} />
+                <Route path="/reveiwerPage/:userId" element={<ReviewerPersonalPage />} />
                 <Route path="/premium-payment" element={<PremuimPricing />} />
                 <Route path="/standard-payment" element={<StandardPricing />} />
                 <Route path="/claim-pricing" element={<ClaimPricing />} />

@@ -9,6 +9,8 @@ const REVIEWS_PER_PAGE = 6;
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 import { useNavigate } from "react-router-dom";
 
+
+
 const ReviewCard = ({
   id,
   user_name,
@@ -19,10 +21,13 @@ const ReviewCard = ({
   images,
   type,
   onImageClick,
+  listing,
   reply,
   onReplyClick,
   onReviewerClick,
   userId,
+  listingType,
+  handleReviewCardClick
 }) => {
   const [expanded, setExpanded] = useState(false);
   const isLong = comment.length > 150;
@@ -32,7 +37,9 @@ const ReviewCard = ({
   return (
     <div className="bg-white p-6 rounded-lg shadow-md text-center flex flex-col justify-between h-full cursor-pointer">
       <div>
-        <h3 className="text-lg font-semibold text-black capitalize">
+        <h3 className="text-lg font-semibold text-black capitalize"  onClick={() =>
+                    handleReviewCardClick(listing.id, listingType)
+                  }>
           {listingName || ""}
         </h3>
         <p className="text-gray-700 capitalize" onClick={(e) => {
@@ -109,6 +116,15 @@ export default function PaginatedReviews() {
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [selectedReply, setSelectedReply] = useState("");
 
+  const handleReviewCardClick = (id, listingType) => {
+    // Navigate to the appropriate route based on listingType (either service or business)
+    if (listingType === "service") {
+      navigate(`/hire/${id}`);
+    } else if (listingType === "business") {
+      navigate(`/business/${id}`);
+    }
+  };
+
   useEffect(() => {
     const fetchReviews = async () => {
       try {
@@ -179,7 +195,8 @@ export default function PaginatedReviews() {
               {...review}
               onImageClick={openImageModal}
               onReplyClick={openReplyModal}
-              onReviewerClick={(uid) => navigate(`/reveiwerPage/user/${uid}`)}
+              handleReviewCardClick={handleReviewCardClick}
+              onReviewerClick={(uid) => navigate(`/reveiwerPage/${uid}`)}
             />
           ))}
         </div>
