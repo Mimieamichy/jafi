@@ -153,7 +153,7 @@ exports.getAllListings = async (searchTerm) => {
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
 
-  const allListings = sortedListings.slice(offset, offset + limit);
+  const allListings = sortedListings.slice();
 
   return {message: "Listings found", allListings };
 };
