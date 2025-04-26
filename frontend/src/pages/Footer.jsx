@@ -31,15 +31,17 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-900 text-white py-10">
+      <p className="text-2xl sm:text-3xl font-bold mb-4 text-center">Contact Us</p>
       <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+      
         {/* logo */}
         <a href="/" className="shrink-0">
           <img src="/jafi.png" alt="JAFI logo" className="h-10 w-auto" />
         </a>
 
         {/* contact */}
-        <div className="text-center md:text-left">
-          <p className="text-2xl sm:text-3xl font-bold mb-4">Contact Us</p>
+        <div className="text-center md:text-right">
+         
           <div className="flex justify-center md:justify-start items-center space-x-2">
 
             <FontAwesomeIcon icon={faPhone} />

@@ -344,7 +344,7 @@ export default function HireProfileDetails() {
       {/* REVIEWS SECTION */}
       <div className="mt-10">
         <h3 className="text-xl font-semibold mb-4">Reviews</h3>
-        {reviews.length > 0 ? (
+        {reviews?.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {currentReviews.map((review) => (
               <ReviewCard
@@ -437,7 +437,6 @@ export default function HireProfileDetails() {
                 type="file"
                 accept="image/*"
                 multiple
-                required
                 onChange={(e) => {
                   const files = Array.from(e.target.files);
                   if (reviewImages.length + files.length > 2) {
@@ -573,7 +572,7 @@ function ReviewCard({
           {expanded ? "Show Less" : "Read More"}
         </button>
       )}
-      {images && images.length > 0 && (
+      {images && images?.length > 0 && (
         <img
           src={images[0]}
           alt="Review thumbnail"

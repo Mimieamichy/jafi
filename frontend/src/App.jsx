@@ -19,6 +19,8 @@ const ReviewsProvider = lazy(() =>
 const SignupModal = lazy(() => import("./SignupModal"));
 const SignIn = lazy(() => import("./SignInPage"));
 const Pricing = lazy(() => import("./Pricing"));
+const PremuimPricing = lazy(() => import("./BusPremuimPayment"));
+const StandardPricing = lazy(() => import("./BusStandardPayment"));
 const ClaimPricing = lazy(() => import("./ClaimPricing"));
 const HiringPayment = lazy(() => import("./HirePayment"));
 const HiringDashboard = lazy(() => import("./HiringDashboard"));
@@ -53,6 +55,8 @@ export default function App() {
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignupModal />} />
                 <Route path="/pricing" element={<Pricing />} />
+                <Route path="/premium-payment" element={<PremuimPricing />} />
+                <Route path="/standard-payment" element={<StandardPricing />} />
                 <Route path="/claim-pricing" element={<ClaimPricing />} />
                 <Route path="/hiring-payment" element={<HiringPayment />} />
                 <Route path="/hiring-dashboard" element={<HiringDashboard />} />

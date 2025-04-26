@@ -13,15 +13,11 @@ export default function Navbar() {
   // Static category list
   const categories = [
     "Hotel",
-    "Automotive",
     "Banking",
     "Church",
-    "Nigerian made",
     "Nightlife & Entertainment",
     "Airplane",
-    "Pharmacy & Groceries",
     "Beauty and Salon",
-    "Fitness and Gym",
     "Communication",
     "Hospital",
     "Restaurant",
@@ -51,6 +47,8 @@ export default function Navbar() {
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
+        console.log(decodedToken);
+
         const isExpired = decodedToken.exp * 1000 < Date.now();
         if (isExpired) {
           localStorage.removeItem("reviewerToken");
@@ -116,10 +114,10 @@ export default function Navbar() {
     }[userRole] || "/";
 
   return (
-    <nav className="bg-white shadow-md p-4 fixed top-0 left-0 w-full z-50">
-      <div className="container mx-auto flex justify-between items-center">
+    <nav className="bg-white shadow-md p-4  fixed top-0 left-0 w-full z-50  ">
+      <div className="container mx-auto flex justify-between items-center h-full">
         <Link to="/" className="flex items-center">
-          <img src="../jafi.png" alt="Logo" className="h-10 w-auto" />
+          <img src="../jafia.jpg" alt="Logo" className="h-16 w-auto" />
         </Link>
 
         <div className="hidden md:flex space-x-6 items-center">
@@ -189,13 +187,13 @@ export default function Navbar() {
             >
               Login
             </button>
-          ) : reviewer ? (
+          ) : reviewer || userRole ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowDropdown((prev) => !prev)}
                 className="text-gray-800 font-medium bg-gray-100 px-4 py-2 rounded hover:bg-gray-200"
               >
-                {reviewer.name}
+                {"Welcome"}
               </button>
               {showDropdown && (
                 <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg w-48 z-50">
