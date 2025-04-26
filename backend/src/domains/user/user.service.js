@@ -85,11 +85,9 @@ exports.getUserById = async (id) => {
   return {message: "User found", user };
 };
 
-exports.getAllUsers = async (offset, limit) => {
+exports.getAllUsers = async () => {
   const users = await User.findAll({
     attributes: ["id", "name", "email", "role"],
-    offset,
-    limit,
     order: [["createdAt", "DESC"]],
   });
 
@@ -116,7 +114,7 @@ exports.getUserRole = async (email) => {
   return {message: "User role found", role};
 };
 
-exports.getAllListings = async (searchTerm, offset, limit) => {
+exports.getAllListings = async (searchTerm) => {
   let searchFilter = {};
   if (searchTerm) {
     searchFilter = {
@@ -126,8 +124,6 @@ exports.getAllListings = async (searchTerm, offset, limit) => {
         { address: { [Op.like]: `%${searchTerm}%` } },
       ],
     };
-    offset,
-    limit
   }
 
   const services = await Service.findAll({
