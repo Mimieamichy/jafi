@@ -26,8 +26,8 @@ export default function AllListings() {
         console.log("Fetched listings:", data);
 
         if (response.ok) {
-          setListings(data.listings);
-          setFilteredListings(data.listings);
+          setListings(data.allListings);
+          setFilteredListings(data.allListings);
         } else {
           console.error(
             "Error fetching listings:",

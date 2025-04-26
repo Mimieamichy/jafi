@@ -19,7 +19,7 @@ const CustomerReviews = () => {
         const res = await fetch(`${baseUrl}/review/`);
         const data = await res.json();
         console.log("Fetched reviews:", data.reviews);
-        
+
         const sorted = (data.reviews || [])
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 10);
@@ -32,10 +32,6 @@ const CustomerReviews = () => {
     fetchReviews();
   }, []);
 
-  // Function to handle a review card click. 
-  // Adjust the navigation logic as needed based on your review object.
- 
-
   const handleReviewCardClick = (id, listingType) => {
     // Navigate to the appropriate route based on listingType (either service or business)
     if (listingType === "service") {
@@ -44,6 +40,8 @@ const CustomerReviews = () => {
       navigate(`/business/${id}`);
     }
   };
+
+  const handleNameNavigate = () => navigate("/reveiwerPage");
 
   const handleNavigate = () => navigate("/all-listing");
 
@@ -70,15 +68,22 @@ const CustomerReviews = () => {
           {reviews.map((review) => (
             <SwiperSlide
               key={review.id}
-              onClick={() => handleReviewCardClick(review.listing.id, review.listingType)}
               className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center h-auto cursor-pointer"
             >
               {/* Review details */}
               <div className="w-full mb-4 flex-grow">
-                <h3 className="text-lg font-semibold text-black capitalize">
+                <h3
+                  className="text-lg font-semibold text-black capitalize"
+                  onClick={() =>
+                    handleReviewCardClick(review.listing.id, review.listingType)
+                  }
+                >
                   {review.listingName || review.companyName}
                 </h3>
-                <p className="text-gray-700 capitalize">
+                <p
+                  className="text-gray-700 capitalize"
+                  onClick={handleNameNavigate}
+                >
                   {review.user?.user_name || review.user_name}
                 </p>
                 <div className="flex justify-center text-yellow-500 mt-2">

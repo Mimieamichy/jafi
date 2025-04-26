@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -11,6 +11,8 @@ import { useSnackbar } from "notistack";
 export default function BusinessSignup() {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
+  const [standardPrice, setStandardPrice] = useState(null);
+  const [premiumPrice, setPremiumPrice] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,7 +25,7 @@ export default function BusinessSignup() {
     city: "",
     state: "",
     day: [],
-    tier: "standard", 
+    businessType: "standard", 
     description: "",
     images: [],
     logo: null,
@@ -45,7 +47,6 @@ export default function BusinessSignup() {
     "Hotel",
   ];
 
-  // const categories = [
   //   "Automotives",
   //   "Hotels",
   //   "Healthcare",
@@ -98,11 +99,37 @@ export default function BusinessSignup() {
     </div>
   );
 
-  const handleTierChange = (e) => {
-    const tier = e.target.value;
+   // ─── fetch prices once on mount ─────
+   useEffect(() => {
+    async function loadPrices() {
+      try {
+        const [stdRes, premRes] = await Promise.all([
+          fetch(`${baseUrl}/admin/standardPrice`),
+          fetch(`${baseUrl}/admin/premuimPrice`)
+        ]);
+
+        const stdData = await stdRes.json();
+        const premData = await premRes.json();
+
+        if (stdRes.ok) setStandardPrice(stdData.price);
+        else enqueueSnackbar(stdData.message || "Could not load standard price", { variant: "error" });
+
+        if (premRes.ok) setPremiumPrice(premData.price);
+        else enqueueSnackbar(premData.message || "Could not load premium price", { variant: "error" });
+      } catch (err) {
+        console.error(err);
+        enqueueSnackbar("Network error fetching prices", { variant: "error" });
+      }
+    }
+    loadPrices();
+  }, [enqueueSnackbar]);
+
+
+  const handlebusinessTypeChange = (e) => {
+    const businessType = e.target.value;
     setFormData(prev => ({
       ...prev,
-      tier,
+      businessType,
       category: "",
     }));
   };
@@ -199,7 +226,6 @@ export default function BusinessSignup() {
   };
   
  
-
   const handlePhoneChange = (e) => {
     const { value } = e.target;
     setFormData((prev) => ({ ...prev, phone_number1: value }));
@@ -257,8 +283,8 @@ export default function BusinessSignup() {
       const data = await response.json();
       localStorage.setItem("busId", data.newBusiness.id);
   
-      // navigate based on chosen tier
-      if (formData.tier === "premium") {
+      // navigate based on chosen businessType
+      if (formData.businessType === "premium") {
         navigate("/premium-payment");
       } else {
         navigate("/standard-payment");
@@ -415,28 +441,38 @@ export default function BusinessSignup() {
           <label className="flex items-center space-x-2">
             <input
               type="radio"
-              name="tier"
+              name="businessType"
               value="standard"
-              checked={formData.tier === "standard"}
-              onChange={handleTierChange}
+              checked={formData.businessType === "standard"}
+              onChange={handlebusinessTypeChange}
             />
-            <span>Standard</span>
+             <span>
+              Standard{" "}
+              {standardPrice != null
+                ? `— $${standardPrice}`
+                : "(loading…)"}
+            </span>
           </label>
           <label className="flex items-center space-x-2">
             <input
               type="radio"
-              name="tier"
+              name="businessType"
               value="premium"
-              checked={formData.tier === "premium"}
-              onChange={handleTierChange}
+              checked={formData.businessType === "premium"}
+              onChange={handlebusinessTypeChange}
             />
-            <span>Premium</span>
+            <span>
+              Premium{" "}
+              {premiumPrice != null
+                ? `— $${premiumPrice}`
+                : "(loading…)"}
+            </span>
           </label>
         </fieldset>
 
         {/* Sub-Category */}
         <label htmlFor="category" className="font-semibold">
-          {formData.tier === "standard" ? "Standard Categories" : "Premium Categories"}:
+          {formData.businessType === "standard" ? "Standard Categories" : "Premium Categories"}:
         </label>
         <select
           id="category"
@@ -447,9 +483,9 @@ export default function BusinessSignup() {
           required
         >
           <option value="" disabled>
-            Select {formData.tier === "standard" ? "Standard" : "Premium"} Option
+            Select {formData.businessType === "standard" ? "Standard" : "Premium"} Option
           </option>
-          {(formData.tier === "standard" ? standardOptions : premiumOptions).map(opt => (
+          {(formData.businessType === "standard" ? standardOptions : premiumOptions).map(opt => (
             <option key={opt} value={opt}>
               {opt}
             </option>
@@ -567,7 +603,7 @@ export default function BusinessSignup() {
           type="submit"
           className="bg-blue-600 text-white py-2 rounded-lg cursor-pointer w-full text-center"
         >
-          {formData.tier === "premium" ? "Proceed to Premium Payment" : "Proceed to Standard Payment"}
+          {formData.businessType === "premium" ? "Proceed to Premium Payment" : "Proceed to Standard Payment"}
         </button>
       </form>
     </div>

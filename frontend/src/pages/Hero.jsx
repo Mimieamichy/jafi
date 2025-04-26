@@ -29,6 +29,7 @@ export default function HeroSection() {
   // Example "Recent searches"
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   // Load initial search query from localStorage
   useEffect(() => {
@@ -49,9 +50,11 @@ export default function HeroSection() {
           const response = await axios.get(`${baseUrl}/user/listings`, {
             params: { searchTerm: searchQuery },
           });
-          setSuggestions(response.data.listings  || [])
+          setSuggestions(response.data.allListings  || [])
           console.log("Fetched data:", response.data);
+          setMessage(response.data.message);
           
+         
 
         } catch (error) {
           console.error("Error fetching listings:", error);
@@ -154,7 +157,7 @@ export default function HeroSection() {
                   </ul>
                 )
                 : (
-                  <p className="px-4 py-2 text-gray-500">{suggestions.error}</p>
+                  <p className="px-4 py-2 text-gray-500">{message}</p>
                 )
               ) }
 

@@ -71,10 +71,10 @@ export default function RecentListings() {
 
         const rows = Array.isArray(data)
           ? data
-          : Array.isArray(data.listings)
-          ? data.listings
-          : data.listing
-          ? [data.listing]
+          : Array.isArray(data.allListings)
+          ? data.allListings
+          : data.allListings
+          ? [data.allListings]
           : [];
 
         /* most‑recent first (uses createdAt if available) */

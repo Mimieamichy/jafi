@@ -5,6 +5,10 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { jwtDecode } from "jwt-decode";
 import { useSnackbar } from "notistack";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 import {
   faStar as solidStar,
   faStarHalfAlt,
@@ -251,6 +255,16 @@ export default function HireProfileDetails() {
     setReviewModalImages([]);
   };
 
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: true,
+    autoplay: true,
+  };
+
   // For pagination of reviews
   const currentReviews = reviews.slice(
     (currentPage - 1) * reviewsPerPage,
@@ -267,269 +281,268 @@ export default function HireProfileDetails() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4">
-      {/* HEADER / COVER SECTION */}
-      <div className="bg-white rounded-lg shadow p-4 relative">
-        <Slider
-          dots
-          infinite
-          speed={500}
-          slidesToShow={1}
-          slidesToScroll={1}
-          autoplay
-          arrows
-        >
-          {hire.images?.map((img, i) => (
+    <>
+      <div className="w-full h-64 mt-10">
+        <Slider {...sliderSettings} className=" w-full h-full">
+          {hire.images?.map((img, idx) => (
             <div
-              key={i}
-              className="w-full h-64 bg-gray-100 flex items-center justify-center"
+              key={idx}
+              className="flex items-center justify-center  w-full h-full"
             >
               <img
                 src={img}
-                alt={`Work sample ${i + 1}`}
-                className="w-full h-64 rounded object-cover"
+                alt={`Slide ${idx}`}
+                className="h-64 w-full object-fill"
               />
             </div>
           ))}
         </Slider>
-
-        {/* Service Info – remains unchanged */}
-        <div className="mt-6 space-y-3">
-          <h1 className="text-3xl font-bold capitalize">{hire.name}</h1>
-          <p className="text-lg text-gray-600">{hire.category}</p>
-          <p className="flex items-center text-gray-700">
-            <FontAwesomeIcon
-              icon={faMapMarkerAlt}
-              className="mr-2 text-red-500"
-            />
-            {hire.address}
-          </p>
-          <p className="flex items-center text-gray-700">
-            <FontAwesomeIcon icon={faPhone} className="mr-2 text-blue-500" />
-            {hire.phone_number}
-          </p>
-          <p className="flex items-center text-gray-700">
-            <FontAwesomeIcon icon={faEnvelope} className="mr-2 text-blue-500" />
-            {hire.email}
-          </p>
-          <div className="flex items-center">
-            <span className="mr-2">Rating:</span>
-            {renderStars(hire.average_rating)}
-          </div>
-          <p className="bg-gray-100 p-4 rounded text-gray-800">
-            {hire.description}
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-8 flex justify-between items-center flex-wrap gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 bg-gray-200 text-gray-800 px-5 py-2 rounded-md shadow hover:bg-gray-300 transition"
-          >
-            ← Go Back
-          </button>
-          <button
-            onClick={() =>
-              reviewer ? setShowReviewForm(true) : handleGoogleLogin()
-            }
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md shadow hover:bg-blue-700 transition"
-          >
-            <FontAwesomeIcon icon={faPen} />
-            Write a Review
-          </button>
-        </div>
       </div>
-
-      {/* REVIEWS SECTION */}
-      <div className="mt-10">
-        <h3 className="text-xl font-semibold mb-4">Reviews</h3>
-        {reviews?.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {currentReviews.map((review) => (
-              <ReviewCard
-                key={review.id}
-                {...review}
-                onImageClick={(images) => {
-                  setReviewModalImages(images);
-
-                  setReviewImageModalOpen(true);
-                }}
+      <div className="max-w-4xl mx-auto py-6 px-4">
+        {/* HEADER / COVER SECTION */}
+        <div className="bg-white rounded-lg shadow p-4 relative">
+          {/* Service Info – remains unchanged */}
+          <div className="mt-6 space-y-3">
+            <h1 className="text-3xl font-bold capitalize">{hire.name}</h1>
+            <p className="text-lg text-gray-600">{hire.category}</p>
+            <p className="flex items-center text-gray-700">
+              <FontAwesomeIcon
+                icon={faMapMarkerAlt}
+                className="mr-2 text-red-500"
               />
-            ))}
+              {hire.address}
+            </p>
+            <p className="flex items-center text-gray-700">
+              <FontAwesomeIcon icon={faPhone} className="mr-2 text-blue-500" />
+              {hire.phone_number}
+            </p>
+            <p className="flex items-center text-gray-700">
+              <FontAwesomeIcon
+                icon={faEnvelope}
+                className="mr-2 text-blue-500"
+              />
+              {hire.email}
+            </p>
+            <div className="flex items-center">
+              <span className="mr-2">Rating:</span>
+              {renderStars(hire.average_rating)}
+            </div>
+            <p className="bg-gray-100 p-4 rounded text-gray-800">
+              {hire.description}
+            </p>
           </div>
-        ) : (
-          <p className="text-gray-500">No reviews yet.</p>
-        )}
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-6 gap-3">
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`px-4 py-2 rounded ${
-                  currentPage === i + 1
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* Write a Review Modal */}
-      {showReviewForm && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
-          onClick={() => {
-            setShowReviewForm(false);
-            setReviewImages([]);
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
-          >
-            <h2 className="text-xl font-bold mb-4 text-center">
-              Submit a Review
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                value={hire.name}
-                readOnly
-                className="w-full p-2 border rounded bg-gray-100"
-              />
-              <input
-                type="text"
-                value={reviewer?.name || ""}
-                readOnly
-                className="w-full p-2 border rounded bg-gray-100"
-              />
-              <div className="flex justify-center space-x-2 text-yellow-500">
-                {[...Array(5)].map((_, i) => (
-                  <FontAwesomeIcon
-                    key={i}
-                    icon={faStar}
-                    onClick={() => handleRating(i)}
-                    className={`text-2xl cursor-pointer ${
-                      i < reviewData.rating
-                        ? "text-yellow-500"
-                        : "text-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-              <textarea
-                name="comment"
-                rows="4"
-                placeholder="Write your review..."
-                value={reviewData.comment}
-                onChange={handleChange}
-                className="w-full border p-2 rounded"
-                required
-              />
-              <label className="block font-medium">Attach Images (Max 2)</label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) => {
-                  const files = Array.from(e.target.files);
-                  if (reviewImages.length + files.length > 2) {
-                    enqueueSnackbar("You can only upload up to 2 images.", {
-                      variant: "warning",
-                    });
-                    return;
-                  }
-                  setReviewImages((prev) => [...prev, ...files]);
-                }}
-                className="w-full p-2 border rounded"
-              />
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {reviewImages.map((file, idx) => (
-                  <div key={idx} className="relative">
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt={`Review img ${idx}`}
-                      className="w-full h-20 object-cover rounded"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setReviewImages((prev) =>
-                          prev.filter((_, i) => i !== idx)
-                        )
-                      }
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-between">
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                  Submit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowReviewForm(false);
-                    setReviewImages([]);
-                  }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Review Images Modal using react-slick Carousel */}
-      {reviewImageModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
-          <div className="relative bg-white p-4 rounded-lg w-full md:max-w-3xl">
+          {/* Action Buttons */}
+          <div className="mt-8 flex justify-between items-center flex-wrap gap-4">
             <button
-              onClick={closeReviewImageModal}
-              className="absolute top-2 right-2 text-gray-600 text-2xl font-bold"
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 bg-gray-200 text-gray-800 px-5 py-2 rounded-md shadow hover:bg-gray-300 transition"
             >
-              &times;
+              ← Go Back
             </button>
-            {reviewModalImages.length > 0 && (
-              <Slider
-                dots={true}
-                infinite={true}
-                speed={500}
-                slidesToShow={1}
-                slidesToScroll={1}
-                arrows={true}
-                autoplay={true}
-                className="mt-4"
-              >
-                {reviewModalImages.map((img, idx) => (
-                  <div key={idx}>
-                    <img
-                      src={img}
-                      alt={`Review image ${idx}`}
-                      className="w-full md:object-cover h-[80vh] object-contain rounded-lg"
-                    />
-                  </div>
-                ))}
-              </Slider>
-            )}
+            <button
+              onClick={() =>
+                reviewer ? setShowReviewForm(true) : handleGoogleLogin()
+              }
+              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md shadow hover:bg-blue-700 transition"
+            >
+              <FontAwesomeIcon icon={faPen} />
+              Write a Review
+            </button>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* REVIEWS SECTION */}
+        <div className="mt-10">
+          <h3 className="text-xl font-semibold mb-4">Reviews</h3>
+          {reviews?.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {currentReviews.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  {...review}
+                  onImageClick={(images) => {
+                    setReviewModalImages(images);
+
+                    setReviewImageModalOpen(true);
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No reviews yet.</p>
+          )}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6 gap-3">
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`px-4 py-2 rounded ${
+                    currentPage === i + 1
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Write a Review Modal */}
+        {showReviewForm && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+            onClick={() => {
+              setShowReviewForm(false);
+              setReviewImages([]);
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
+            >
+              <h2 className="text-xl font-bold mb-4 text-center">
+                Submit a Review
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                  type="text"
+                  value={hire.name}
+                  readOnly
+                  className="w-full p-2 border rounded bg-gray-100"
+                />
+                <input
+                  type="text"
+                  value={reviewer?.name || ""}
+                  readOnly
+                  className="w-full p-2 border rounded bg-gray-100"
+                />
+                <div className="flex justify-center space-x-2 text-yellow-500">
+                  {[...Array(5)].map((_, i) => (
+                    <FontAwesomeIcon
+                      key={i}
+                      icon={faStar}
+                      onClick={() => handleRating(i)}
+                      className={`text-2xl cursor-pointer ${
+                        i < reviewData.rating
+                          ? "text-yellow-500"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <textarea
+                  name="comment"
+                  rows="4"
+                  placeholder="Write your review..."
+                  value={reviewData.comment}
+                  onChange={handleChange}
+                  className="w-full border p-2 rounded"
+                  required
+                />
+                <label className="block font-medium">
+                  Attach Images (Max 2)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    if (reviewImages.length + files.length > 2) {
+                      enqueueSnackbar("You can only upload up to 2 images.", {
+                        variant: "warning",
+                      });
+                      return;
+                    }
+                    setReviewImages((prev) => [...prev, ...files]);
+                  }}
+                  className="w-full p-2 border rounded"
+                />
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {reviewImages.map((file, idx) => (
+                    <div key={idx} className="relative">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Review img ${idx}`}
+                        className="w-full h-20 object-cover rounded"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setReviewImages((prev) =>
+                            prev.filter((_, i) => i !== idx)
+                          )
+                        }
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between">
+                  <button
+                    type="submit"
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  >
+                    Submit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowReviewForm(false);
+                      setReviewImages([]);
+                    }}
+                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Review Images Modal using react-slick Carousel */}
+        {reviewImageModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
+            <div className="relative bg-white p-4 rounded-lg w-full md:max-w-3xl">
+              <button
+                onClick={closeReviewImageModal}
+                className="absolute top-2 right-2 text-gray-600 text-2xl font-bold"
+              >
+                &times;
+              </button>
+              {reviewModalImages.length > 0 && (
+                <Swiper
+                  modules={[Pagination, Autoplay]}
+                  spaceBetween={20}
+                  slidesPerView={1}
+                  pagination={{ clickable: true }}
+                  autoplay={{ delay: 3000, disableOnInteraction: false }}
+                  loop={true}
+                  className="mt-4"
+                >
+                  {reviewModalImages.map((img, idx) => (
+                    <SwiperSlide key={idx}>
+                      <img
+                        src={img}
+                        alt={`Review image ${idx}`}
+                        className="w-full md:object-cover h-[80vh] object-contain rounded-lg"
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

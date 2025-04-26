@@ -344,7 +344,7 @@ export default function HiringSignup() {
               value={formData.customCategory}
               onChange={handleChange}
               placeholder="Enter your category"
-              className="w-full p-2 border rounded mt-2"
+              className="w-full p-2 border rounded mt-2 capitalize"
               required
             />
           )}

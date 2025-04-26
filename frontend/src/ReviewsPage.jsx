@@ -7,6 +7,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 const REVIEWS_PER_PAGE = 6;
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
+import { useNavigate } from "react-router-dom";
 
 const ReviewCard = ({
   id,
@@ -23,6 +24,9 @@ const ReviewCard = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const isLong = comment.length > 150;
+  const navigate = useNavigate();
+
+  const handleNavigate = () => navigate("/reveiwerPage");
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md text-center flex flex-col justify-between h-full cursor-pointer">
@@ -30,7 +34,7 @@ const ReviewCard = ({
         <h3 className="text-lg font-semibold text-black capitalize">
           {listingName || ""}
         </h3>
-        <p className="text-gray-700 capitalize">{user_name || ""}</p>
+        <p className="text-gray-700 capitalize" onClick={handleNavigate} >{user_name || ""}</p>
         <div className="flex justify-center text-yellow-500 mt-2">
           {[...Array(5)].map((_, i) => (
             <FontAwesomeIcon

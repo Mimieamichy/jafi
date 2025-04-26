@@ -16,10 +16,10 @@ export default function PremuimPricing() {
   useEffect(() => {
     const getPrice = async () => {
       try {
-        const r = await fetch(`${baseUrl}/admin/businessPrice`);
+        const r = await fetch(`${baseUrl}/admin/premuimPrice`);
         const data = await r.json();                 
         console.log("Price API →", data);
-        setPrice(Number(data.businessPrice.value));
+        setPrice(Number(data.premuimPrice.value));
       } catch (e) {
         console.error(e);
         enqueueSnackbar("Couldn’t fetch price", { variant: "error" });
