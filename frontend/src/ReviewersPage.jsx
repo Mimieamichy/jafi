@@ -4,52 +4,63 @@ import { useSnackbar } from "notistack";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar as solidStar } from "@fortawesome/free-solid-svg-icons";
 import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
+import { useParams } from "react-router-dom";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function ReviewerPersonalPage() {
   const { enqueueSnackbar } = useSnackbar();
+  const { userId } = useParams();
+
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // pull reviewer info from localStorage
-  const reviewer = JSON.parse(localStorage.getItem("reviewer") || "{}");
+  const [reviewer, setReviewer] = useState({
+    name: "",
+    email: "",
+    profilePic: null,
+  });
 
   useEffect(() => {
     async function fetchReviews() {
-      const token = localStorage.getItem("reviewerToken");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
       try {
-        const res = await fetch(`${baseUrl}/review/user`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(`${baseUrl}/review/${userId}`);
         const data = await res.json();
-        if (res.ok) setReviews(data.reviews || []);
-        else enqueueSnackbar(data.message || "Failed to load reviews", {
-          variant: "error",
-        });
+        console.log("Raw response:", data);
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to load reviews");
+        }
+
+        // 1) Make sure we have an array
+        const reviewsArray = Array.isArray(data) ? data : data.reviews || [];
+        setReviews(reviewsArray);
+
+        // 2) Grab the User object off the first review (they all belong to same user)
+        if (reviewsArray.length > 0 && reviewsArray[0].User) {
+          setReviewer({
+            name: reviewsArray[0].User.name,
+            email: reviewsArray[0].User.email,
+            profilePic: reviewsArray[0].User.profilePic,
+          });
+        }
       } catch (err) {
-        enqueueSnackbar(err, "Network error fetching reviews", {
-          variant: "error",
-        });
+        console.error(err);
+        enqueueSnackbar(err.message, { variant: "error" });
       } finally {
         setLoading(false);
       }
     }
     fetchReviews();
-  }, [enqueueSnackbar]);
+  }, [enqueueSnackbar, userId]);
 
   return (
     <div className="min-h-screen bg-gray-100 pb-10">
       {/* — Profile Header — */}
-      <div className="bg-white p-6 flex flex-col items-center md:flex-row md:items-center md:space-x-6">
+      <div className="bg-white p-6 flex flex-col items-center md:flex-row md:space-x-6">
         <img
-          src={reviewer.picture || "/default-avatar.png"}
+          src={reviewer.profilePic || "/default-avatar.png"}
           alt={reviewer.name || "Reviewer"}
-          className="w-28 h-28 rounded-full mt-10 object-cover mb-4 md:mb-0"
+          className="w-28 h-28 rounded-full object-cover mb-4 md:mb-0"
         />
         <div>
           <h1 className="text-3xl font-semibold">{reviewer.name}</h1>
@@ -60,7 +71,7 @@ export default function ReviewerPersonalPage() {
       </div>
 
       {/* — All Reviews Header — */}
-      <h2 className="text-4xl font-bold text-center mt-8 mb-6 capitalize">
+      <h2 className="md:text-4xl font-bold text-base text-center mt-8 mb-6 capitalize">
         All {reviewer.name} Reviews
       </h2>
 
@@ -82,27 +93,29 @@ export default function ReviewerPersonalPage() {
 
 function ReviewCard({ review }) {
   const [expanded, setExpanded] = useState(false);
-  const { listingName, user_name, star_rating, comment, images, createdAt } =
-    review;
+  const {
+    listingName,
+    user_name,
+    star_rating,
+    comment,
+    images,
+    createdAt,
+  } = review;
 
-  const isLong = comment?.length > 150;
+  const isLong = comment.length > 150;
   const displayText = expanded || !isLong
     ? comment
     : comment.slice(0, 150) + "...";
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col">
-      {/* Listing Title */}
       <h3 className="text-xl font-semibold text-center mb-1">
         {listingName}
       </h3>
-
-      {/* Reviewer Name (optional—you can remove if redundant) */}
       <p className="text-gray-700 text-center mb-3 capitalize">
         {user_name}
       </p>
 
-      {/* Star Rating */}
       <div className="flex justify-center space-x-1 text-yellow-400 mb-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <FontAwesomeIcon
@@ -112,7 +125,6 @@ function ReviewCard({ review }) {
         ))}
       </div>
 
-      {/* Comment */}
       <p className="text-gray-800 mb-2 text-center">{displayText}</p>
       {isLong && (
         <button
@@ -123,7 +135,6 @@ function ReviewCard({ review }) {
         </button>
       )}
 
-      {/* Optional Image Preview */}
       {images?.length > 0 && (
         <img
           src={images[0]}
@@ -132,7 +143,6 @@ function ReviewCard({ review }) {
         />
       )}
 
-      {/* Date */}
       {createdAt && (
         <p className="text-gray-500 text-xs mt-auto text-right">
           {new Date(createdAt).toLocaleDateString()}

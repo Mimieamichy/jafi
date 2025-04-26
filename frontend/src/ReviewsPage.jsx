@@ -21,12 +21,13 @@ const ReviewCard = ({
   onImageClick,
   reply,
   onReplyClick,
+  onReviewerClick,
+  userId,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const isLong = comment.length > 150;
-  const navigate = useNavigate();
-
-  const handleNavigate = () => navigate("/reveiwerPage");
+  
+  // const handleNavigate = () => navigate("/reveiwerPage");
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md text-center flex flex-col justify-between h-full cursor-pointer">
@@ -34,7 +35,13 @@ const ReviewCard = ({
         <h3 className="text-lg font-semibold text-black capitalize">
           {listingName || ""}
         </h3>
-        <p className="text-gray-700 capitalize" onClick={handleNavigate} >{user_name || ""}</p>
+        <p className="text-gray-700 capitalize" onClick={(e) => {
+         e.stopPropagation();
+          onReviewerClick(userId);
+       }}>
+
+          {user_name || ""}
+        </p>
         <div className="flex justify-center text-yellow-500 mt-2">
           {[...Array(5)].map((_, i) => (
             <FontAwesomeIcon
@@ -102,9 +109,6 @@ export default function PaginatedReviews() {
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [selectedReply, setSelectedReply] = useState("");
 
-  // const [modalReviewId, setModalReviewId] = useState(null);
-  // const [modalReviewType, setModalReviewType] = useState(null);
-
   useEffect(() => {
     const fetchReviews = async () => {
       try {
@@ -147,6 +151,9 @@ export default function PaginatedReviews() {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
+  const navigate = useNavigate();
+
+
   // When a review card is clicked, if there are images, open modal to show a larger view with slide navigation.
   const openImageModal = (images) => {
     if (images && images.length > 0) {
@@ -166,12 +173,13 @@ export default function PaginatedReviews() {
       <div className="max-w-5xl mx-auto text-center">
         <h2 className="text-4xl font-bold text-gray-900 mb-6">All Reviews</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-          {currentReviews.map((review, index) => (
+          {currentReviews.map((review) => (
             <ReviewCard
-              key={review.id || index}
+              key={review.id}
               {...review}
               onImageClick={openImageModal}
               onReplyClick={openReplyModal}
+              onReviewerClick={(uid) => navigate(`/reveiwerPage/user/${uid}`)}
             />
           ))}
         </div>
