@@ -5,9 +5,9 @@ const UserService = require("../user/user.service");
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const token = await UserService.userLogin(email, password);
+    const response = await UserService.userLogin(email, password);
 
-    res.status(200).json({ message: "Login successful", token });
+    res.status(200).json(response);
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }
@@ -46,7 +46,7 @@ exports.resetPassword = async (req, res) => {
     const { token, newPassword } = req.body;
     const response = await UserService.userResetPassword(token, newPassword);
 
-    res.status(200).json({response })
+    res.status(200).json(response)
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }
@@ -55,9 +55,9 @@ exports.resetPassword = async (req, res) => {
 exports.getUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await UserService.getUserById(id);
+    const response = await UserService.getUserById(id);
 
-    res.status(200).json({ user });
+    res.status(200).json(response);
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }
@@ -70,9 +70,9 @@ exports.getAllUsers = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const users = await UserService.getAllUsers(offset, limit);
+    const response = await UserService.getAllUsers(offset, limit);
 
-    res.status(200).json(users);
+    res.status(200).json(response);
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }
@@ -83,9 +83,9 @@ exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
-    const user = await UserService.updateUser(id, data);
+    const response = await UserService.updateUser(id, data);
 
-    res.status(200).json({ user });
+    res.status(200).json(response);
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }
@@ -98,8 +98,8 @@ exports.getAllListings = async (req, res) => {
       const limit = parseInt(req.query.limit) || 10;
       const offset = (page - 1) * limit;
   
-      const listings = await UserService.getAllListings(search, offset, limit);
-      return res.status(200).json({listings});
+      const response = await UserService.getAllListings(search, offset, limit);
+      return res.status(200).json(response);
     } catch (error) {
         console.error(error);
         res.status(error.status || 500).json({ message: error.message });
@@ -109,22 +109,21 @@ exports.getAllListings = async (req, res) => {
 exports.getUserRole = async (req, res) => {
   try {
     const { email } = req.params;
-    const role = await UserService.getUserRole(email);
+    const response = await UserService.getUserRole(email);
 
-    res.status(200).json({ role });
+    res.status(200).json(response);
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }
 }
-
 
 exports.replyToReview = async (req, res) => {
     try {
         const { reviewId } = req.params;
         const newReply = req.body.reply;
         const userId = req.user.id; 
-        const reply = await UserService.replyToReview(reviewId, userId, newReply);
-        return res.status(201).json({ success: true, reply });
+        const response = await UserService.replyToReview(reviewId, userId, newReply);
+        return res.status(201).json(response);
     } catch (error) {
         res.status(error.status || 500).json({ message: error.message });
     }

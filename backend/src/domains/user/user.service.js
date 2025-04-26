@@ -18,11 +18,8 @@ exports.userLogin = async (email, password) => {
     throw new Error("You are registered as a reviewer, sign in with Google");
   }
 
-  return jwt.sign(
-    { id: user.id, role: user.role, name: user.name },
-    process.env.JWT_SECRET,
-    { expiresIn: "3d" }
-  );
+  const token = jwt.sign({ id: user.id, role: user.role, name: user.name }, process.env.JWT_SECRET, { expiresIn: "3d" });
+  return {message: "Login successful", token };
 };
 
 exports.userForgotPassword = async (email) => {
@@ -67,7 +64,7 @@ exports.verifyResetToken = async (token) => {
     throw new Error("Invalid or expired token");
   }
 
-  return decoded.email;
+  return {message: "Token is valid", email: decoded.email };
 };
 
 exports.userResetPassword = async (token, newPassword) => {
@@ -85,7 +82,7 @@ exports.userResetPassword = async (token, newPassword) => {
 exports.getUserById = async (id) => {
   const user = await User.findByPk(id);
   if (!user) throw new Error("User not found");
-  return user;
+  return {message: "User found", user };
 };
 
 exports.getAllUsers = async (offset, limit) => {
@@ -96,7 +93,7 @@ exports.getAllUsers = async (offset, limit) => {
     order: [["createdAt", "DESC"]],
   });
 
-  return users; 
+  return {message: "Users found", users }; 
 };
 
 exports.updateUser = async (id, data) => {
@@ -108,14 +105,15 @@ exports.updateUser = async (id, data) => {
   }
 
   await user.update(data);
-  return user;
+  return {message: "User updated successfully", user };
 };
 
 exports.getUserRole = async (email) => {
   const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("User not found");
 
-  return user.role;
+  const role = user.role;
+  return {message: "User role found", role};
 };
 
 exports.getAllListings = async (searchTerm, offset, limit) => {
@@ -128,6 +126,8 @@ exports.getAllListings = async (searchTerm, offset, limit) => {
         { address: { [Op.like]: `%${searchTerm}%` } },
       ],
     };
+    offset,
+    limit
   }
 
   const services = await Service.findAll({
@@ -150,7 +150,7 @@ exports.getAllListings = async (searchTerm, offset, limit) => {
   ];
 
   if (!combined.length) {
-    return { message: "No listings found for the provided search term." };
+    throw new Error("No listings found for the provided search term.")
   }
 
   const sortedListings = combined.sort(
@@ -159,7 +159,7 @@ exports.getAllListings = async (searchTerm, offset, limit) => {
 
   const allListings = sortedListings.slice(offset, offset + limit);
 
-  return allListings
+  return {message: "Listings found", allListings };
 };
 
 
@@ -198,7 +198,7 @@ exports.replyToReview = async (reviewId, userId, comment) => {
     }
   );
 
-  return reply;
+  return {message: "Reply added successfully", reply };
 };
 
 

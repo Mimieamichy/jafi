@@ -24,7 +24,7 @@ exports.registerService = async (req, res) => {
     res.status(201).json(response);
   } catch (error) {
     console.log(error);
-    res.status(400).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
 
@@ -34,7 +34,7 @@ exports.verifyServiceNumber = async (req, res) => {
     const response = await ServiceService.verifyServiceNumber(phone, otp);
     res.status(200).json(response);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
 
@@ -44,7 +44,7 @@ exports.getAService = async (req, res) => {
     const service = await ServiceService.getAService(id);
     res.status(200).json(service);
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
 
@@ -56,7 +56,7 @@ exports.getAllServices = async (req, res) => {
     res.status(200).json(services);
   } catch (error) {
     console.log(error);
-    res.status(404).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
 
@@ -81,7 +81,7 @@ exports.updateService = async (req, res) => {
     res.status(200).json(service);
   } catch (error) {
     console.log(error);
-    res.status(404).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
 
@@ -100,7 +100,7 @@ exports.payForService = async (req, res) => {
     return res.status(200).json({ success: true, data: response });
   } catch (error) {
     await transaction.rollback();
-    return res.status(400).json({ success: false, message: error.message });
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
 
@@ -110,18 +110,15 @@ exports.verifyServicePayment = async (req, res) => {
     const response = await ServiceService.verifyPayment(pay_ref);
     res.status(200).json(response);
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message });
   }
 };
 
 exports.getServiceByUserId = async (req, res) => {
   try {
     const { id } = req.params;
-    if (id === undefined || id != req.user.id) {
-      throw new Error("Unauthorized to access this service");
-    }
-    const user = await ServiceService.getServiceByUserId(id);
-    res.status(200).json({ user });
+    const response = await ServiceService.getServiceByUserId(id);
+    res.status(200).json(response);
   } catch (error) {
     console.log(error);
     res.status(error.status || 500).json({ message: error.message });

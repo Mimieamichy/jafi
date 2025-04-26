@@ -78,12 +78,26 @@ exports.approveBusiness = async (req, res) => {
   }
 };
 
-exports.updateBusinessPrice = async (req, res) => {
+exports.updateBusinessPremium = async (req, res) => {
   const { price } = req.body;
   try {
-    await AdminService.updateBusinessPrice(price);
+    await AdminService.updateBusinessPremium(price);
 
-    return res.status(200).json({ success: true, message: "Business price updated successfully" });
+    return res.status(200).json({ success: true, message: "Business Premium price updated successfully" });
+  } catch (error) {
+    console.log(error);
+    
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+exports.updateBusinessStandard = async (req, res) => {
+  const { price } = req.body;
+  try {
+    await AdminService.updateBusinessStandard(price);
+
+    return res.status(200).json({ success: true, message: "Business standard price updated successfully" });
   } catch (error) {
     console.log(error);
     
@@ -176,16 +190,27 @@ exports.updateMyBusiness = async (req, res) => {
 };
 
 
-exports.getBusinessPrice = async (req, res) => {
+exports.getPremiumPrice = async (req, res) => {
   const { id } = req.params;
   try {
-    const businessPrice = await AdminService.getBusinessPrice(id);
-    return res.status(200).json({ success: true, businessPrice });
+    const premiumPrice = await AdminService.getPremiumPrice(id);
+    return res.status(200).json({ success: true, premiumPrice });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
+
+
+exports.getStandardPrice = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const standardPrice = await AdminService.getStandardPrice(id);
+    return res.status(200).json({ success: true, standardPrice });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 
 

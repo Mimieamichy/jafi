@@ -43,7 +43,7 @@ exports.registerService = async (email, name, service, phone, address, category,
         },
     );
 
-    const response = await OTPService.sendOTP(result.newService.phone_number, result.user.id);
+    const response = await OTPService.sendOTP(newService.phone_number, user.id);
     return { user, newService, plainPassword, response };
 };
 

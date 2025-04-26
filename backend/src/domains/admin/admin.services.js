@@ -153,17 +153,31 @@ exports.approveBusiness = async (businessId) => {
 
 }
 
-exports.updateBusinessPrice = async (price) => {
-    const setting = await AdminSettings.findOne({ where: { key: "business_price" } });
+exports.updateBusinessPremium = async (price) => {
+    const setting = await AdminSettings.findOne({ where: { key: "premium_price" } });
 
     if (!setting) {
         // If the setting does not exist, create it
-        await AdminSettings.create({ key: "business_price", value: price });
+        await AdminSettings.create({ key: "premium_price", value: price });
     } else {
         // Update the existing setting
         await setting.update({ value: price });
     }
-    return { message: "Business price updated successfully" };
+    return { message: "Business Premium price updated successfully" };
+}
+
+
+exports.updateBusinessStandard = async (price) => {
+    const setting = await AdminSettings.findOne({ where: { key: "standard_price" } });
+
+    if (!setting) {
+        // If the setting does not exist, create it
+        await AdminSettings.create({ key: "standard_price", value: price });
+    } else {
+        // Update the existing setting
+        await setting.update({ value: price });
+    }
+    return { message: "Business Standard price updated successfully" };
 }
 
 exports.getABusiness = async (id) => {
@@ -265,8 +279,16 @@ exports.updateMyBusiness = async (businessId, userId, businessData, password, em
 };
   
 
-exports.getBusinessPrice = async () => {
-    const price = await AdminSettings.findOne({ where: { key: 'business_price' }, attributes: ["value"] });
+exports.getPremiumPrice = async () => {
+    const price = await AdminSettings.findOne({ where: { key: 'premium_price' }, attributes: ["value"] });
+    if (!price) throw new Error("Price not found");
+  
+    return price;
+};
+
+
+exports.getStandardPrice = async () => {
+    const price = await AdminSettings.findOne({ where: { key: 'standard_price' }, attributes: ["value"] });
     if (!price) throw new Error("Price not found");
   
     return price;

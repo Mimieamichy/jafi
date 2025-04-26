@@ -105,9 +105,8 @@ const Business = sequelize.define(
       allowNull: true,
     },
     businessType: {
-      type: DataTypes.ENUM("standard", "exclusive"),
+      type: DataTypes.ENUM("standard", "premium"),
       allowNull: false,
-      defaultValue: "standard",
     },
     day: {
       type: DataTypes.JSON,

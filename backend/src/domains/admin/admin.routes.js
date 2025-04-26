@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPrice, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getBusinessPrice, getServicePrice} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPremium, updateBusinessStandard, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getPremiumPrice, getStandardPrice, getServicePrice} = require('./admin.controller')
 
 
 const { cloudUpload } = require("../../application/middlewares/cloudinary");
 
 
-router.get('/businessPrice', getBusinessPrice)
+router.get('/premiumPrice', getPremiumPrice)
+router.get('/standardPrice', getStandardPrice)
 router.get("/servicePrice", getServicePrice);
 const { authenticate } = require('../../application/middlewares/authenticate');
 const { authorize } = require('../../application/middlewares/authorize');
@@ -37,7 +38,8 @@ router.post('/createAdmin', createAdmin);
 router.post('/approveBusiness/:id', approveBusiness);
 router.post("/approveClaim/:id", approveClaim);
 router.post("/approveService/:id", approveService);
-router.put('/updateBusinessPrice', updateBusinessPrice);
+router.put('/updateBusinessStandard', updateBusinessStandard);
+router.put('/updateBusinessPremium', updateBusinessPremium);
 router.put("/updateServicePrice", updateServicePrice);
 router.delete('/deleteBusiness/:id', deleteBusiness);
 router.delete('/deleteReview/:id', deleteReview);
