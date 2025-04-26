@@ -150,7 +150,7 @@ exports.getAllListings = async (searchTerm, offset, limit) => {
   ];
 
   if (!combined.length) {
-    throw new Error("No listings found for the provided search term.")
+    return {message: "No listings found for the provided search term."}
   }
 
   const sortedListings = combined.sort(
