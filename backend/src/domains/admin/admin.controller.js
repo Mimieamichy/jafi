@@ -28,12 +28,20 @@ exports.createAdmin = async (req, res) => {
     const newUser = AdminService.createAdmin(email, name, role);
     if (!newUser) throw new Error("User creation failed");
     
-    return res.status(201).json({ success: true, message: "User created successfully", user: newUser });
+     res.status(201).json({ success: true, message: "User created successfully", user: newUser });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+     res.status(500).json({ success: false, message: error.message });
   }
 };
 
+exports.getAdminCount = async (req, res) => {
+  try {
+    const response = await AdminService.getAdminCount();
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
 exports.updateAdminPassword = async (req, res) => {
   const id = req.user.id
   const { newPassword } = req.body;
@@ -130,6 +138,7 @@ exports.addBusiness = async (req, res) => {
 }
 
 exports.updateBusiness = async (req, res) => {
+
 }
 
 exports.deleteBusiness = async (req, res) => {
@@ -210,10 +219,6 @@ exports.getStandardPrice = async (req, res) => {
 // Service management
 exports.getAllServices = async (req, res) => {
   try {
-    const searchTerm = req.query.search || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
     const services = await AdminService.getAllServices();
     return res.status(200).json({ success: true, services });
   } catch (error) {

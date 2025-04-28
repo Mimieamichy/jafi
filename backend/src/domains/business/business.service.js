@@ -135,19 +135,17 @@ exports.verifyPayment = async (paymentReference) => {
   return paymentResponse;
 };
 
-exports.getBusinessByUserId = async (userId, offset, limit) => {
-    const business = await Business.findAll({
-      where: userId,
-      order: [["createdAt", "DESC"]],
-      offset,
-      limit,
-    });
-  
-    if (count === 0) throw new Error("No business found for the given user.");
-  
-    return business
-  
+exports.getBusinessByUserId = async (userId) => {
+  const business = await Business.findAll({
+    where: { userId },
+    order: [["createdAt", "DESC"]],
+  });
+
+  if (business.length === 0) throw new Error("No business found for the given user.");
+
+  return business;
 };
+
 
 exports.deleteBusiness = async (businessId, userId) => {
   if (userId === undefined || userId !== req.user.id) {

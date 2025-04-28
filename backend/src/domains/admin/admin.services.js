@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
 const Claim = require("../claim/claim.model");
 const { generatePassword } = require("../../utils/generatePassword")
 const { sendMail } = require("../../utils/sendEmail");
-const {Op} = require('sequelize');
+const { Op } = require('sequelize');
 const OTP = require("../otp/otp.model");
 
 
@@ -53,10 +53,38 @@ exports.createAdmin = async (email, name, role) => {
 }
 
 exports.getAllUsers = async () => {
-  const users = await User.findAll({
-    attributes: ["id", "name", "email", "role"],
-  });
-  return users;
+    const users = await User.findAll({
+        attributes: ["id", "name", "email", "role", "createdAt"],
+    });
+    // Process users to add business info or service count based on role
+    const processedUsers = await Promise.all(users.map(async user => {
+        const userData = user.toJSON();
+
+        // For business, admin, or superadmin roles, get associated business
+        if (['business', 'admin', 'superadmin'].includes(userData.role)) {
+            const businessCount = await Business.count({
+                where: { userId: userData.id }
+            })
+            userData.businessCount = businessCount
+            userData.serviceCount = 0;
+        }
+        // For service role, get the service count
+        else if (userData.role === 'service') {
+            const serviceCount = await Service.count({
+                where: { userId: userData.id }
+            });
+            userData.serviceCount = serviceCount;
+            userData.businessCount = 0;
+        }
+        // For other roles, set defaults
+        else {
+            userData.serviceCount = 0;
+            userData.businessCount = 0;
+        }
+
+        return userData;
+    }));
+    return { message: "Users retrieved successfully", users: processedUsers };
 };
 
 exports.updateAdminPassword = async (userId, newPassword) => {
@@ -76,7 +104,6 @@ exports.updateAdminPassword = async (userId, newPassword) => {
     await user.update({ password: hashedPassword }, { where: { id: userId } });
     return { message: "Password updated successfully" };
 }
-
 
 exports.deleteUser = async (id, email) => {
     const user = await User.findOne({ where: { id } });
@@ -103,27 +130,33 @@ exports.deleteUser = async (id, email) => {
         await Review.destroy({ where: { userId: id } });
         await user.destroy();
     }
-    
+
 
     return { message: "User deleted successfully" };
+};
+
+exports.getAdminCount = async () => {
+    const adminCount = await User.count({ where: { role: "admin" } });
+    const superAdminCount = await User.count({ where: { role: "superadmin" } });
+    return { message: "Admin count retrieved successfully", adminCount, superAdminCount };
 };
 
 
 
 //Business management
 exports.getAllBusinesses = async () => {
-  const businesses = await Business.findAll({
-    include: {
-      model: User,
-      attributes: ["id", "name", "email", "role"],
-    },
-  });
+    const businesses = await Business.findAll({
+        include: {
+            model: User,
+            attributes: ["id", "name", "email", "role"],
+        },
+    });
 
-  if (!businesses || businesses.length === 0) {
-    throw new Error("No businesses found");
-  }
+    if (!businesses || businesses.length === 0) {
+        throw new Error("No businesses found");
+    }
 
-  return businesses;
+    return businesses;
 };
 
 exports.approveBusiness = async (businessId) => {
@@ -257,52 +290,51 @@ exports.addBusiness = async (businessData, userId) => {
 };
 
 
-exports.getMyBusiness = async (userId, searchTerm, offset, limit) => {
-  const business = await Business.findOne({
-      where: { userId },
-      include: [
-          {
-              model: User,
-              attributes: ["id", "name", "email"],
-          },
-      ],
-  });
+exports.getMyBusiness = async (userId) => {
+    const business = await Business.findOne({
+        where: { userId },
+        include: [
+            {
+                model: User,
+                attributes: ["id", "name", "email"],
+            },
+        ],
+    });
 
-  return business;
+    return business;
 };
 
 exports.updateMyBusiness = async (businessId, userId, businessData, password, email) => {
     const business = await Business.findByPk(businessId);
     if (!business) throw new Error("Business not found");
-  
+
     if (business.userId !== userId) throw new Error("Unauthorized to update this business");
-  
+
     // Find the user
     const user = await User.findByPk(userId);
     if (!user) throw new Error("User not found");
-  
+
     // Only hash and update password if it's defined and not empty
     const updatedFields = { email };
-  
+
     if (password && password.trim() !== "") {
-      updatedFields.password = await bcrypt.hash(password, 10);
+        updatedFields.password = await bcrypt.hash(password, 10);
     }
-  
+
     // Update user record
     await User.update(updatedFields, { where: { id: userId } });
-  
+
     // Update business
     business.set(businessData);
     await business.save();
-  
+
     return business;
 };
-  
 
 exports.getPremiumPrice = async () => {
     const price = await AdminSettings.findOne({ where: { key: 'premium_price' }, attributes: ["value"] });
     if (!price) throw new Error("Price not found");
-  
+
     return price;
 };
 
@@ -310,7 +342,7 @@ exports.getPremiumPrice = async () => {
 exports.getStandardPrice = async () => {
     const price = await AdminSettings.findOne({ where: { key: 'standard_price' }, attributes: ["value"] });
     if (!price) throw new Error("Price not found");
-  
+
     return price;
 };
 
@@ -320,9 +352,9 @@ exports.getStandardPrice = async () => {
 
 //Service management
 exports.getAllServices = async () => {
-  const services = await Service.findAll();
-  if (!services) throw new Error("No services found");
-  return services;
+    const services = await Service.findAll();
+    if (!services) throw new Error("No services found");
+    return services;
 }
 
 exports.getAService = async (serviceId) => {
@@ -396,27 +428,27 @@ exports.deleteService = async (id) => {
 }
 
 exports.getMyServices = async (userId, searchTerm, limit, offset) => {
-  const searchFilter = searchTerm
-    ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${searchTerm}%` } },
-          { category: { [Op.like]: `%${searchTerm}%` } },
-        ],
-      }
-    : {};
+    const searchFilter = searchTerm
+        ? {
+            [Op.or]: [
+                { name: { [Op.like]: `%${searchTerm}%` } },
+                { category: { [Op.like]: `%${searchTerm}%` } },
+            ],
+        }
+        : {};
 
-  const services = await Service.findAll({
-    where: { searchFilter, userId },
-    limit,
-    offset,
-    order: [["createdAt", "DESC"]],
-  });
+    const services = await Service.findAll({
+        where: { searchFilter, userId },
+        limit,
+        offset,
+        order: [["createdAt", "DESC"]],
+    });
 
-  if (!services || services.length === 0) {
-    throw new Error("No services found");
-  }
+    if (!services || services.length === 0) {
+        throw new Error("No services found");
+    }
 
-  return services;
+    return services;
 };
 
 exports.updateSevicePrice = async (price) => {
@@ -435,7 +467,7 @@ exports.updateSevicePrice = async (price) => {
 exports.getServicePrice = async () => {
     const price = await AdminSettings.findOne({ where: { key: 'service_price' }, attributes: ["value"] });
     if (!price) throw new Error("Price not found");
-  
+
     return price;
 };
 
@@ -447,13 +479,13 @@ exports.getClaim = async (claimId) => {
 }
 
 exports.getAllClaims = async () => {
-  const claims = await Claim.findAll();
-  return claims;
+    const claims = await Claim.findAll();
+    return claims;
 }
 
 exports.approveClaim = async (claimId) => {
     const claim = await Claim.findByPk(claimId);
-    
+
     if (!claim || claim.status !== 'pending') {
         return { message: 'Invalid claim approval' }
     }
@@ -468,7 +500,7 @@ exports.approveClaim = async (claimId) => {
         { password: hashedPassword },
         { where: { email: claim.email } }
     );
-      
+
     const updatedUser = await User.findOne({ where: { email: claim.email } });
 
     // Update business info
@@ -517,23 +549,23 @@ exports.approveClaim = async (claimId) => {
 
 //Review management
 
-exports.getAllReviews = async (searchTerm, offset, limit) => {
-  const reviews = await Review.findAll({
-    include: [
-      {
-        model: User,
-        attributes: ["id", "name", "email", "role"],
-      },
-    ],
-  });
+exports.getAllReviews = async () => {
+    const reviews = await Review.findAll({
+        include: [
+            {
+                model: User,
+                attributes: ["id", "name", "email", "role"],
+            },
+        ],
+    });
 
-  if (!reviews) throw new Error("Reviews not found");
+    if (!reviews) throw new Error("Reviews not found");
 
-  return reviews;
+    return reviews;
 };
 
 
-  exports.getAllReviewers = async () => {
+exports.getAllReviewers = async () => {
     const users = await User.findAll({ where: { role: 'reviewer' } });
     if (!users) throw new Error("No users found");
     return users;
