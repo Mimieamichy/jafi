@@ -16,10 +16,10 @@ export default function PremuimPricing() {
   useEffect(() => {
     const getPrice = async () => {
       try {
-        const r = await fetch(`${baseUrl}/admin/premuimPrice`);
+        const r = await fetch(`${baseUrl}/admin/premiumPrice`);
         const data = await r.json();                 
         console.log("Price API →", data);
-        setPrice(Number(data.premuimPrice.value));
+        setPrice(data.premiumPrice);
       } catch (e) {
         console.error(e);
         enqueueSnackbar("Couldn’t fetch price", { variant: "error" });
@@ -69,7 +69,7 @@ export default function PremuimPricing() {
           <p className="text-gray-600">Loading price…</p>
         ) : (
           <>
-            <p className="text-lg font-bold">${price}</p>
+            <p className="text-lg font-bold">${price.value}</p>
             <button
               onClick={handlePayment}
               disabled={price == null}

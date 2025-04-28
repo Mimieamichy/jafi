@@ -1,4 +1,3 @@
-// src/components/Settings.jsx
 import { useState, useEffect, useMemo } from "react";
 import { useSnackbar } from "notistack";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -10,30 +9,20 @@ export default function Settings() {
   const authToken = localStorage.getItem("userToken");
   const { enqueueSnackbar } = useSnackbar();
 
-  const headersJSON = useMemo(
-    () => ({
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken}`,
-    }),
-    [authToken]
-  );
+  const headersJSON = useMemo(() => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${authToken}`,
+  }), [authToken]);
 
-  /* ---------- state ---------- */
   const [superCount, setSuperCount] = useState(0);
   const [adminCount, setAdminCount] = useState(0);
-
   const [form, setForm] = useState({ name: "", email: "", role: "admin" });
-
   const [newPw, setNewPw] = useState("");
-
   const [showNew, setShowNew] = useState(false);
-
   const [newCatType, setNewCatType] = useState("standard");
   const [newCatName, setNewCatName] = useState("");
-
   const [price, setPrice] = useState({ business: "", service: "" });
 
-  /* ---------- fetch live admin counts ---------- */
   useEffect(() => {
     if (!authToken) return;
     fetch(`${baseUrl}/admin/adminCount`, { headers: headersJSON })
@@ -42,26 +31,21 @@ export default function Settings() {
         return r.json();
       })
       .then((data) => {
-        console.log("adminCount data", data);
-
-        // adjust these keys to match your API response
         setAdminCount(data.adminCount ?? data.admin ?? 0);
         setSuperCount(data.superAdminCount ?? data.superadmin ?? 0);
       })
-      .catch((err) => {
-        console.error("adminCount error", err);
+      .catch(() => {
         enqueueSnackbar("Could not load admin counts", { variant: "error" });
       });
   }, [authToken, enqueueSnackbar, headersJSON]);
 
-  /* ---------- add admin / super‑admin ---------- */
   const addAdmin = async () => {
     if (!form.name || !form.email)
       return enqueueSnackbar("Name & email required", { variant: "warning" });
     if (form.role === "superadmin" && superCount >= 3)
-      return enqueueSnackbar("Max 2 super‑admins", { variant: "error" });
+      return enqueueSnackbar("Max 2 super-admins", { variant: "error" });
     if (form.role === "admin" && adminCount >= 20)
-      return enqueueSnackbar("Max 20 admins", { variant: "error" });
+      return enqueueSnackbar("Max 20 admins", { variant: "error" });
 
     try {
       const r = await fetch(`${baseUrl}/admin/createAdmin`, {
@@ -79,10 +63,8 @@ export default function Settings() {
     }
   };
 
-  /* ---------- change password ---------- */
   const changePw = async () => {
-    if (!newPw)
-      return enqueueSnackbar("Enter a new password", { variant: "warning" });
+    if (!newPw) return enqueueSnackbar("Enter a new password", { variant: "warning" });
     try {
       const r = await fetch(`${baseUrl}/admin/updateAdminPassword`, {
         method: "PUT",
@@ -91,21 +73,16 @@ export default function Settings() {
       });
       if (!r.ok) throw new Error();
       enqueueSnackbar("Password updated", { variant: "success" });
-
       setNewPw("");
     } catch {
       enqueueSnackbar("Update failed", { variant: "error" });
     }
   };
 
-  // ─── handler to add a new category of either type ────────────────
   const handleAddCategory = async () => {
     const trimmed = newCatName.trim();
-    if (!trimmed) {
-      return enqueueSnackbar("Please enter a category name.", {
-        variant: "warning",
-      });
-    }
+    if (!trimmed)
+      return enqueueSnackbar("Please enter a category name.", { variant: "warning" });
 
     try {
       const res = await fetch(`${baseUrl}/admin/addCategory`, {
@@ -114,35 +91,19 @@ export default function Settings() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({
-          type: newCatType, // "standard" or "premium"
-          categoryName: trimmed,
-        }),
+        body: JSON.stringify({ type: newCatType, categoryName: trimmed }),
       });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || "Failed to add category");
-      }
-
-      enqueueSnackbar(
-        `${newCatType === "standard" ? "Standard" : "Premium"} category added!`,
-        { variant: "success" }
-      );
+      if (!res.ok) throw new Error(await res.text());
+      enqueueSnackbar(`${newCatType === "standard" ? "Standard" : "Premium"} category added!`, { variant: "success" });
       setNewCatName("");
-      // TODO: re-fetch your category lists so the new one shows up
     } catch (err) {
-      console.error("Add category error:", err);
-      enqueueSnackbar(err.message || "Error adding category", {
-        variant: "error",
-      });
+      enqueueSnackbar(err.message || "Error adding category", { variant: "error" });
     }
   };
 
-  /* ---------- push price helper ---------- */
   const pushPrice = async (field) => {
-    if (!price[field])
-      return enqueueSnackbar("Enter a price first", { variant: "warning" });
+    if (!price[field]) return enqueueSnackbar("Enter a price first", { variant: "warning" });
     const map = {
       standard: "standardPrice",
       premuim: "premiumPrice",
@@ -161,68 +122,60 @@ export default function Settings() {
     }
   };
 
-  /* ---------- UI ---------- */
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md max-w-xl mx-auto space-y-8">
-      <h2 className="text-2xl font-bold">Admin Settings</h2>
+    <div className="p-4 md:p-6 bg-white rounded-lg shadow-md max-w-3xl mx-auto space-y-8">
+      <h2 className="text-2xl font-bold text-center">Admin Settings</h2>
 
-      {/* ---- Add Admin ---- */}
-      <section>
-        <h3 className="font-semibold mb-2">Add (super‑)admin</h3>
+      {/* Add Admin */}
+      <section className="space-y-2">
+        <h3 className="font-semibold text-lg">Add Admin</h3>
 
-        <label className="block text-sm mb-1">Name</label>
-        <input
-          name="name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="border p-2 w-full rounded mb-2"
-        />
-
-        <label className="block text-sm mb-1">Email</label>
-        <input
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          className="border p-2 w-full rounded mb-2"
-        />
-
-        <label className="block text-sm mb-1">Role</label>
-        <select
-          name="role"
-          value={form.role}
-          onChange={(e) => setForm({ ...form, role: e.target.value })}
-          className="border p-2 w-full rounded"
-        >
-          <option value="admin">admin</option>
-          <option value="superadmin">superadmin</option>
-        </select>
-
-        <button
-          onClick={addAdmin}
-          disabled={
-            (form.role === "superadmin" && superCount >= 3) ||
-            (form.role === "admin" && adminCount >= 20)
-          }
-          className="bg-blue-600 text-white px-4 py-2 rounded mt-3 disabled:opacity-50 w-full sm:w-auto"
-        >
-          Add
-        </button>
-
-        <p className="text-xs text-gray-500 mt-1">
-          {superCount}/3 super‑admins • {adminCount}/20 admins
-        </p>
+        <div className="space-y-2">
+          <input
+            placeholder="Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="border p-2 w-full rounded"
+          />
+          <input
+            placeholder="Email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            className="border p-2 w-full rounded"
+          />
+          <select
+            value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value })}
+            className="border p-2 w-full rounded"
+          >
+            <option value="admin">Admin</option>
+            <option value="superadmin">Superadmin</option>
+          </select>
+          <button
+            onClick={addAdmin}
+            disabled={
+              (form.role === "superadmin" && superCount >= 3) ||
+              (form.role === "admin" && adminCount >= 20)
+            }
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded w-full"
+          >
+            Add
+          </button>
+          <p className="text-xs text-gray-500 text-center">
+            {superCount}/3 super‑admins • {adminCount}/20 admins
+          </p>
+        </div>
       </section>
 
-      {/* ---- Change Password ---- */}
-      <section>
-        <h3 className="font-semibold mb-2">Change Password</h3>
+      {/* Change Password */}
+      <section className="space-y-2">
+        <h3 className="font-semibold text-lg">Change Password</h3>
 
         <div className="relative">
           <input
-            name="password"
             type={showNew ? "text" : "password"}
-            placeholder="New password"
+            placeholder="New Password"
             value={newPw}
             onChange={(e) => setNewPw(e.target.value)}
             className="border p-2 w-full rounded pr-10"
@@ -230,7 +183,7 @@ export default function Settings() {
           <button
             type="button"
             onClick={() => setShowNew(!showNew)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
           >
             <FontAwesomeIcon icon={showNew ? faEyeSlash : faEye} />
           </button>
@@ -238,21 +191,20 @@ export default function Settings() {
 
         <button
           onClick={changePw}
-          className="bg-blue-600 text-white px-4 py-2 rounded mt-3 w-full sm:w-auto"
+          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded w-full"
         >
           Update Password
         </button>
       </section>
 
-      {/* ─── Add a New Business Category ───────────────────── */}
-      <fieldset className="border p-4 rounded-md mt-6">
-        <legend className="font-semibold">Add New Category</legend>
+      {/* Add New Category */}
+      <section className="space-y-2">
+        <h3 className="font-semibold text-lg">Add New Category</h3>
 
-        <div className="flex items-center gap-4 mb-2">
+        <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0">
           <label className="flex items-center space-x-2">
             <input
               type="radio"
-              name="newCatType"
               value="standard"
               checked={newCatType === "standard"}
               onChange={() => setNewCatType("standard")}
@@ -262,7 +214,6 @@ export default function Settings() {
           <label className="flex items-center space-x-2">
             <input
               type="radio"
-              name="newCatType"
               value="premium"
               checked={newCatType === "premium"}
               onChange={() => setNewCatType("premium")}
@@ -271,43 +222,39 @@ export default function Settings() {
           </label>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
-            name="categoryName"
             type="text"
             placeholder="Category name"
             value={newCatName}
             onChange={(e) => setNewCatName(e.target.value)}
-            className="flex-1 p-2 border rounded capitalize"
+            className="border p-2 rounded flex-1 capitalize"
           />
           <button
-            type="button"
             onClick={handleAddCategory}
-            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-            disabled={!newCatName.trim()}
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded w-full sm:w-auto"
           >
             Add
           </button>
         </div>
-      </fieldset>
+      </section>
 
-      {/* ---- Pricing (business & service only) ---- */}
-      <section>
-        <h3 className="font-semibold mb-2">Update Pricing</h3>
+      {/* Update Pricing */}
+      <section className="space-y-2">
+        <h3 className="font-semibold text-lg">Update Pricing</h3>
 
         {["standard", "premuim", "service"].map((field) => (
-          <div key={field} className="mb-3 sm:flex sm:items-center">
-            <label className="capitalize text-base p-3 w-30">{field}</label>
+          <div key={field} className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <label className="capitalize font-medium sm:w-32">{field}</label>
             <input
-              name="price"
               type="number"
               value={price[field]}
               onChange={(e) => setPrice({ ...price, [field]: e.target.value })}
-              className="border p-2 rounded w-full sm:flex-1 mt-1 sm:mt-0"
+              className="border p-2 rounded flex-1"
             />
             <button
               onClick={() => pushPrice(field)}
-              className="bg-blue-600 text-white px-3 py-2 rounded mt-2 sm:mt-0 sm:ml-2 w-full sm:w-auto"
+              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded w-full sm:w-auto"
             >
               Save
             </button>

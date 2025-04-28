@@ -235,7 +235,7 @@ export default function BusinessPage() {
       });
       if (response.ok) {
         enqueueSnackbar("Claim submitted", { variant: "success" });
-        navigate("/claim-pricing");
+        navigate("/premium-payment");
         console.log("response", response);
         const data = await response.json();
         console.log("climid", data);
@@ -367,9 +367,17 @@ export default function BusinessPage() {
         <div className="bg-white rounded-lg shadow p-4 relative">
           {/* Business Info - remains unchanged */}
           <div className="mt-4">
-            <h1 className="text-2xl font-bold capitalize m-2">
-              {business.name}
-            </h1>
+            <div className="flex items-center m-2">
+             
+              <h1 className="text-2xl font-bold capitalize">{business.name}</h1>
+              {business.logo && (
+                <img
+                  src={business.logo}
+                  alt={`${business.name} Logo`}
+                  className="w-10 h-10 object-cover rounded-full mr-2"
+                />
+              )}
+            </div>
             <p className="text-sm text-gray-500 m-2">
               {business.category} | {business.address}, {business.city},{" "}
               {business.state}

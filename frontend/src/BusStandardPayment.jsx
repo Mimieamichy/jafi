@@ -19,7 +19,7 @@ export default function StandardPricing() {
         const r = await fetch(`${baseUrl}/admin/standardPrice`);
         const data = await r.json();                 
         console.log("Price API →", data);
-        setPrice(Number(data.standardPrice.value));
+        setPrice(data.standardPrice);
       } catch (e) {
         console.error(e);
         enqueueSnackbar("Couldn’t fetch price", { variant: "error" });
@@ -69,7 +69,7 @@ export default function StandardPricing() {
           <p className="text-gray-600">Loading price…</p>
         ) : (
           <>
-            <p className="text-lg font-bold">${price}</p>
+            <p className="text-lg font-bold">${price.value}</p>
             <button
               onClick={handlePayment}
               disabled={price == null}
