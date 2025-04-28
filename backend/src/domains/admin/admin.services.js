@@ -88,6 +88,7 @@ exports.deleteUser = async (id, email) => {
         await Service.destroy({ where: { userId: id } });
         await OTP.destroy({ where: { userId: id } });
         await Review.destroy({ where: { userId: id } });
+        await user.destroy();
     } else {
         const newOwner = await User.findOne({ where: { email } });
         if (!newOwner) throw new Error("New owner email not found.");
@@ -100,8 +101,9 @@ exports.deleteUser = async (id, email) => {
         await Service.destroy({ where: { userId: id } });
         await OTP.destroy({ where: { userId: id } });
         await Review.destroy({ where: { userId: id } });
+        await user.destroy();
     }
-    await user.destroy();
+    
 
     return { message: "User deleted successfully" };
 };
