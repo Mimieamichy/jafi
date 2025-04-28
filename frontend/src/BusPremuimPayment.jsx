@@ -19,7 +19,7 @@ export default function PremuimPricing() {
         const r = await fetch(`${baseUrl}/admin/premiumPrice`);
         const data = await r.json();                 
         console.log("Price API →", data);
-        setPrice(data.premiumPrice);
+        setPrice(Number(data.premiumPrice))
       } catch (e) {
         console.error(e);
         enqueueSnackbar("Couldn’t fetch price", { variant: "error" });

@@ -19,7 +19,7 @@ export default function StandardPricing() {
         const r = await fetch(`${baseUrl}/admin/standardPrice`);
         const data = await r.json();                 
         console.log("Price API →", data);
-        setPrice(data.standardPrice);
+        setPrice(Number(data.standardPrice));
       } catch (e) {
         console.error(e);
         enqueueSnackbar("Couldn’t fetch price", { variant: "error" });
