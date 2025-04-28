@@ -5,7 +5,7 @@ const path = require('path');
 exports.DocumentDownloader = async (req, res) => {
   try {
     const filename = path.basename(req.params.filename);
-    const filepath = path.join(__dirname, 'uploads', filename);
+    const filepath = path.join(__dirname, "/../../uploads", filename);
 
     console.log(filename, filepath)
     
