@@ -70,7 +70,6 @@ const Business = sequelize.define(
     category: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "Hotel",
     },
     description: {
       type: DataTypes.TEXT,

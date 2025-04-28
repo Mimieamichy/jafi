@@ -8,7 +8,8 @@ const {
   payForBusiness, 
   verifyBusinessPayment, 
   getBusinessByUserId, 
-  deleteBusiness 
+  deleteBusiness ,
+  getBusinessByCategory
 } = require("./business.controller");
 
 const { cloudUpload } = require("../../application/middlewares/cloudinary");
@@ -21,6 +22,7 @@ router.post("/register", cloudUpload, uploadPob.fields([{ name: 'pob', maxCount:
 router.get("/verify/:pay_ref", verifyBusinessPayment);
 router.post("/pay/:businessId", payForBusiness);
 router.get("/:id", getABusiness);
+router.get("/category/:category", getBusinessByCategory); 
 router.get("/", getAllBusinesses);
 
 

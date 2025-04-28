@@ -137,3 +137,14 @@ exports.deleteBusiness = async (req, res) => {
     res.status(error.status || 500).json({ message: error.message });
   }
 };
+
+exports.getBusinessByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    const response = await BusinessService.getBusinessByCategory(category);
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error)
+    res.status(error.status || 500).json({ message: error.message });
+  }
+}

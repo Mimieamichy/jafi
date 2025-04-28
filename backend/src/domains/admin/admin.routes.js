@@ -7,7 +7,7 @@ const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllService
 const { cloudUpload } = require("../../application/middlewares/cloudinary");
 
 
-router.get('/premiumPrice', getPremiumPrice)
+router.get('/premuimPrice', getPremiumPrice)
 router.get('/standardPrice', getStandardPrice)
 router.get("/servicePrice", getServicePrice);
 const { authenticate } = require('../../application/middlewares/authenticate');

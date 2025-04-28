@@ -171,3 +171,25 @@ exports.deleteBusiness = async (businessId, userId) => {
 
   return { message: "Business deleted successfully" };
 };
+
+
+exports.getBusinessByCategory = async (category) => {
+  const businesses = await Business.findAll({
+    where: {
+      category: {
+        [Op.like]: `%${category}%`,
+      },
+    },  
+    order: [["createdAt", "DESC"]],
+    attributes: {
+      exclude: ["id", "createdAt", "updatedAt"],
+    },
+
+  });
+
+  if (!businesses || businesses.length === 0) {
+    throw new Error("No businesses found for this category");
+  }
+
+  return { message: "Businesses found", businesses };
+}
