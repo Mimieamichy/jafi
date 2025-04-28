@@ -57,7 +57,7 @@ exports.getAllUsers = async () => {
         attributes: ["id", "name", "email", "role", "createdAt"],
     });
     // Process users to add business info or service count based on role
-    const processedUsers = await Promise.all(users.map(async user => {
+    const processedUsers = await Promise.all(allUsers.map(async user => {
         const userData = user.toJSON();
 
         // For business, admin, or superadmin roles, get associated business
@@ -65,21 +65,18 @@ exports.getAllUsers = async () => {
             const businessCount = await Business.count({
                 where: { userId: userData.id }
             })
-            userData.businessCount = businessCount
-            userData.serviceCount = 0;
+            userData.count = businessCount
         }
         // For service role, get the service count
         else if (userData.role === 'service') {
             const serviceCount = await Service.count({
                 where: { userId: userData.id }
             });
-            userData.serviceCount = serviceCount;
-            userData.businessCount = 0;
+            userData.count = serviceCount;
         }
         // For other roles, set defaults
         else {
-            userData.serviceCount = 0;
-            userData.businessCount = 0;
+            userData.count = 0;
         }
 
         return userData;

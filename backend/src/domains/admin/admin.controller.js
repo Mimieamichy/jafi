@@ -3,8 +3,8 @@ const AdminService = require("./admin.services");
 //users management
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await AdminService.getAllUsers();
-    return res.status(200).json({ success: true, users });
+    const response = await AdminService.getAllUsers();
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

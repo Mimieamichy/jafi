@@ -10,6 +10,7 @@ const { cloudUpload } = require("../../application/middlewares/cloudinary");
 router.get('/premuimPrice', getPremiumPrice)
 router.get('/standardPrice', getStandardPrice)
 router.get("/servicePrice", getServicePrice);
+router.get('/users', getAllUsers);
 const { authenticate } = require('../../application/middlewares/authenticate');
 const { authorize } = require('../../application/middlewares/authorize');
 
@@ -30,7 +31,7 @@ router.get('/business/:id', getABusiness);
 router.get('/businesses', getAllBusinesses);
 router.get('/services', getAllServices);
 router.get('/reviews', getAllReviews);
-router.get('/users', getAllUsers);
+
 router.get('/claim', getClaim);
 router.get('/claims', getAllClaims);
 router.get('/reviewers', getAllReviewers)
