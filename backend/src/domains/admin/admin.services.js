@@ -217,7 +217,6 @@ exports.updateBusinessPremium = async (price) => {
     return { message: "Business Premium price updated successfully" };
 }
 
-
 exports.updateBusinessStandard = async (price) => {
     const setting = await AdminSettings.findOne({ where: { key: "standard_price" } });
 
@@ -287,7 +286,6 @@ exports.addBusiness = async (businessData, userId) => {
     };
 };
 
-
 exports.getMyBusiness = async (userId) => {
     const business = await Business.findOne({
         where: { userId },
@@ -336,7 +334,6 @@ exports.getPremiumPrice = async () => {
     return price;
 };
 
-
 exports.getStandardPrice = async () => {
     const price = await AdminSettings.findOne({ where: { key: 'standard_price' }, attributes: ["value"] });
     if (!price) throw new Error("Price not found");
@@ -344,6 +341,88 @@ exports.getStandardPrice = async () => {
     return price;
 };
 
+exports.addCategory = async (categoryName, type) => {
+    // Ensure the type is either 'standard' or 'exclusive'
+    if (type !== "standard" && type !== "premium") {
+      throw new Error(
+        "Invalid category type. Type must be 'standard' or 'premium'."
+      );
+    }
+  
+    // Find the admin setting entry for categories
+    const category = await AdminSettings.findOne({ where: { key: "categories" } });
+  
+    // If no entry exists, create a new one with empty arrays for standard and exclusive
+    if (!category) {
+      const newCategories = {
+        standard: type === "standard" ? [categoryName] : [],
+        exclusive: type === "premium" ? [categoryName] : []
+      };
+  
+      await AdminSettings.create({
+        key: "categories",
+        value: JSON.stringify(newCategories),
+      });
+    } else {
+      // Parse the existing categories
+      const existingCategories = JSON.parse(category.value);
+  
+      // Add the new category to the appropriate section based on type
+      if (type === "standard") {
+        existingCategories.standard.push(categoryName);
+      } else if (type === "premium") {
+        existingCategories.exclusive.push(categoryName);
+      }
+  
+      // Update the value in the database with the updated categories
+      await category.update({ value: JSON.stringify(existingCategories) });
+    }
+  
+    return { message: `${categoryName} added to ${type} categories successfully` };
+  };
+  
+
+
+  exports.deleteCategory = async (categoryName, type) => {
+    // Ensure the type is either 'standard' or 'exclusive'
+    if (type !== "standard" && type !== "premium") {
+      throw new Error("Invalid category type. Type must be 'standard' or 'exclusive'.");
+    }
+  
+    // Find the admin setting entry for categories
+    const category = await AdminSettings.findOne({ where: { key: "categories" } });
+  
+    // If no entry exists, return an error message
+    if (!category) {
+      throw new Error("No categories found to delete.");
+    }
+  
+    // Parse the existing categories
+    const existingCategories = JSON.parse(category.value);
+  
+    // Check if the category exists in the correct array based on type
+    if (type === "standard") {
+      // Remove the category from the 'standard' array
+      const index = existingCategories.standard.indexOf(categoryName);
+      if (index === -1) {
+        throw new Error(`${categoryName} not found in standard categories.`);
+      }
+      existingCategories.standard.splice(index, 1);
+    } else if (type === "premium") {
+      // Remove the category from the 'exclusive' array
+      const index = existingCategories.exclusive.indexOf(categoryName);
+      if (index === -1) {
+        throw new Error(`${categoryName} not found in exclusive categories.`);
+      }
+      existingCategories.exclusive.splice(index, 1);
+    }
+  
+    // Update the value in the database with the updated categories
+    await category.update({ value: JSON.stringify(existingCategories) });
+  
+    return { message: `${categoryName} has been deleted from ${type} categories.` };
+  };
+  
 
 
 
@@ -587,6 +666,8 @@ exports.deleteReviewer = async (id) => {
 
     return { message: "Reviewer deleted successfully" };
 };
+
+
 
 
 //Transaction management{check in payments service}

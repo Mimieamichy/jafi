@@ -42,6 +42,7 @@ exports.getAdminCount = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 }
+
 exports.updateAdminPassword = async (req, res) => {
   const id = req.user.id
   const { newPassword } = req.body;
@@ -191,7 +192,6 @@ exports.updateMyBusiness = async (req, res) => {
   }
 };
 
-
 exports.getPremiumPrice = async (req, res) => {
   const { id } = req.params;
   try {
@@ -202,8 +202,6 @@ exports.getPremiumPrice = async (req, res) => {
   }
 };
 
-
-
 exports.getStandardPrice = async (req, res) => {
   const { id } = req.params;
   try {
@@ -211,6 +209,27 @@ exports.getStandardPrice = async (req, res) => {
     return res.status(200).json({ success: true, standardPrice });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+exports.addCategory = async (req, res) => {
+  const { categoryName, type } = req.body;
+  try {
+    const response = await AdminService.addCategory(categoryName, type);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteCategory = async (req, res) => {
+  const { categoryName, type } = req.body;
+  try {
+    const response = await AdminService.deleteCategory(categoryName, type);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
