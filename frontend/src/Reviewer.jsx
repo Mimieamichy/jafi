@@ -83,6 +83,8 @@ export default function ReviewersDashboard() {
     }
   };
 
+  
+
   // Pagination
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
   const paginatedReviews = reviews.slice(
@@ -135,6 +137,15 @@ function ReviewCard({ review, onEdit, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedComment, setEditedComment] = useState(review.comment);
 
+  // Calculate if review is still within 3 hours
+  const isEditable = (() => {
+    if (!review.createdAt) return false;
+    const reviewTime = new Date(review.createdAt).getTime();
+    const now = Date.now();
+    const diffInHours = (now - reviewTime) / (1000 * 60 * 60); // ms to hours
+    return diffInHours <= 3;
+  })();
+
   return (
     <div className="bg-white p-4 rounded shadow">
       <h3 className="text-xl font-bold capitalize">{review.listingName}</h3>
@@ -150,29 +161,32 @@ function ReviewCard({ review, onEdit, onDelete }) {
         <p className="text-gray-800 mt-2">{review.comment}</p>
       )}
 
-      <div className="flex justify-between items-center mt-3">
-        {isEditing ? (
-          <button
-            onClick={() => {
-              onEdit(review.id, editedComment);
-              setIsEditing(false);
-            }}
-            className="text-green-600"
-          >
-            <FontAwesomeIcon icon={faSave} className="mr-1" />
-            Save
+      {/* Only show buttons if within 3 hours */}
+      {isEditable && (
+        <div className="flex justify-between items-center mt-3">
+          {isEditing ? (
+            <button
+              onClick={() => {
+                onEdit(review.id, editedComment);
+                setIsEditing(false);
+              }}
+              className="text-green-600"
+            >
+              <FontAwesomeIcon icon={faSave} className="mr-1" />
+              Save
+            </button>
+          ) : (
+            <button onClick={() => setIsEditing(true)} className="text-blue-600">
+              <FontAwesomeIcon icon={faEdit} className="mr-1" />
+              Edit
+            </button>
+          )}
+          <button onClick={() => onDelete(review.id)} className="text-red-600">
+            <FontAwesomeIcon icon={faTrash} className="mr-1" />
+            Delete
           </button>
-        ) : (
-          <button onClick={() => setIsEditing(true)} className="text-blue-600">
-            <FontAwesomeIcon icon={faEdit} className="mr-1" />
-            Edit
-          </button>
-        )}
-        <button onClick={() => onDelete(review.id)} className="text-red-600">
-          <FontAwesomeIcon icon={faTrash} className="mr-1" />
-          Delete
-        </button>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

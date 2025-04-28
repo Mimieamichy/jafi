@@ -1,5 +1,5 @@
 // src/components/Settings.jsx
-import {  useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSnackbar } from "notistack";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {  faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
@@ -10,6 +10,11 @@ const baseUrl = import.meta.env.VITE_BACKEND_URL;
 export default function Settings() {
   const authToken = localStorage.getItem("userToken");
   const { enqueueSnackbar } = useSnackbar();
+
+  const headersJSON = useMemo(() => ({
+   "Content-Type": "application/json",
+   Authorization: `Bearer ${authToken}`,
+ }), [authToken]);
 
   /* ---------- state ---------- */
   const [superCount, setSuperCount] = useState(0);
@@ -23,19 +28,37 @@ export default function Settings() {
 
   const [price, setPrice] = useState({ business: "", service: "" });
 
-  const headersJSON = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${authToken}`,
-  };
+ 
+
+    /* ---------- fetch live admin counts ---------- */
+    useEffect(() => {
+      if (!authToken) return;
+      fetch(`${baseUrl}/admin/adminCount`, { headers: headersJSON })
+        .then((r) => {
+          if (!r.ok) throw new Error("Failed to fetch counts");
+          return r.json();
+        })
+        .then((data) => {
+          console.log("adminCount data", data);
+          
+          // adjust these keys to match your API response
+          setAdminCount(data.adminCount ?? data.admin ?? 0);
+          setSuperCount(data.superAdminCount ?? data.superadmin ?? 0);
+        })
+        .catch((err) => {
+          console.error("adminCount error", err);
+          enqueueSnackbar("Could not load admin counts", { variant: "error" });
+        });
+    }, [authToken, enqueueSnackbar, headersJSON]);
 
   /* ---------- add admin / super‑admin ---------- */
   const addAdmin = async () => {
     if (!form.name || !form.email)
       return enqueueSnackbar("Name & email required", { variant: "warning" });
-    if (form.role === "superadmin" && superCount >= 2)
+    if (form.role === "superadmin" && superCount >= 3)
       return enqueueSnackbar("Max 2 super‑admins", { variant: "error" });
-    if (form.role === "admin" && adminCount >= 10)
-      return enqueueSnackbar("Max 10 admins", { variant: "error" });
+    if (form.role === "admin" && adminCount >= 20)
+      return enqueueSnackbar("Max 20 admins", { variant: "error" });
 
     try {
       const r = await fetch(`${baseUrl}/admin/createAdmin`, {
@@ -78,7 +101,8 @@ export default function Settings() {
     if (!price[field])
       return enqueueSnackbar("Enter a price first", { variant: "warning" });
     const map = {
-      business: "updateBusinessPrice",
+     standard: "standardPrice",
+     premuim: "premiumPrice",
       service: "updateServicePrice",
     };
     try {
@@ -97,11 +121,11 @@ export default function Settings() {
   /* ---------- UI ---------- */
   return (
     <div className="p-6 bg-white rounded-lg shadow-md max-w-xl mx-auto space-y-8">
-      <h2 className="text-2xl font-bold">Admin Settings</h2>
+      <h2 className="text-2xl font-bold">Admin Settings</h2>
 
       {/* ---- Add Admin ---- */}
       <section>
-        <h3 className="font-semibold mb-2">Add (super‑)admin</h3>
+        <h3 className="font-semibold mb-2">Add (super‑)admin</h3>
 
         <label className="block text-sm mb-1">Name</label>
         <input
@@ -134,8 +158,8 @@ export default function Settings() {
         <button
           onClick={addAdmin}
           disabled={
-            (form.role === "superadmin" && superCount >= 2) ||
-            (form.role === "admin" && adminCount >= 10)
+            (form.role === "superadmin" && superCount >= 3) ||
+            (form.role === "admin" && adminCount >= 20)
           }
           className="bg-blue-600 text-white px-4 py-2 rounded mt-3 disabled:opacity-50 w-full sm:w-auto"
         >
@@ -143,15 +167,14 @@ export default function Settings() {
         </button>
 
         <p className="text-xs text-gray-500 mt-1">
-          {superCount}/2 super‑admins • {adminCount}/10 admins
+          {superCount}/3 super‑admins • {adminCount}/20 admins
         </p>
       </section>
 
-      {/* ---- Change Password ---- */}
-      {/* ---- Change Password ---- */}
+     
       {/* ---- Change Password ---- */}
       <section>
-        <h3 className="font-semibold mb-2">Change Password</h3>
+        <h3 className="font-semibold mb-2">Change Password</h3>
 
         <div className="relative">
           <input
@@ -181,11 +204,11 @@ export default function Settings() {
 
       {/* ---- Pricing (business & service only) ---- */}
       <section>
-        <h3 className="font-semibold mb-2">Update Pricing</h3>
+        <h3 className="font-semibold mb-2">Update Pricing</h3>
 
-        {["business", "service"].map((field) => (
+        {["standard","premuim", "service"].map((field) => (
           <div key={field} className="mb-3 sm:flex sm:items-center">
-            <label className="capitalize sm:w-24">{field}</label>
+            <label className="capitalize text-base p-3 w-30">{field}</label>
             <input
               name="price"
               type="number"

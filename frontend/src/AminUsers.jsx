@@ -15,19 +15,27 @@ const Users = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const itemsPerPage = 20;
 
   // Filter users by search term (email or role)
-  const filteredUsers = users.filter((user) => {
-    const term = searchTerm.toLowerCase();
-    const emailMatch = user.email?.toLowerCase().includes(term);
-    const roles = Array.isArray(user.role) ? user.role : [user.role];
-    const roleMatch = roles.some(
-      (r) => r && r.toLowerCase().includes(term)
-    );
-    return emailMatch || roleMatch;
-  });
+  const filteredUsers = users
+    .filter((user) => {
+      const term = searchTerm.toLowerCase();
+      const emailMatch = user.email?.toLowerCase().includes(term);
+      const roles = Array.isArray(user.role) ? user.role : [user.role];
+      const roleMatch = roles.some((r) => r && r.toLowerCase().includes(term));
+      return emailMatch || roleMatch;
+    })
+    .filter((user) => {
+      if (!user.createdAt) return true;
+      const created = new Date(user.createdAt);
+      if (dateFrom && created < new Date(dateFrom)) return false;
+      if (dateTo && created > new Date(dateTo)) return false;
+      return true;
+    });
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const currentUsers = filteredUsers.slice(
@@ -93,16 +101,13 @@ const Users = () => {
     if (!selectedUser) return;
 
     try {
-      const response = await fetch(
-        `${baseUrl}/admin/user/${selectedUser.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
+      const response = await fetch(`${baseUrl}/admin/user/${selectedUser.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
       if (!response.ok) {
         const errText = await response.text();
         throw new Error(errText || "Failed to delete user");
@@ -125,16 +130,54 @@ const Users = () => {
     <div className="mx-auto max-w-7xl p-4">
       <h2 className="text-xl font-bold mb-2">All Users</h2>
       {/* Search Bar */}
-      <input
-        type="text"
-        placeholder="Search by email or role"
-        value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          setCurrentPage(1);
-        }}
-        className="mb-4 p-2 border border-gray-300 rounded w-full max-w-sm"
-      />
+      <div className=" flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 md:space-x-4 mb-4">
+        {/* Search Bar */}
+        <input
+          type="text"
+          placeholder="Search by email or role"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="md:w-full w-64 p-2 border border-gray-300 rounded"
+        />
+
+        {/* Date Range Picker */}
+        <div className=" flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => {
+              setDateFrom(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="p-2 border border-gray-300 rounded"
+          />
+          <span className="hidden sm:inline">to</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => {
+              setDateTo(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="p-2 border border-gray-300 rounded"
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => {
+                setDateFrom("");
+                setDateTo("");
+                setCurrentPage(1);
+              }}
+              className="ml-2 px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Desktop Table View */}
       <div className="hidden md:block mb-4">
@@ -146,13 +189,17 @@ const Users = () => {
                 <th className="p-2 font-medium">Name</th>
                 <th className="p-2 font-medium">Email</th>
                 <th className="p-2 font-medium">Role</th>
+                <th className="p-2 font-medium">No of Listing</th>
                 <th className="p-2 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {currentUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-4 text-center text-gray-500 italic">
+                  <td
+                    colSpan={5}
+                    className="p-4 text-center text-gray-500 italic"
+                  >
                     No users found.
                   </td>
                 </tr>
@@ -164,11 +211,13 @@ const Users = () => {
                     </td>
                     <td className="p-2 capitalize">{user.name}</td>
                     <td className="p-2">{user.email}</td>
+
                     <td className="p-2">
                       {Array.isArray(user.role)
                         ? user.role.join(", ")
                         : user.role || "No roles"}
                     </td>
+                    <td className="p-2">{user.count}</td>
                     <td className="p-2">
                       <button
                         title="Delete User"
@@ -189,7 +238,9 @@ const Users = () => {
       {/* Mobile Card View */}
       <div className="block md:hidden">
         {currentUsers.length === 0 ? (
-          <div className="p-4 text-center text-gray-500 italic">No users found.</div>
+          <div className="p-4 text-center text-gray-500 italic">
+            No users found.
+          </div>
         ) : (
           currentUsers.map((user, index) => (
             <div
@@ -201,7 +252,8 @@ const Users = () => {
                 {(currentPage - 1) * itemsPerPage + index + 1}
               </div>
               <div className="mb-2">
-                <span className="font-medium capitalize">Name:</span> {user.name}
+                <span className="font-medium capitalize">Name:</span>{" "}
+                {user.name}
               </div>
               <div className="mb-2">
                 <span className="font-medium">Email:</span> {user.email}
@@ -211,6 +263,9 @@ const Users = () => {
                 {Array.isArray(user.role)
                   ? user.role.join(", ")
                   : user.role || "No roles"}
+              </div>
+              <div className="mb-2">
+                <span className="font-medium">No of Listing:</span> {user.count}
               </div>
               <div className="flex justify-end">
                 <button
@@ -239,7 +294,9 @@ const Users = () => {
             Page {currentPage} of {totalPages}
           </span>
           <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
             className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
           >
@@ -254,7 +311,8 @@ const Users = () => {
           <div className="bg-white p-6 rounded shadow-md w-full max-w-sm mx-2">
             <h3 className="text-lg font-bold mb-4">Confirm Delete</h3>
             <p className="mb-4">
-              Do you want to delete <strong>{selectedUser.name || "this user"}</strong>?
+              Do you want to delete{" "}
+              <strong>{selectedUser.name || "this user"}</strong>?
             </p>
             <div className="flex justify-end space-x-2">
               <button

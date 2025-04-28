@@ -58,8 +58,8 @@ export default function ReviewerPersonalPage() {
       {/* — Profile Header — */}
       <div className="bg-white p-6 flex flex-col items-center md:flex-row md:space-x-6">
         <img
-          src={reviewer.profilePic || "/default-avatar.png"}
-          alt={reviewer.name || "Reviewer"}
+          src={reviewer?.profilePic || "/default-avatar.png"}
+          alt={reviewer?.name || "Reviewer"}
           className="w-28 h-28 rounded-full object-cover mb-4 md:mb-0"
         />
         <div>
@@ -67,6 +67,7 @@ export default function ReviewerPersonalPage() {
           {reviewer.email && (
             <p className="text-gray-600">{reviewer.email}</p>
           )}
+          <p className="text-gray-600 mt-2">Total Reviews: {reviews.length}</p>
         </div>
       </div>
 

@@ -143,7 +143,7 @@ export default function Navbar() {
                     <li
                       key={idx}
                       onClick={() => {
-                        navigate("/all-listing");
+                        navigate(`/category/${encodeURIComponent(cat)}`);
                         setShowCategoriesDropdown(false);
                       }}
                       className="px-4 py-2 cursor-pointer hover:bg-gray-100"
@@ -257,7 +257,7 @@ export default function Navbar() {
                   <li
                     key={i}
                     onClick={() => {
-                      navigate("/all-listing");
+                      navigate(`/category/${encodeURIComponent(c)}`);
                       setShowCategoriesDropdown(false);
                       setIsOpen(false);
                     }}

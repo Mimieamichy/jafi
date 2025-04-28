@@ -23,6 +23,7 @@ const PremuimPricing = lazy(() => import("./BusPremuimPayment"));
 const StandardPricing = lazy(() => import("./BusStandardPayment"));
 const ClaimPricing = lazy(() => import("./ClaimPricing"));
 const HiringPayment = lazy(() => import("./HirePayment"));
+const CategoryPage = lazy(() => import("./CatgoriesPage"));
 const ReviewerPersonalPage = lazy(() => import("./ReviewersPage"));
 const HiringDashboard = lazy(() => import("./HiringDashboard"));
 const HireProfileCard = lazy(() => import("./HireProfileCard"));
@@ -55,6 +56,8 @@ export default function App() {
                 <Route path="/review-page" element={<PaginatedReviews />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignupModal />} />
+                <Route path="/category/:category" element={<CategoryPage />} />
+
                 <Route path="/reveiwerPage/:userId" element={<ReviewerPersonalPage />} />
                 <Route path="/premium-payment" element={<PremuimPricing />} />
                 <Route path="/standard-payment" element={<StandardPricing />} />

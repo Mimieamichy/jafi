@@ -361,6 +361,7 @@ export default function HireProfileDetails() {
                 <ReviewCard
                   key={review.id}
                   {...review}
+                  onReviewerClick={(uid) => navigate(`/reveiwerPage/${uid}`)}
                   onImageClick={(images) => {
                     setReviewModalImages(images);
 
@@ -554,6 +555,8 @@ function ReviewCard({
   createdAt,
   images,
   onImageClick,
+  onReviewerClick,
+  userId,
 }) {
   const [expanded, setExpanded] = useState(false);
   const hasLongComment = comment?.length > 150;
@@ -563,7 +566,15 @@ function ReviewCard({
   return (
     <div className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center text-center ">
       <h4 className="text-lg font-bold capitalize ">{listingName}</h4>
-      <p className="text-gray-700 capitalize">{user_name}</p>
+      <p
+        className="text-gray-700 capitalize cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          onReviewerClick(userId);
+        }}
+      >
+        {user_name}
+      </p>
       <div className="flex justify-center my-2 text-yellow-500">
         {[...Array(5)].map((_, i) => (
           <FontAwesomeIcon

@@ -105,16 +105,18 @@ export default function BusinessSignup() {
       try {
         const [stdRes, premRes] = await Promise.all([
           fetch(`${baseUrl}/admin/standardPrice`),
-          fetch(`${baseUrl}/admin/premuimPrice`)
+          fetch(`${baseUrl}/admin/premiumPrice`)
         ]);
 
         const stdData = await stdRes.json();
         const premData = await premRes.json();
+        console.log("standrad", stdData, "premuim", premData);
+        
 
-        if (stdRes.ok) setStandardPrice(stdData.price);
+        if (stdRes.ok) setStandardPrice(stdData.standardPrice);
         else enqueueSnackbar(stdData.message || "Could not load standard price", { variant: "error" });
 
-        if (premRes.ok) setPremiumPrice(premData.price);
+        if (premRes.ok) setPremiumPrice(premData.premiumPrice);
         else enqueueSnackbar(premData.message || "Could not load premium price", { variant: "error" });
       } catch (err) {
         console.error(err);
@@ -449,7 +451,7 @@ export default function BusinessSignup() {
              <span>
               Standard{" "}
               {standardPrice != null
-                ? `— $${standardPrice}`
+                ? `— $${standardPrice.value}`
                 : "(loading…)"}
             </span>
           </label>
@@ -464,7 +466,7 @@ export default function BusinessSignup() {
             <span>
               Premium{" "}
               {premiumPrice != null
-                ? `— $${premiumPrice}`
+                ? `— $${premiumPrice.value}`
                 : "(loading…)"}
             </span>
           </label>

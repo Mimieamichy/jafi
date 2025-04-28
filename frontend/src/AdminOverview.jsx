@@ -18,6 +18,7 @@ const Overview = () => {
   const [totalServices, setTotalServices] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
   const [totalReviewers, setTotalReviewers] = useState(0);
+  const [newClaims, setNewClaims] = useState(0);
 
   const baseUrl = import.meta.env.VITE_BACKEND_URL;
   const authToken = localStorage.getItem("userToken") || "";
@@ -58,6 +59,7 @@ const Overview = () => {
     fetchCount(`${baseUrl}/admin/services`, "services", setTotalServices);
     fetchCount(`${baseUrl}/admin/reviewers`, "reviewers", setTotalReviewers);
     fetchCount(`${baseUrl}/admin/reviews`, "reviews", setTotalReviews);
+    fetchCount(`${baseUrl}/admin/claims`, "claims", setNewClaims);
   }, [baseUrl, authToken]);
 
   return (
@@ -72,7 +74,7 @@ const Overview = () => {
             </button>
             {/* replace newClaims with API-driven value when ready */}
             <button className="bg-blue-100 text-blue-600 px-2 py-1 rounded">
-              5 New Claims
+           {newClaims > 1 ? `${newClaims} Claims` : `${newClaims} Claim`}
             </button>
           </div>
         </div>

@@ -9,21 +9,28 @@ const baseUrl = import.meta.env.VITE_BACKEND_URL;
 export default function Hirings() {
   const authToken = localStorage.getItem("userToken");
 
-  //const decodedToken = jwtDecode(authToken);
-
   const { enqueueSnackbar } = useSnackbar();
   // State for existing businesses, view modal, pagination, etc.
   const [services, setServices] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-  const totalPages = Math.ceil(services.length / itemsPerPage);
-  const currentService = services.slice(
+  // Filter by searchTerm
+  const filteredServices = services.filter((s) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      s.name?.toLowerCase().includes(term) ||
+      s.category?.toLowerCase().includes(term)
+    );
+  });
+  const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
+  const currentService = filteredServices.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  
+
   // confirmation–modal state
   const [approveTarget, setApproveTarget] = useState(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
@@ -99,7 +106,7 @@ export default function Hirings() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         console.log("service", data);
-        
+
         setServices(Array.isArray(data) ? data : data.services || []);
       } catch (err) {
         console.error("Error fetching Services:", err);
@@ -117,20 +124,29 @@ export default function Hirings() {
     }
   }, [currentPage, totalPages]);
 
-  
-
   const handleView = (service) => {
     setSelectedService(service);
     setIsViewModalOpen(true);
   };
-
- 
 
   return (
     <div className="p-6">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">All Services</h2>
+      </div>
+      {/* Search Filter */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search by name or category"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="w-full md:w-1/3 p-2 border border-gray-300 rounded"
+        />
       </div>
 
       {/* Desktop Table View */}
@@ -141,7 +157,7 @@ export default function Hirings() {
               <tr>
                 <th className="border p-2">S/N</th>
                 <th className="border p-2">Name</th>
-                <th className="border p-2">Category</th> 
+                <th className="border p-2">Category</th>
                 <th className="border p-2">Status</th>
                 <th className="border p-2">Actions</th>
               </tr>
@@ -155,7 +171,7 @@ export default function Hirings() {
                       <td className="border p-2">{globalIndex + 1}</td>
                       <td className="border p-2 capitalize">{service.name}</td>
                       <td className="border p-2">{service.category}</td>
-                     
+
                       <td className="border p-2">{service.status}</td>
                       <td className="border p-2 space-x-2">
                         <button
@@ -176,7 +192,7 @@ export default function Hirings() {
                           </button>
                         )}
 
-                        {/* old: onClick={() => handleDelete(b.id)} */}
+                        
                         <button
                           title="Delete"
                           onClick={() => openDeleteModal(service)}
@@ -221,7 +237,7 @@ export default function Hirings() {
                   <span className="font-medium">Category:</span>{" "}
                   {service.category}
                 </div>
-                
+
                 <div className="mb-2">
                   <span className="font-medium">Status:</span> {service.status}
                 </div>
@@ -299,20 +315,17 @@ export default function Hirings() {
             </p>
             <p>
               <strong>Phone:</strong> {selectedService.phone_number}
-              
             </p>
             <p>
               <strong>Email:</strong> {selectedService.email}
             </p>
-            
-            
+
             <p>
               <strong>Description:</strong> {selectedService.description}
             </p>
-            
+
             <p>
-              <strong>Approved:</strong>{" "}
-              {selectedService.status}
+              <strong>Approved:</strong> {selectedService.status}
             </p>
             {selectedService.images && selectedService.images.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-3">
@@ -336,8 +349,6 @@ export default function Hirings() {
         </div>
       )}
 
-     
-      
       {/* Approve Confirmation Modal */}
       {showApproveModal && approveTarget && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">

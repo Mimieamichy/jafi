@@ -9,6 +9,7 @@ export default function Transactions() {
   const authToken = localStorage.getItem("userToken");
 
   const [txs, setTxs] = useState([]); // all transactions
+  const [searchTerm, setSearchTerm] = useState(""); 
   const [currentPage, setCurrentPage] = useState(1);
   const [verifyTarget, setVerifyTarget] = useState(null); // tx awaiting confirm
 
@@ -33,6 +34,8 @@ export default function Transactions() {
       .catch((err) => console.error("transactions error", err));
   }, [authToken]);
 
+  
+
   /* ---------------- verify handler ---------------- */
   const verifyPayment = async (refId) => {
     try {
@@ -54,18 +57,41 @@ export default function Transactions() {
     }
   };
 
-  /* ---------------- pagination ---------------- */
+  // ─── filtered list based on searchTerm ───────────────
+  const filteredTxs = txs.filter((t) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      String(t.entity_id).toLowerCase().includes(term) ||
+      String(t.entity_type).toLowerCase().includes(term)
+    );
+  });
+
+  // ─── pagination using filteredTxs ────────────────────
   const itemsPerPage = 20;
-  const totalPages = Math.ceil(txs.length / itemsPerPage);
-  const slice = txs.slice(
+  const totalPages = Math.ceil(filteredTxs.length / itemsPerPage);
+  const slice = filteredTxs.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  // ─── reset to page 1 when searchTerm changes ─────────
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   /* ---------------- render ---------------- */
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4">Transactions</h2>
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search by Payment ID or Listing Type"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-1/3 p-2 border border-gray-300 rounded"
+        />
+      </div>
 
       {/* ----------- DESKTOP TABLE ----------- */}
       <div className="hidden md:block overflow-x-auto border border-gray-300 rounded">
@@ -157,7 +183,7 @@ export default function Transactions() {
                     className="text-green-600 hover:text-green-800 mt-1"
                   >
                     <FontAwesomeIcon icon={faCheck} />
-                     Verify
+                    Verify
                   </button>
                 
               </div>

@@ -31,12 +31,12 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-900 text-white py-10">
-      <p className="text-2xl sm:text-3xl font-bold mb-4 text-center">Contact Us</p>
+      <p className="text-2xl sm:text-3xl font-bold mb-4 text-center">Contact Us</p>
       <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
       
         {/* logo */}
         <a href="/" className="shrink-0">
-          <img src="/jafi.png" alt="JAFI logo" className="h-10 w-auto" />
+          <img src="../jafia.jpg" alt="JAFI logo" className="h-10 w-auto" />
         </a>
 
         {/* contact */}
@@ -58,13 +58,13 @@ export default function Footer() {
            
             <a
               href="mailto:info@jafi.ai"
-              className="hover:underline text-white" /* optional styling */
+              className="hover:underline text-white"
             >
               info@jafi.ai
             </a>
           </div>
           <div className="flex items-center justify-center md:justify-start space-x-3 mt-2">
-            <FontAwesomeIcon icon={faWhatsapp} className="text-white text-xl"/>
+            <FontAwesomeIcon icon={faWhatsapp} className="text-white text-xl hover:text-green-400"/>
             
             <a
             href="https://wa.me/message/3PF6SWGMJXQCE1"

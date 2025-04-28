@@ -13,6 +13,22 @@ export default function Reviews() {
   const [reviewers, setReviewers] = useState([]);
   const [allReviews, setAllReviews] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const itemsPerPage = 20;
+
+  const filteredReviewers = reviewers.filter((r) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      r.name?.toLowerCase().includes(term) ||
+      r.email?.toLowerCase().includes(term)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredReviewers.length / itemsPerPage);
+  const pageSlice = filteredReviewers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
  
 
   // modal state
@@ -64,13 +80,7 @@ export default function Reviews() {
       .catch((err) => console.error("reviews err", err));
   }, [authToken]);
 
-  /* ---------- pagination ---------- */
-  const itemsPerPage = 20;
-  const totalPages = Math.ceil(reviewers.length / itemsPerPage);
-  const pageSlice = reviewers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+ 
 
   /* ---------- delete reviewer ---------- */
   const confirmDelete = async () => {
@@ -91,12 +101,26 @@ export default function Reviews() {
     }
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+
   
 
   /* ---------- render ---------- */
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Reviewers</h2>
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search by name or email"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-1/3 p-2 border border-gray-300 rounded"
+        />
+      </div>
 
       {/* -------- Desktop table -------- */}
       <div className="hidden md:block overflow-x-auto border border-gray-300 rounded">
