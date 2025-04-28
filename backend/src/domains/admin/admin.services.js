@@ -344,9 +344,7 @@ exports.getStandardPrice = async () => {
 exports.addCategory = async (categoryName, type) => {
     // Ensure the type is either 'standard' or 'premium'
     if (type !== "standard" && type !== "premium") {
-      throw new Error(
-        "Invalid category type. Type must be 'standard' or 'premium'."
-      );
+      throw new Error("Invalid category type. Type must be 'standard' or 'premium'.");
     }
   
     // Find the admin setting entry for categories
@@ -365,9 +363,16 @@ exports.addCategory = async (categoryName, type) => {
         key: "categories",
         value: JSON.stringify(newCategories),
       });
-    } else {
-      // Parse the existing categories
-      const existingCategories = JSON.parse(category.value);
+    } else { 
+        // Parse the existing categories
+       const existingCategories = JSON.parse(category.value);
+        // If entry exists,check if value exists
+        const categoryList = existingCategories[type];
+        const lowerCasedList = categoryList.map(c => c.toLowerCase());
+            if (lowerCasedList.includes(categoryName.toLowerCase())) {
+                return {message:`Category '${categoryName}' already exists in ${type}`}
+            }
+
   
       // Add the new category to the appropriate section based on type
       if (type === "standard") {

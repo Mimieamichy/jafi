@@ -1,11 +1,8 @@
 require('dotenv').config()
 const Business = require("../business/business.model");
-const Claim = require("../claim/claim.model");
 const PaymentService = require("../payments/payments.service")
 const Service = require("../service/service.model");
-const Payment = require("./payments.model");
-const crypto = require('crypto');
-const secret = process.env.PAYSTACK_SECRET_KEY;
+
 
 
 exports.createPayment = async (req, res) => {

@@ -1,30 +1,65 @@
-// middlewares/multer.js
-const multer = require('multer');
-const path = require('path');
+// middlewares/mixedStorage.js
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary               = require("../../config/cloudinary");
+const multer                   = require("multer");
+const path                     = require("path");
+const fs                       = require("fs");
 
-const storage = multer.diskStorage({
+// 1️⃣ diskStorage for POB
+const pobDisk = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads');
+    const uploadDir = "/src/uploads";
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${file.originalname}`;
-    cb(null, uniqueName);
+    cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
 
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['.pdf', '.docx'];
-  const ext = path.extname(file.originalname).toLowerCase();
-  if (allowedTypes.includes(ext)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only PDF and DOCX files are allowed!'), false);
+// 2️⃣ CloudinaryStorage for images
+const cloudStorage = new CloudinaryStorage({
+  cloudinary,
+  params: (req, file) => {
+    let folder;
+    const imgFormats = ["jpg","jpeg","png","gif","svg","webp","tiff","bmp","heic"];
+    switch (file.fieldname) {
+      case "images":
+      case "logo":
+        folder = "jafiImages/business"; break;
+      case "workSamples":
+        folder = "jafiImages/services"; break;
+      case "reviewImages":
+        folder = "jafiImages/reviews"; break;
+      default:
+        folder = "jafiImages/other";
+    }
+    return {
+      folder,
+      resource_type: "image",
+      allowed_formats: imgFormats
+    };
+  }
+});
+
+// 3️⃣ Wrap them in one storage engine
+const mixedStorage = {
+  _handleFile(req, file, cb) {
+    if (file.fieldname === "pob") {
+      // delegate to disk
+      pobDisk._handleFile(req, file, cb);
+    } else {
+      // delegate to cloud
+      cloudStorage._handleFile(req, file, cb);
+    }
+  },
+  _removeFile(req, file, cb) {
+    if (file.fieldname === "pob") {
+      pobDisk._removeFile(req, file, cb);
+    } else {
+      cloudStorage._removeFile(req, file, cb);
+    }
   }
 };
 
-const uploadPob = multer({
-  storage,
-  fileFilter
-});
-
-module.exports = uploadPob;
+module.exports = mixedStorage;

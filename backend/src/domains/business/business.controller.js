@@ -4,7 +4,6 @@ const sequelize = require("../../config/database");
 
 exports.registerBusiness = async (req, res) => {
   try {
-    console.log(req.body)
     const businessData = { ...req.body };
 
     // Check and handle image files

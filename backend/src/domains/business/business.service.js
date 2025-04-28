@@ -1,6 +1,7 @@
 const Business = require("./business.model");
 const User = require("../user/user.model");
 const PaymentService = require("../payments/payments.service");
+const { generatePassword } = require("../../utils/generatePassword")
 const bcrypt = require("bcryptjs")
 const {Op} = require('sequelize')
 

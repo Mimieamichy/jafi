@@ -43,6 +43,7 @@ exports.makePayment = async (transactionId) => {
     throw new Error('transaction not found');
   }
 
+  
   // Access the transaction data
   const email = transaction.user.dataValues.email;
   const amount = parseFloat(transaction.dataValues.amount) * 100; // Convert to kobo

@@ -12,7 +12,7 @@ router.get('/standardPrice', getStandardPrice)
 router.get("/servicePrice", getServicePrice);
 router.get("/premiumCategories", getPremiumCategories);
 router.get("/standardCategories", getStandardCategories);
-router.post('/addCategory', addCategory)
+
 
 const { authenticate } = require('../../application/middlewares/authenticate');
 const { authorize } = require('../../application/middlewares/authorize');
@@ -51,6 +51,7 @@ router.delete('/deleteReviewer/:id', deleteReviewer);
 router.delete('/deleteService/:id', deleteService);
 router.delete('/user/:id', deleteUser);
 router.get('/adminCount', getAdminCount)
+router.post('/addCategory', addCategory)
 
 //router.delete('/deleteCategory/', deleteCategory)
 

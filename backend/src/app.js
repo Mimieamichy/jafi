@@ -8,6 +8,7 @@ const rateLimit = require("express-rate-limit");
 const passport = require('./config/passport');
 const path = require('path');
 
+
 const app_url = process.env.APP_URL || "/api/v1";
 const app = express();
 
@@ -36,6 +37,7 @@ app.use(passport.initialize());
 
 // Middlewares
 const { errorHandler } = require("./application/middlewares/errorHandler");
+const { DocumentDownloader } = require("./utils/downloadPOB");
 
 // Routes
 const serviceRoutes = require("./domains/service/service.routes");
@@ -55,6 +57,9 @@ app.use(`${app_url}/business`, businessRoutes);
 app.use(`${app_url}/claim`, claimRoutes);
 app.use(`${app_url}/admin`, adminRoutes);
 app.use(`${app_url}/payment`, paymentsRoutes);
+
+
+app.use(`${app_url}/download/:filename`,  DocumentDownloader);
 
 // Error Handling Middleware
 app.use(errorHandler);
