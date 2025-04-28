@@ -15,6 +15,9 @@ const cloudStorage = new CloudinaryStorage({
     } else if (file.fieldname === "images") {
       folder = "jafiImages/business";
     }
+    else if (file.fieldname === "logo") {
+      folder = "jafiImages/business";
+    }
 
     return {
       folder,
@@ -26,6 +29,7 @@ const cloudStorage = new CloudinaryStorage({
 
 const cloudUpload = multer({ storage: cloudStorage }).fields([
   { name: "images", maxCount: 10 },
+  { name: "logo", maxCount: 1 },
   { name: "workSamples", maxCount: 10 },
   { name: "reviewImages", maxCount: 10 },
 ]);

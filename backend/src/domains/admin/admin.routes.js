@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPremium, updateBusinessStandard, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getPremiumPrice, getStandardPrice, getServicePrice, getAdminCount, addCategory, deleteCategory} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPremium, updateBusinessStandard, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getPremiumPrice, getStandardPrice, getServicePrice, getAdminCount, addCategory, deleteCategory, getPremiumCategories, getStandardCategories} = require('./admin.controller')
 
 
 const { cloudUpload } = require("../../application/middlewares/cloudinary");
@@ -10,6 +10,9 @@ const { cloudUpload } = require("../../application/middlewares/cloudinary");
 router.get('/premiumPrice', getPremiumPrice)
 router.get('/standardPrice', getStandardPrice)
 router.get("/servicePrice", getServicePrice);
+router.get("/premiumCategories", getPremiumCategories);
+router.get("/standardCategories", getStandardCategories);
+router.post('/addCategory', addCategory)
 
 const { authenticate } = require('../../application/middlewares/authenticate');
 const { authorize } = require('../../application/middlewares/authorize');
@@ -48,7 +51,7 @@ router.delete('/deleteReviewer/:id', deleteReviewer);
 router.delete('/deleteService/:id', deleteService);
 router.delete('/user/:id', deleteUser);
 router.get('/adminCount', getAdminCount)
-router.post('/addCategory', addCategory)
+
 //router.delete('/deleteCategory/', deleteCategory)
 
 

@@ -212,7 +212,6 @@ exports.getStandardPrice = async (req, res) => {
   }
 };
 
-
 exports.addCategory = async (req, res) => {
   const { categoryName, type } = req.body;
   try {
@@ -233,6 +232,23 @@ exports.deleteCategory = async (req, res) => {
   }
 };
 
+exports.getStandardCategories = async (req, res) => {
+  try {
+    const response = await AdminService.getStandardCategories();
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getPremiumCategories = async (req, res) => {
+  try {
+    const response = await AdminService.getPremiumCategories();
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 
 // Service management

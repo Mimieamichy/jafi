@@ -4,6 +4,7 @@ const sequelize = require("../../config/database");
 
 exports.registerBusiness = async (req, res) => {
   try {
+    console.log(req.body)
     const businessData = { ...req.body };
 
     // Check and handle image files
@@ -14,7 +15,11 @@ exports.registerBusiness = async (req, res) => {
 
       // Handle proof file if it's provided
       if (req.files["pob"]) {
-        businessData.proof = req.files["pob"].map((file) => file.path);
+        businessData.proof = req.files["pob"][0]?.path;
+      }
+
+      if (req.files["logo"]) {
+        businessData.logo = req.files["logo"][0]?.path;
       }
     }
 

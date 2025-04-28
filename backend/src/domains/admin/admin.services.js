@@ -342,7 +342,7 @@ exports.getStandardPrice = async () => {
 };
 
 exports.addCategory = async (categoryName, type) => {
-    // Ensure the type is either 'standard' or 'exclusive'
+    // Ensure the type is either 'standard' or 'premium'
     if (type !== "standard" && type !== "premium") {
       throw new Error(
         "Invalid category type. Type must be 'standard' or 'premium'."
@@ -351,14 +351,16 @@ exports.addCategory = async (categoryName, type) => {
   
     // Find the admin setting entry for categories
     const category = await AdminSettings.findOne({ where: { key: "categories" } });
+
   
-    // If no entry exists, create a new one with empty arrays for standard and exclusive
+    // If no entry exists, create a new one with empty arrays for standard and premium
     if (!category) {
       const newCategories = {
         standard: type === "standard" ? [categoryName] : [],
-        exclusive: type === "premium" ? [categoryName] : []
+        premium: type === "premium" ? [categoryName] : []
       };
   
+    
       await AdminSettings.create({
         key: "categories",
         value: JSON.stringify(newCategories),
@@ -371,7 +373,7 @@ exports.addCategory = async (categoryName, type) => {
       if (type === "standard") {
         existingCategories.standard.push(categoryName);
       } else if (type === "premium") {
-        existingCategories.exclusive.push(categoryName);
+        existingCategories.premium.push(categoryName);
       }
   
       // Update the value in the database with the updated categories
@@ -382,9 +384,9 @@ exports.addCategory = async (categoryName, type) => {
 };
   
 exports.deleteCategory = async (categoryName, type) => {
-    // Ensure the type is either 'standard' or 'exclusive'
+    // Ensure the type is either 'standard' or 'premium'
     if (type !== "standard" && type !== "premium") {
-      throw new Error("Invalid category type. Type must be 'standard' or 'exclusive'.");
+      throw new Error("Invalid category type. Type must be 'standard' or 'premium'.");
     }
   
     // Find the admin setting entry for categories
@@ -407,12 +409,12 @@ exports.deleteCategory = async (categoryName, type) => {
       }
       existingCategories.standard.splice(index, 1);
     } else if (type === "premium") {
-      // Remove the category from the 'exclusive' array
-      const index = existingCategories.exclusive.indexOf(categoryName);
+      // Remove the category from the 'premium' array
+      const index = existingCategories.premium.indexOf(categoryName);
       if (index === -1) {
-        throw new Error(`${categoryName} not found in exclusive categories.`);
+        throw new Error(`${categoryName} not found in premium categories.`);
       }
-      existingCategories.exclusive.splice(index, 1);
+      existingCategories.premium.splice(index, 1);
     }
   
     // Update the value in the database with the updated categories
@@ -421,14 +423,37 @@ exports.deleteCategory = async (categoryName, type) => {
     return { message: `${categoryName} has been deleted from ${type} categories.` };
 };
 
-exports.getCategories = async () => {
+exports.getStandardCategories = async () => {
     const allCategories = await AdminSettings.findOne({ where: { key: "categories" } });
     if (!allCategories) throw new Error("No categories found");
 
-    const categories = JSON.parse(allCategories.value);
-    return {message: "Categories retrieved successfully", categories};
-}
-  
+    const theCategories = JSON.parse(allCategories.dataValues.value);
+
+    // Filter the categories for 'standard' type
+    const standardCategories = theCategories.standard || [];
+    
+    if (standardCategories.length === 0) {
+        throw new Error("No standard categories found");
+    }
+
+    return { message: "Standard categories retrieved successfully", categories: standardCategories };
+};
+
+exports.getPremiumCategories = async () => {
+    const allCategories = await AdminSettings.findOne({ where: { key: "categories" } });
+    if (!allCategories) throw new Error("No categories found");
+
+    const theCategories = JSON.parse(allCategories.dataValues.value);
+
+    // Get premium categories array
+    const premiumCategories = theCategories.premium || [];
+
+    if (!premiumCategories.length) {
+        throw new Error("No premium categories found");
+    }
+
+    return { message: "Premium categories retrieved successfully", categories: premiumCategories };
+};
 
 
 
