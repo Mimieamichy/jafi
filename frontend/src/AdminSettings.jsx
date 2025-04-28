@@ -2,8 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSnackbar } from "notistack";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {  faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -11,10 +10,13 @@ export default function Settings() {
   const authToken = localStorage.getItem("userToken");
   const { enqueueSnackbar } = useSnackbar();
 
-  const headersJSON = useMemo(() => ({
-   "Content-Type": "application/json",
-   Authorization: `Bearer ${authToken}`,
- }), [authToken]);
+  const headersJSON = useMemo(
+    () => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authToken}`,
+    }),
+    [authToken]
+  );
 
   /* ---------- state ---------- */
   const [superCount, setSuperCount] = useState(0);
@@ -23,33 +25,34 @@ export default function Settings() {
   const [form, setForm] = useState({ name: "", email: "", role: "admin" });
 
   const [newPw, setNewPw] = useState("");
-  
+
   const [showNew, setShowNew] = useState(false);
+
+  const [newCatType, setNewCatType] = useState("standard");
+  const [newCatName, setNewCatName] = useState("");
 
   const [price, setPrice] = useState({ business: "", service: "" });
 
- 
+  /* ---------- fetch live admin counts ---------- */
+  useEffect(() => {
+    if (!authToken) return;
+    fetch(`${baseUrl}/admin/adminCount`, { headers: headersJSON })
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch counts");
+        return r.json();
+      })
+      .then((data) => {
+        console.log("adminCount data", data);
 
-    /* ---------- fetch live admin counts ---------- */
-    useEffect(() => {
-      if (!authToken) return;
-      fetch(`${baseUrl}/admin/adminCount`, { headers: headersJSON })
-        .then((r) => {
-          if (!r.ok) throw new Error("Failed to fetch counts");
-          return r.json();
-        })
-        .then((data) => {
-          console.log("adminCount data", data);
-          
-          // adjust these keys to match your API response
-          setAdminCount(data.adminCount ?? data.admin ?? 0);
-          setSuperCount(data.superAdminCount ?? data.superadmin ?? 0);
-        })
-        .catch((err) => {
-          console.error("adminCount error", err);
-          enqueueSnackbar("Could not load admin counts", { variant: "error" });
-        });
-    }, [authToken, enqueueSnackbar, headersJSON]);
+        // adjust these keys to match your API response
+        setAdminCount(data.adminCount ?? data.admin ?? 0);
+        setSuperCount(data.superAdminCount ?? data.superadmin ?? 0);
+      })
+      .catch((err) => {
+        console.error("adminCount error", err);
+        enqueueSnackbar("Could not load admin counts", { variant: "error" });
+      });
+  }, [authToken, enqueueSnackbar, headersJSON]);
 
   /* ---------- add admin / super‑admin ---------- */
   const addAdmin = async () => {
@@ -71,7 +74,6 @@ export default function Settings() {
       setSuperCount((c) => c + (form.role === "superadmin" ? 1 : 0));
       setAdminCount((c) => c + (form.role === "admin" ? 1 : 0));
       setForm({ name: "", email: "", role: "admin" });
-      
     } catch {
       enqueueSnackbar("Add failed", { variant: "error" });
     }
@@ -96,13 +98,54 @@ export default function Settings() {
     }
   };
 
+  // ─── handler to add a new category of either type ────────────────
+  const handleAddCategory = async () => {
+    const trimmed = newCatName.trim();
+    if (!trimmed) {
+      return enqueueSnackbar("Please enter a category name.", {
+        variant: "warning",
+      });
+    }
+
+    try {
+      const res = await fetch(`${baseUrl}/admin/addCategory`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          type: newCatType, // "standard" or "premium"
+          categoryName: trimmed,
+        }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || "Failed to add category");
+      }
+
+      enqueueSnackbar(
+        `${newCatType === "standard" ? "Standard" : "Premium"} category added!`,
+        { variant: "success" }
+      );
+      setNewCatName("");
+      // TODO: re-fetch your category lists so the new one shows up
+    } catch (err) {
+      console.error("Add category error:", err);
+      enqueueSnackbar(err.message || "Error adding category", {
+        variant: "error",
+      });
+    }
+  };
+
   /* ---------- push price helper ---------- */
   const pushPrice = async (field) => {
     if (!price[field])
       return enqueueSnackbar("Enter a price first", { variant: "warning" });
     const map = {
-     standard: "standardPrice",
-     premuim: "premiumPrice",
+      standard: "standardPrice",
+      premuim: "premiumPrice",
       service: "updateServicePrice",
     };
     try {
@@ -171,7 +214,6 @@ export default function Settings() {
         </p>
       </section>
 
-     
       {/* ---- Change Password ---- */}
       <section>
         <h3 className="font-semibold mb-2">Change Password</h3>
@@ -196,17 +238,64 @@ export default function Settings() {
 
         <button
           onClick={changePw}
-          className="bg-green-600 text-white px-4 py-2 rounded mt-3 w-full sm:w-auto"
+          className="bg-blue-600 text-white px-4 py-2 rounded mt-3 w-full sm:w-auto"
         >
           Update Password
         </button>
       </section>
 
+      {/* ─── Add a New Business Category ───────────────────── */}
+      <fieldset className="border p-4 rounded-md mt-6">
+        <legend className="font-semibold">Add New Category</legend>
+
+        <div className="flex items-center gap-4 mb-2">
+          <label className="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="newCatType"
+              value="standard"
+              checked={newCatType === "standard"}
+              onChange={() => setNewCatType("standard")}
+            />
+            <span>Standard</span>
+          </label>
+          <label className="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="newCatType"
+              value="premium"
+              checked={newCatType === "premium"}
+              onChange={() => setNewCatType("premium")}
+            />
+            <span>Premium</span>
+          </label>
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            name="categoryName"
+            type="text"
+            placeholder="Category name"
+            value={newCatName}
+            onChange={(e) => setNewCatName(e.target.value)}
+            className="flex-1 p-2 border rounded"
+          />
+          <button
+            type="button"
+            onClick={handleAddCategory}
+            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+            disabled={!newCatName.trim()}
+          >
+            Add
+          </button>
+        </div>
+      </fieldset>
+
       {/* ---- Pricing (business & service only) ---- */}
       <section>
         <h3 className="font-semibold mb-2">Update Pricing</h3>
 
-        {["standard","premuim", "service"].map((field) => (
+        {["standard", "premuim", "service"].map((field) => (
           <div key={field} className="mb-3 sm:flex sm:items-center">
             <label className="capitalize text-base p-3 w-30">{field}</label>
             <input

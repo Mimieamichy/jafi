@@ -306,9 +306,7 @@ export default function BusinessPage() {
     }
   };
 
-  const handleNameNavigate = (userId) => {
-    navigate(`/reveiwerPage/${userId}`);
-  };
+  
 
 
   const handleGoogleLogin = () => {
