@@ -61,6 +61,9 @@ export default function Claims() {
     }
   };
 
+  
+
+
   /* ---------------- pagination ---------------- */
   const itemsPerPage = 20;
   const totalPages = Math.ceil(claims.length / itemsPerPage);
@@ -68,6 +71,15 @@ export default function Claims() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+
+  const getBaseFilename = (url) => {
+    if (!url) return '';
+    const fullName = url.split('/').pop() || ''; // get last part after last '/'
+    const [nameWithoutExtension] = fullName.split('.'); // remove .pdf or .jpg or whatever
+    return nameWithoutExtension;
+  };
+  
 
   /* ---------------- render ---------------- */
   return (
@@ -103,7 +115,7 @@ export default function Claims() {
                     <td className="p-2 border">{c.phone}</td>
                     <td className="p-2 border">
                       <a
-                        href={c.proof}
+                         href={`${baseUrl}/download/uploads/${getBaseFilename(c.proof)}.pdf`}
                         target="_blank"
                         rel="noopener noreferrer"
                         download

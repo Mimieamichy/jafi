@@ -24,10 +24,10 @@ export default function Transactions() {
       .then((data) => {
         console.log("transdata", data);
 
-        const arr = Array.isArray(data)
-          ? data
-          : Array.isArray(data.transactions)
-          ? data.transactions
+        const arr = Array.isArray(data.payments)
+          ? data.payments
+          : Array.isArray(data.payments)
+          ? data.payments
           : [];
         setTxs(arr);
       })
@@ -123,7 +123,7 @@ export default function Transactions() {
                     <td className="p-2 border">{t.entity_id}</td>
                     <td className="p-2 border capitalize">{t.user.name}</td>
                     <td className="p-2 border">
-                      ₦{Number(t.amount).toLocaleString()}
+                      ${Number(t.amount).toLocaleString()}
                     </td>
                     <td className="p-2 border">{t.entity_type}</td>
                     <td className="p-2 border capitalize">{t.status}</td>
@@ -168,7 +168,7 @@ export default function Transactions() {
                   <strong>Name:</strong> {t.user.name}
                 </div>
                 <div>
-                  <strong>Amount:</strong> ₦{Number(t.amount).toLocaleString()}
+                  <strong>Amount:</strong> ${Number(t.amount).toLocaleString()}
                 </div>
                 <div>
                   <strong>Listing&nbsp;Type:</strong> {t.entity_type}

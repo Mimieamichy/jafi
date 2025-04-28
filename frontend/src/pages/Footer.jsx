@@ -36,7 +36,7 @@ export default function Footer() {
       
         {/* logo */}
         <a href="/" className="shrink-0">
-          <img src="../jafia.jpg" alt="JAFI logo" className="h-10 w-auto" />
+          <img src="../jafia.jpg" alt="JAFI logo" className="h-16 w-auto" />
         </a>
 
         {/* contact */}

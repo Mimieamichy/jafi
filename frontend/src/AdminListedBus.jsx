@@ -272,6 +272,22 @@ export default function Businesses() {
     }
   };
 
+  const getFileName = (url) => {
+    if (!url) return '';
+    const parts = url.split('/');
+    return parts[parts.length - 1]; // last part
+  };
+  
+  
+ 
+  
+  
+  
+  
+  
+
+ 
+
   return (
     <div className="p-6">
       {/* Header Section */}
@@ -512,7 +528,7 @@ export default function Businesses() {
             <p>
               <strong>POB:</strong>{" "}
               <a
-                href={selectedBusiness.proof}
+                 href={`${baseUrl}/download/${getFileName(selectedBusiness.proof)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 download
