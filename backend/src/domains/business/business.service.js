@@ -182,7 +182,7 @@ exports.getBusinessByCategory = async (category) => {
     },  
     order: [["createdAt", "DESC"]],
     attributes: {
-      exclude: ["id", "createdAt", "updatedAt"],
+      include: ["id", "name", "address", "category", "average_rating"],
     },
 
   });
