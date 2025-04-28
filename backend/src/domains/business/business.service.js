@@ -188,7 +188,7 @@ exports.getBusinessByCategory = async (category) => {
   });
 
   if (!businesses || businesses.length === 0) {
-    throw new Error("No businesses found for this category");
+    return {message: "No businesses found for this category"};
   }
 
   return { message: "Businesses found", businesses };
