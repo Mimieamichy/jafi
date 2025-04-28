@@ -126,9 +126,45 @@ const Users = () => {
     }
   };
 
+  // inside Users component, before `return(...)`
+  const exportCSV = () => {
+    // 1) Define our CSV headers
+    const headers = ["Name", "Email", "Role", "Created At", "Listings Count"];
+    // 2) Turn each filteredUser into an array of strings
+    const rows = filteredUsers.map((user) => [
+      user.name,
+      user.email,
+      Array.isArray(user.role) ? user.role.join("|") : user.role,
+      user.createdAt || "",
+      user.count ?? "",
+    ]);
+    // 3) Build the CSV content
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
+    // 4) Create a Blob and download link
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "users.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="mx-auto max-w-7xl p-4">
-      <h2 className="text-xl font-bold mb-2">All Users</h2>
+      <h2 className="text-xl font-bold mb-2">
+        All Users{" "}
+        <button
+          onClick={exportCSV}
+          className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Export CSV
+        </button>
+      </h2>
+
       {/* Search Bar */}
       <div className=" flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 md:space-x-4 mb-4">
         {/* Search Bar */}

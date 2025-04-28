@@ -13,6 +13,8 @@ export default function BusinessSignup() {
   const { enqueueSnackbar } = useSnackbar();
   const [standardPrice, setStandardPrice] = useState(null);
   const [premiumPrice, setPremiumPrice] = useState(null);
+  const [standardCategories, setStandardCategories] = useState([]);
+  const [premiumCategories, setPremiumCategories] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -25,46 +27,12 @@ export default function BusinessSignup() {
     city: "",
     state: "",
     day: [],
-    businessType: "standard", 
+    businessType: "standard",
     description: "",
     images: [],
     logo: null,
     countryCode: "NG", // Default country code
   });
-
-  const standardOptions = [
-    "Beauty & Salon",
-    "Hospital",
-    "Nightlife & Entertainment",
-    "Restaurant",
-  ];
-
-  const premiumOptions = [
-    "Church",
-    "Communication",
-    "Airplane",
-    "Banking",
-    "Hotel",
-  ];
-
-  //   "Automotives",
-  //   "Hotels",
-  //   "Healthcare",
-  //   "Groceries",
-  //   "Malls & Supermarkets",
-  //   "Banking & FinTech",
-  //   "Churches",
-  //   "Aircrafts",
-  //   "Nigerian Made",
-  //   "Nightlife & Entertainment",
-  //   "Restaurants & Cafes",
-  //   "Real Estate",
-  //   "Education & Training",
-  //   "Fashion & Beauty",
-  //   "Fitness & Wellness",
-  //   "Travel & Tours",
-  //   "Tech Hubs"
-  // ];
 
   const daysOfWeek = [
     "Monday",
@@ -75,8 +43,6 @@ export default function BusinessSignup() {
     "Saturday",
     "Sunday",
   ];
-
-  
 
   const [phoneError, setPhoneError] = useState("");
 
@@ -99,25 +65,30 @@ export default function BusinessSignup() {
     </div>
   );
 
-   // ─── fetch prices once on mount ─────
-   useEffect(() => {
+  // ─── fetch prices once on mount ─────
+  useEffect(() => {
     async function loadPrices() {
       try {
         const [stdRes, premRes] = await Promise.all([
           fetch(`${baseUrl}/admin/standardPrice`),
-          fetch(`${baseUrl}/admin/premiumPrice`)
+          fetch(`${baseUrl}/admin/premiumPrice`),
         ]);
 
         const stdData = await stdRes.json();
         const premData = await premRes.json();
         console.log("standrad", stdData, "premuim", premData);
-        
 
         if (stdRes.ok) setStandardPrice(stdData.standardPrice);
-        else enqueueSnackbar(stdData.message || "Could not load standard price", { variant: "error" });
+        else
+          enqueueSnackbar(stdData.message || "Could not load standard price", {
+            variant: "error",
+          });
 
         if (premRes.ok) setPremiumPrice(premData.premiumPrice);
-        else enqueueSnackbar(premData.message || "Could not load premium price", { variant: "error" });
+        else
+          enqueueSnackbar(premData.message || "Could not load premium price", {
+            variant: "error",
+          });
       } catch (err) {
         console.error(err);
         enqueueSnackbar("Network error fetching prices", { variant: "error" });
@@ -126,10 +97,35 @@ export default function BusinessSignup() {
     loadPrices();
   }, [enqueueSnackbar]);
 
+  // ─── FETCH LIVE CATEGORIES ON MOUNT ───────────────────
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const [stdRes, premRes] = await Promise.all([
+          fetch(`${baseUrl}/admin/standardCategories`),
+          fetch(`${baseUrl}/admin/premiumCategories`),
+        ]);
+
+        if (!stdRes.ok) throw new Error("Failed to load standard categories");
+        if (!premRes.ok) throw new Error("Failed to load premium categories");
+
+        const stdJson = await stdRes.json();
+        const premJson = await premRes.json();
+
+        // assuming your API returns { categories: ["...", "..."] }
+        setStandardCategories(stdJson.categories || []);
+        setPremiumCategories(premJson.categories || []);
+      } catch (err) {
+        console.error(err);
+        enqueueSnackbar("Error loading categories", { variant: "error" });
+      }
+    }
+    loadCategories();
+  }, [enqueueSnackbar]);
 
   const handlebusinessTypeChange = (e) => {
     const businessType = e.target.value;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       businessType,
       category: "",
@@ -188,46 +184,52 @@ export default function BusinessSignup() {
 
   const handlePobChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      console.log("Selected pob file:", file.name, "with type:", file.type);
-      if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
-        enqueueSnackbar(
-          "Only image or PDF files are allowed for Proof of Business.",
-          { variant: "error" }
-        ); // Show error message
-        return;
-      }
-      setFormData((prev) => ({
-        ...prev,
-        pob: file,
-      }));
-    }
-  };
-
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return; // no file selected
+    if (!file) return;
   
-    // only allow images
-    if (!file.type.startsWith("image/")) {
-      enqueueSnackbar("Only image files are allowed for your logo.", { variant: "error" });
+    const validTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+  
+    if (!validTypes.includes(file.type)) {
+      enqueueSnackbar(
+        "Only PDF or Word documents (.pdf, .doc, .docx) are allowed for Proof of Business.",
+        { variant: "error" }
+      );
       return;
     }
   
+    setFormData((prev) => ({
+      ...prev,
+      pob: file,
+    }));
+  };
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return; // no file selected
+
+    // only allow images
+    if (!file.type.startsWith("image/")) {
+      enqueueSnackbar("Only image files are allowed for your logo.", {
+        variant: "error",
+      });
+      return;
+    }
+
     // optional size check (e.g. max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       enqueueSnackbar("Logo must be smaller than 2 MB.", { variant: "error" });
       return;
     }
-  
+
     // all good—save it
     setFormData((prev) => ({
       ...prev,
       logo: file,
     }));
   };
-  
- 
+
   const handlePhoneChange = (e) => {
     const { value } = e.target;
     setFormData((prev) => ({ ...prev, phone_number1: value }));
@@ -255,13 +257,13 @@ export default function BusinessSignup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     // build FormData payload
     const formPayload = new FormData();
     Object.entries(formData).forEach(([key, val]) => {
       if (key === "images" && Array.isArray(val)) {
         // append each image file
-        val.forEach(file => formPayload.append("images", file, file.name));
+        val.forEach((file) => formPayload.append("images", file, file.name));
       } else if ((key === "pob" || key === "logo") && val instanceof File) {
         // append pob or logo file
         formPayload.append(key, val, val.name);
@@ -270,21 +272,21 @@ export default function BusinessSignup() {
         formPayload.append(key, val);
       }
     });
-  
+
     try {
       const response = await fetch(`${baseUrl}/business/register`, {
         method: "POST",
         body: formPayload,
       });
-  
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText);
       }
-  
+
       const data = await response.json();
       localStorage.setItem("busId", data.newBusiness.id);
-  
+
       // navigate based on chosen businessType
       if (formData.businessType === "premium") {
         navigate("/premium-payment");
@@ -298,8 +300,7 @@ export default function BusinessSignup() {
       });
     }
   };
-  
-  
+
   return (
     <div className="max-w-lg w-full mx-auto mt-10 p-4 sm:p-6 bg-white shadow-md rounded-lg">
       <h2 className="text-2xl font-bold mb-4 text-black text-center">
@@ -389,7 +390,7 @@ export default function BusinessSignup() {
           type="file"
           name="pob"
           id="pob"
-          accept="image/*, application/*"
+          accept=".pdf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           onChange={handlePobChange}
           className="w-full p-2 border rounded mt-1"
           required
@@ -448,7 +449,7 @@ export default function BusinessSignup() {
               checked={formData.businessType === "standard"}
               onChange={handlebusinessTypeChange}
             />
-             <span>
+            <span>
               Standard{" "}
               {standardPrice != null
                 ? `— $${standardPrice.value}`
@@ -465,16 +466,17 @@ export default function BusinessSignup() {
             />
             <span>
               Premium{" "}
-              {premiumPrice != null
-                ? `— $${premiumPrice.value}`
-                : "(loading…)"}
+              {premiumPrice != null ? `— $${premiumPrice.value}` : "(loading…)"}
             </span>
           </label>
         </fieldset>
 
         {/* Sub-Category */}
         <label htmlFor="category" className="font-semibold">
-          {formData.businessType === "standard" ? "Standard Categories" : "Premium Categories"}:
+          {formData.businessType === "standard"
+            ? "Standard Categories"
+            : "Premium Categories"}
+          :
         </label>
         <select
           id="category"
@@ -485,15 +487,22 @@ export default function BusinessSignup() {
           required
         >
           <option value="" disabled>
-            Select {formData.businessType === "standard" ? "Standard" : "Premium"} Option
+            Select{" "}
+            {formData.businessType === "standard" ? "Standard" : "Premium"}{" "}
+            Category
           </option>
-          {(formData.businessType === "standard" ? standardOptions : premiumOptions).map(opt => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
+          {formData.businessType === "standard"
+            ? standardCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))
+            : premiumCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
         </select>
-
 
         {/* Opening Days */}
         <fieldset className="border p-2 rounded-md">
@@ -605,7 +614,9 @@ export default function BusinessSignup() {
           type="submit"
           className="bg-blue-600 text-white py-2 rounded-lg cursor-pointer w-full text-center"
         >
-          {formData.businessType === "premium" ? "Proceed to Premium Payment" : "Proceed to Standard Payment"}
+          {formData.businessType === "premium"
+            ? "Proceed to Premium Payment"
+            : "Proceed to Standard Payment"}
         </button>
       </form>
     </div>

@@ -278,7 +278,7 @@ export default function Settings() {
             placeholder="Category name"
             value={newCatName}
             onChange={(e) => setNewCatName(e.target.value)}
-            className="flex-1 p-2 border rounded"
+            className="flex-1 p-2 border rounded capitalize"
           />
           <button
             type="button"

@@ -200,6 +200,22 @@ export default function BusinessPage() {
   // update pob when user picks a file
   const handleClaimFileChange = (e) => {
     const file = e.target.files[0] || null;
+    if (!file) return;
+
+    const validTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!validTypes.includes(file.type)) {
+      enqueueSnackbar(
+        "Only PDF or Word documents (.pdf, .doc, .docx) are allowed.",
+        { variant: "error" }
+      );
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, pob: file }));
   };
 
@@ -305,9 +321,6 @@ export default function BusinessPage() {
       enqueueSnackbar("Something went wrong", { variant: "error" });
     }
   };
-
-  
-
 
   const handleGoogleLogin = () => {
     const currentUrl = encodeURIComponent(window.location.pathname);
@@ -517,7 +530,6 @@ export default function BusinessPage() {
                       setReviewModalImages(images);
                       setReviewModalIndex(idx);
                       setReviewImageModalOpen(true);
-                      
                     }}
                   />
                 ))}
@@ -695,7 +707,7 @@ export default function BusinessPage() {
                 <input
                   name="pob"
                   type="file"
-                  accept="image/*,application/pdf,application/msword,.docx"
+                  accept=".pdf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   className="border w-full p-2 mb-4"
                   onChange={handleClaimFileChange}
                 />
@@ -778,10 +790,15 @@ function ReviewCard({
   return (
     <div className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center text-center ">
       <h4 className="text-lg font-bold capitalize">{listingName}</h4>
-      <p className="text-gray-700 capitalize cursor-pointer" onClick={(e) => {
-         e.stopPropagation();
+      <p
+        className="text-gray-700 capitalize cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
           onReviewerClick(userId);
-       }}>{user_name}</p>
+        }}
+      >
+        {user_name}
+      </p>
       <div className="flex justify-center my-2 text-yellow-500">
         {[...Array(5)].map((_, i) => (
           <FontAwesomeIcon
