@@ -53,7 +53,7 @@ exports.createAdmin = async (email, name, role) => {
 }
 
 exports.getAllUsers = async () => {
-    const users = await User.findAll({
+    const allUsers = await User.findAll({
         attributes: ["id", "name", "email", "role", "createdAt"],
     });
     // Process users to add business info or service count based on role
@@ -84,7 +84,8 @@ exports.getAllUsers = async () => {
 
         return userData;
     }));
-    return { message: "Users retrieved successfully", users: processedUsers };
+    const users = processedUsers;
+    return { message: "Users retrieved successfully", users };
 };
 
 exports.updateAdminPassword = async (userId, newPassword) => {
