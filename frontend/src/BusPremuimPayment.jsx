@@ -42,7 +42,7 @@ export default function PremuimPricing() {
       const r = await fetch(`${baseUrl}/business/pay/${busIdNum}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: price }),
+        body: JSON.stringify({ amount: price.value }),
       });
       const res = await r.json();
       const paystackUrl = res?.data?.paymentDetails?.data?.authorization_url;
