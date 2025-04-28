@@ -7,7 +7,7 @@ const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllService
 const { cloudUpload } = require("../../application/middlewares/cloudinary");
 
 
-router.get('/premuimPrice', getPremiumPrice)
+router.get('/premiumPrice', getPremiumPrice)
 router.get('/standardPrice', getStandardPrice)
 router.get("/servicePrice", getServicePrice);
 
@@ -40,7 +40,7 @@ router.post('/approveBusiness/:id', approveBusiness);
 router.post("/approveClaim/:id", approveClaim);
 router.post("/approveService/:id", approveService);
 router.put('/standardPrice', updateBusinessStandard);
-router.put('/premuimPrice', updateBusinessPremium);
+router.put('/premiumPrice', updateBusinessPremium);
 router.put("/updateServicePrice", updateServicePrice);
 router.delete('/deleteBusiness/:id', deleteBusiness);
 router.delete('/deleteReview/:id', deleteReview);

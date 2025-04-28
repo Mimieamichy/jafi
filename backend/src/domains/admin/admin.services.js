@@ -379,11 +379,9 @@ exports.addCategory = async (categoryName, type) => {
     }
   
     return { message: `${categoryName} added to ${type} categories successfully` };
-  };
+};
   
-
-
-  exports.deleteCategory = async (categoryName, type) => {
+exports.deleteCategory = async (categoryName, type) => {
     // Ensure the type is either 'standard' or 'exclusive'
     if (type !== "standard" && type !== "premium") {
       throw new Error("Invalid category type. Type must be 'standard' or 'exclusive'.");
@@ -421,7 +419,15 @@ exports.addCategory = async (categoryName, type) => {
     await category.update({ value: JSON.stringify(existingCategories) });
   
     return { message: `${categoryName} has been deleted from ${type} categories.` };
-  };
+};
+
+exports.getCategories = async () => {
+    const allCategories = await AdminSettings.findOne({ where: { key: "categories" } });
+    if (!allCategories) throw new Error("No categories found");
+
+    const categories = JSON.parse(allCategories.value);
+    return {message: "Categories retrieved successfully", categories};
+}
   
 
 
