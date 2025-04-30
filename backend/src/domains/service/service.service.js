@@ -67,19 +67,24 @@ exports.getAService = async (serviceId) => {
     return service;
 };
 
-exports.getAllServices = async () => {
-    const services = await Service.findAll({
+exports.getAllServices = async (offset, limit, page) => {
+    const {count, rows: services} = await Service.findAndCountAll({
         include: {
             model: User,
             attributes: ["id", "name", "email", "role"],
         },
-
+        order: [["createdAt", "DESC"]],
+        offset,
+        limit,
     });
     if (!services || services.length === 0) {
         throw new Error("No services found");
     }
 
-    return services;
+    return {
+        data: services,
+        meta: { page, limit, total: count },
+    };
 };
 exports.updateService = async (serviceId, userId, serviceData, password, email) => {
     const service = await Service.findByPk(serviceId);

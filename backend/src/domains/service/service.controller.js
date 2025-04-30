@@ -50,9 +50,10 @@ exports.getAService = async (req, res) => {
 
 exports.getAllServices = async (req, res) => {
   try {
-    const offset = parseInt(req.query.offset) || 0;
+    const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const services = await ServiceService.getAllServices(offset, limit);
+    const offset = (page - 1) * limit;
+    const services = await ServiceService.getAllServices(offset, limit, page);
     res.status(200).json(services);
   } catch (error) {
     console.log(error);

@@ -178,8 +178,8 @@ exports.deleteBusiness = async (businessId, userId) => {
 };
 
 
-exports.getBusinessByCategory = async (category) => {
-  const businesses = await Business.findAll({
+exports.getBusinessByCategory = async (category, offset, limit, page) => {
+  const {count, rows: businesses} = await Business.findAndCountAll({
     where: {
       category: {
         [Op.like]: `%${category}%`,
@@ -190,11 +190,16 @@ exports.getBusinessByCategory = async (category) => {
     attributes: {
       include: ["id", "name", "address", "category", "average_rating"],
     },
+    offset,
+    limit
   });
 
   if (!businesses || businesses.length === 0) {
     return {message: "No businesses found for this category"};
   }
 
-  return { message: "Businesses found", businesses };
+  return {
+    data: businesses,
+    meta: { page, limit, total: count },
+  };
 }

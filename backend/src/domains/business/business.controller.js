@@ -137,7 +137,10 @@ exports.deleteBusiness = async (req, res) => {
 exports.getBusinessByCategory = async (req, res) => {
   try {
     const { category } = req.params;
-    const response = await BusinessService.getBusinessByCategory(category);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const response = await BusinessService.getBusinessByCategory(category, offset, limit, page);
     res.status(200).json(response);
   } catch (error) {
     console.log(error)
