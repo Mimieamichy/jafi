@@ -22,7 +22,7 @@ const Users = () => {
 const [deleteMode, setDeleteMode] = useState(null);
 
   const [admins, setAdmins] = useState([]);
-  const [transferTo, setTransferTo] = useState("");
+  const [transferToEmail, setTransferToEmail] = useState("");
 
   const itemsPerPage = 20;
 
@@ -111,7 +111,7 @@ const [deleteMode, setDeleteMode] = useState(null);
       .catch(() =>
         enqueueSnackbar("Could not load admins", { variant: "error" })
       );
-      console.log("admins", admins);
+      
       
   }, [showDeleteModal, deleteMode, authToken, enqueueSnackbar, admins]);
 
@@ -125,7 +125,7 @@ const [deleteMode, setDeleteMode] = useState(null);
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ toAdminId: transferTo }),
+        body: JSON.stringify({ email: transferToEmail }),
       });
       enqueueSnackbar("User deleted, business transferred", {
         variant: "success",
@@ -391,8 +391,10 @@ const [deleteMode, setDeleteMode] = useState(null);
               <>
                 <h3 className="font-bold">Transfer business to:</h3>
                 <select
-                  value={transferTo}
-                  onChange={(e) => setTransferTo(e.target.value)}
+                name="transferToEmail"
+                type="email"
+                  value={transferToEmail}
+                  onChange={(e) => setTransferToEmail(e.target.value)}
                   className="w-full border p-2 rounded"
                 >
                   <option value="" disabled>
@@ -407,7 +409,7 @@ const [deleteMode, setDeleteMode] = useState(null);
                 <div className="flex space-x-2 mt-4">
                   <button
                     onClick={handleDeleteConfirm}
-                    disabled={!transferTo}
+                    disabled={!transferToEmail}
                     className="flex-1 py-2 bg-red-500 text-white rounded disabled:opacity-50"
                   >
                     Confirm
