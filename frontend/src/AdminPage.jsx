@@ -73,7 +73,7 @@ export default function AdminPage() {
 
   /* ---------------- state ---------------- */
   const [rows, setRows] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+
   const [previewImages, setPreviewImages] = useState([]);
 
   const [editTarget, setEditTarget] = useState(null); // full biz obj
@@ -83,6 +83,11 @@ export default function AdminPage() {
   const [formData, setFormData] = useState(initialFormState);
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [newPwd, setNewPwd] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const totalPagess = Math.ceil(total / limit);
+
   const [showPwd, setShowPwd] = useState(false);
   const openPwdModal = () => {
     setNewPwd("");
@@ -187,22 +192,23 @@ export default function AdminPage() {
   useEffect(() => {
     const fetchBusinesses = async () => {
       try {
-        const res = await fetch(`${baseUrl}/admin/myBusiness`, {
+        const res = await fetch(`${baseUrl}/admin/myBusiness?page=${page}&limit=${limit}`, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         const data = await res.json();
 
         // 👇 inspect everything that comes back
         console.log("MY‑BUSINESSES API →", data);
-        const rowsArr = Array.isArray(data)
-          ? data
-          : Array.isArray(data.businesses)
-          ? data.businesses
-          : Array.isArray(data.business)
-          ? data.business // if backend ever sends an array here
-          : data.business
-          ? [data.business] // wrap single object
-          : [];
+        const rowsArr = Array.isArray(data.data)
+        ? data.data
+        : Array.isArray(data.data)
+        ? data.data
+        : Array.isArray(data.data)
+        ? data.data // if backend ever sends an array here
+        : data.data
+        ? [data.data] // wrap single object
+        : [];
+        setTotal(data.meta.total); 
 
         setRows(rowsArr);
       } catch (e) {
@@ -210,12 +216,10 @@ export default function AdminPage() {
       }
     };
     fetchBusinesses();
-  }, [authToken]);
+  }, [authToken, page, limit]);
 
-  /* ---------------- pagination helpers ---------------- */
-  const perPage = 20;
-  const totalPages = Math.ceil(rows.length / perPage);
-  const slice = rows.slice((currentPage - 1) * perPage, currentPage * perPage);
+ 
+ 
 
   /* ---------------- open edit modal ---------------- */
   const openEdit = (biz) => {
@@ -313,10 +317,10 @@ export default function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {slice.map((b, idx) => (
+            {rows.map((b, idx) => (
               <tr key={b.id} className="border-t text-center">
                 <td className="p-2 border">
-                  {(currentPage - 1) * perPage + idx + 1}
+                {idx + 1 + (page - 1) * limit}
                 </td>
                 <td className="p-2 border capitalize">{b.name}</td>
                 <td className="p-2 border">{b.phone_number1}</td>
@@ -331,7 +335,7 @@ export default function AdminPage() {
                 </td>
               </tr>
             ))}
-            {slice.length === 0 && (
+            {rows.length === 0 && (
               <tr>
                 <td colSpan={5} className="p-4 text-center">
                   No businesses yet.
@@ -344,13 +348,13 @@ export default function AdminPage() {
 
       {/* -------- mobile cards -------- */}
       <div className="md:hidden space-y-4">
-        {slice.map((b, idx) => (
+        {rows.map((b, idx) => (
           <div
             key={b.id}
             className="border border-gray-300 rounded p-4 space-y-2"
           >
             <div>
-              <strong>S/N:</strong> {(currentPage - 1) * perPage + idx + 1}
+              <strong>S/N:</strong> {idx + 1 + (page - 1) * limit}
             </div>
             <div>
               <strong>Name:</strong> {b.name}
@@ -369,34 +373,32 @@ export default function AdminPage() {
             </button>
           </div>
         ))}
-        {slice.length === 0 && (
+        {rows.length === 0 && (
           <p className="text-center text-gray-500">No businesses yet.</p>
         )}
       </div>
 
       {/* -------- pagination -------- */}
-      {rows.length > 0 && (
-        <div className="flex justify-center space-x-3 mt-4">
+      <div className="flex justify-center space-x-3 mt-4">
           <button
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
+           onClick={() => setPage(p => Math.max(p - 1, 1))}
+           disabled={page === 1}
+            
             className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
           >
             Prev
           </button>
           <span>
-            Page {currentPage}/{totalPages}
+          <strong>{page}</strong>/<strong>{totalPagess}</strong>
           </span>
           <button
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
+             onClick={() => setPage(p => Math.min(p + 1, totalPagess))}
+             disabled={page === totalPagess}
             className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
           >
             Next
           </button>
         </div>
-      )}
-
       {/* -------- edit modal -------- */}
       {editTarget && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

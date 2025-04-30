@@ -21,26 +21,6 @@ export default function Businesses() {
   const [businesses, setBusinesses] = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const itemsPerPage = 20;
-
-  const filteredBusinesses = businesses.filter((b) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      b.name?.toLowerCase().includes(term) ||
-      b.category?.toLowerCase().includes(term)
-    );
-  });
-
-  const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage); // ← UPDATED
-  const currentBusinesses = filteredBusinesses.slice(
-    // ← UPDATED
-    (currentPage - 1) * itemsPerPage, // ← UPDATED
-    currentPage * itemsPerPage // ← UPDATED
-  );
-
-  // State for the Add Business Modal & Form
   const initialFormState = {
     name: "",
     category: "",
@@ -54,6 +34,31 @@ export default function Businesses() {
     description: "",
     images: [], // Will be handled as a FileList.
   };
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [formData, setFormData] = useState(initialFormState);
+  const [previewImages, setPreviewImages] = useState([]);
+  // confirmation–modal state
+  const [approveTarget, setApproveTarget] = useState(null);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+
+  // const filteredBusinesses = businesses.filter((b) => {
+  //   const term = searchTerm.toLowerCase();
+  //   return (
+  //     b.name?.toLowerCase().includes(term) ||
+  //     b.category?.toLowerCase().includes(term)
+  //   );
+  // });
+
+  
+  // State for the Add Business Modal & Form
+ 
 
   const categories = [
     "Automotives",
@@ -95,14 +100,7 @@ export default function Businesses() {
     }));
   };
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [formData, setFormData] = useState(initialFormState);
-  const [previewImages, setPreviewImages] = useState([]);
-  // confirmation–modal state
-  const [approveTarget, setApproveTarget] = useState(null);
-  const [showApproveModal, setShowApproveModal] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
 
   // open modals
   const openApproveModal = (biz) => {
@@ -162,7 +160,7 @@ export default function Businesses() {
       }
 
       try {
-        const res = await fetch(`${baseUrl}/admin/businesses`, {
+        const res = await fetch(`${baseUrl}/admin/businesses?page=${page}&limit=${limit}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -173,7 +171,9 @@ export default function Businesses() {
         const data = await res.json();
         console.log("databus", data);
 
-        setBusinesses(Array.isArray(data) ? data : data.businesses || []);
+        setBusinesses(Array.isArray(data.data) ? data.data : data.data || []);
+        const total = data.meta.total  ?? 0;
+        setTotalPages(Math.ceil(total / limit));
       } catch (err) {
         console.error("Error fetching businesses:", err);
         enqueueSnackbar("Failed to fetch businesses", { variant: "error" });
@@ -181,19 +181,23 @@ export default function Businesses() {
     };
 
     fetchBusinesses();
-  }, [authToken, enqueueSnackbar]);
+  }, [authToken, enqueueSnackbar, page, limit]);
+
+  const filtered = businesses.filter((b) =>
+    [b.name, b.category]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
 
   // Adjust current page if needed after data updates.
 
   useEffect(() => {
-    setCurrentPage(1);
+    setPage(1);
   }, [searchTerm]);
 
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages > 0 ? totalPages : 1);
-    }
-  }, [currentPage, totalPages]);
+  
 
   const handleView = (business) => {
     setSelectedBusiness(business);
@@ -332,7 +336,10 @@ export default function Businesses() {
           type="text"
           placeholder="Search by name or category"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(1); // Reset to first page on search
+          }}
           className="w-full md:w-1/3 border p-2 rounded"
         />
       </div>
@@ -352,15 +359,15 @@ export default function Businesses() {
               </tr>
             </thead>
             <tbody>
-              {currentBusinesses.length > 0 ? (
-                currentBusinesses.map((business, index) => {
+              {filtered.length > 0 ? (
+                filtered.map((business, index) => {
                   const raw = selectedBusiness?.proof;
                   const name = getFileName(raw);
                   console.log("proofUrl:", raw, "→ filename:", name);
-                  const globalIndex = (currentPage - 1) * itemsPerPage + index;
+                  
                   return (
-                    <tr key={globalIndex} className="text-center">
-                      <td className="border p-2">{globalIndex + 1}</td>
+                    <tr key={business.id} className="text-center">
+                      <td className="border p-2">{(page - 1) * limit + index + 1}</td>
                       <td className="border p-2 capitalize">{business.name}</td>
                       <td className="border p-2">{business.category}</td>
                       <td className="border p-2">
@@ -412,16 +419,16 @@ export default function Businesses() {
 
       {/* Mobile Card View */}
       <div className="block md:hidden">
-        {currentBusinesses.length > 0 ? (
-          currentBusinesses.map((business, index) => {
-            const globalIndex = (currentPage - 1) * itemsPerPage + index;
+        {filtered.length > 0 ? (
+          filtered.map((business, index) => {
+            
             return (
               <div
-                key={globalIndex}
+                key={business.id}
                 className="border border-gray-300 rounded p-4 mb-4"
               >
                 <div className="mb-2">
-                  <span className="font-medium">S/N:</span> {globalIndex + 1}
+                  <span className="font-medium">S/N:</span> {(page - 1) * limit + index + 1}
                 </div>
                 <div className="mb-2">
                   <span className="font-medium capitalize">Name:</span>{" "}
@@ -475,29 +482,26 @@ export default function Businesses() {
       </div>
 
       {/* Pagination Controls */}
-      {businesses.length > 0 && (
-        <div className="flex items-center justify-center mt-4 space-x-2">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <div className="flex justify-center items-center space-x-4 mt-6">
+        <button
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span>
+         <strong>{page}</strong>/<strong>{totalPages}</strong>
+        </span>
+        <button
+          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+          disabled={page === totalPages}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+
 
       {/* Modal for Viewing Business Details (Scrollable) */}
       {isViewModalOpen && selectedBusiness && (

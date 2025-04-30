@@ -12,29 +12,34 @@ export default function Transactions() {
 
   const [txs, setTxs] = useState([]); // all transactions
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [verifyTarget, setVerifyTarget] = useState(null); // tx awaiting confirm
+ 
+  const [verifyTarget, setVerifyTarget] = useState(null); 
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);// tx awaiting confirm
 
   /* ---------------- fetch transactions ---------------- */
   useEffect(() => {
     if (!authToken) return;
 
-    fetch(`${baseUrl}/payment/view`, {
+    fetch(`${baseUrl}/payment/view?page=${page}&limit=${limit}`, {
       headers: { Authorization: `Bearer ${authToken}` },
     })
       .then((r) => r.json())
       .then((data) => {
         console.log("transdata", data);
 
-        const arr = Array.isArray(data.payments)
-          ? data.payments
-          : Array.isArray(data.payments)
-          ? data.payments
+        const arr = Array.isArray(data.data)
+          ? data.data
+          : Array.isArray(data.data)
+          ? data.data
           : [];
         setTxs(arr);
+        const total = data.meta.total ?? 0;
+        setTotalPages(Math.ceil(total / limit));
       })
       .catch((err) => console.error("transactions error", err));
-  }, [authToken]);
+  }, [authToken, page, limit]);
 
   /* ---------------- verify handler ---------------- */
   const verifyPayment = async (refId) => {
@@ -62,25 +67,20 @@ export default function Transactions() {
   const filteredTxs = txs.filter((t) => {
     const term = searchTerm.toLowerCase();
     return (
-      String(t.entity_id).toLowerCase().includes(term) ||
+      String(t.payment_reference).toLowerCase().includes(term) ||
       String(t.entity_type).toLowerCase().includes(term)
     );
   });
 
-  // ─── pagination using filteredTxs ────────────────────
-  const itemsPerPage = 20;
-  const totalPages = Math.ceil(filteredTxs.length / itemsPerPage);
-  const slice = filteredTxs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  
+  
+  
 
   // ─── reset to page 1 when searchTerm changes ─────────
   useEffect(() => {
-    setCurrentPage(1);
+    setPage(1);
   }, [searchTerm]);
-
-  // 1️⃣ Add the export handler:
+  //  Add the export handler:
   const handleExport = async () => {
     try {
       const res = await fetch(`${baseUrl}/admin/exportTransactions`, {
@@ -109,7 +109,7 @@ export default function Transactions() {
   /* ---------------- render ---------------- */
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4">
+      <h2 className="text-2xl font-bold mb-4">
         Transactions
         <button
           onClick={handleExport}
@@ -123,7 +123,10 @@ export default function Transactions() {
           type="text"
           placeholder="Search by Payment ID or Listing Type"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(1); // Reset to first page on search
+          }}
           className="w-full md:w-1/3 p-2 border border-gray-300 rounded"
         />
       </div>
@@ -143,19 +146,19 @@ export default function Transactions() {
             </tr>
           </thead>
           <tbody>
-            {slice.length === 0 ? (
+            {filteredTxs.length === 0 ? (
               <tr>
                 <td colSpan={7} className="p-4 text-center">
                   No transactions found.
                 </td>
               </tr>
             ) : (
-              slice.map((t, idx) => {
-                const sn = (currentPage - 1) * itemsPerPage + idx + 1;
+              filteredTxs.map((t, idx) => {
+               
                 return (
                   <tr key={t.paymentId} className="border-t text-center">
-                    <td className="p-2 border">{sn}</td>
-                    <td className="p-2 border">{t.entity_id}</td>
+                    <td className="p-2 border"> {(page - 1) * limit + idx + 1}</td>
+                    <td className="p-2 border">{t.payment_reference}</td>
                     <td className="p-2 border capitalize">{t.user.name}</td>
                     <td className="p-2 border">
                       ${Number(t.amount).toLocaleString()}
@@ -181,21 +184,21 @@ export default function Transactions() {
 
       {/* ----------- MOBILE CARDS ----------- */}
       <div className="md:hidden space-y-4">
-        {slice.length === 0 ? (
+        {filteredTxs.length === 0 ? (
           <p className="text-center text-gray-500">No transactions found.</p>
         ) : (
-          slice.map((t, idx) => {
-            const sn = (currentPage - 1) * itemsPerPage + idx + 1;
+          filteredTxs.map((t, idx) => {
+            
             return (
               <div
                 key={t.paymentId}
                 className="border border-gray-300 rounded p-4 space-y-2"
               >
                 <div>
-                  <strong>S/N:</strong> {sn}
+                  <strong>S/N:</strong>  {(page - 1) * limit + idx + 1}
                 </div>
                 <div>
-                  <strong>Payment&nbsp;ID:</strong> {t.entity_id}
+                  <strong>Payment&nbsp;ID:</strong> {t.payment_reference}
                 </div>
                 <div>
                   <strong>Name:</strong> {t.user.name}
@@ -225,27 +228,25 @@ export default function Transactions() {
       </div>
 
       {/* ----------- Pagination ----------- */}
-      {txs.length > 0 && (
-        <div className="flex justify-center space-x-3 mt-4">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span>
-            Page {currentPage}/{totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <div className="flex justify-center items-center space-x-4 mt-6">
+        <button
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span>
+          <strong>{page}</strong>/<strong>{totalPages}</strong>
+        </span>
+        <button
+          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+          disabled={page === totalPages}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
 
       {/* ----------- Verify confirmation modal ----------- */}
       {verifyTarget && (

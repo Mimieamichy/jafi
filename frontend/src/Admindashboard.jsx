@@ -70,7 +70,7 @@ const AdminDashboard = () => {
           absolute md:relative z-10 overflow-y-auto
         `}
       >
-        <h2 className="text-xl font-bold mb-4">Admin Dashboard</h2>
+        <h2 className="text-xl font-bold mb-4 mt-5">Admin Dashboard</h2>
         <nav className="space-y-3">
           <Link
             to="/admin"

@@ -15,21 +15,10 @@ export default function Hirings() {
   const [selectedService, setSelectedService] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
-  // Filter by searchTerm
-  const filteredServices = services.filter((s) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      s.name?.toLowerCase().includes(term) ||
-      s.category?.toLowerCase().includes(term)
-    );
-  });
-  const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
-  const currentService = filteredServices.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+ 
 
   // confirmation–modal state
   const [approveTarget, setApproveTarget] = useState(null);
@@ -80,14 +69,14 @@ export default function Hirings() {
       setServices((prev) => prev.filter((s) => s.id !== deleteTarget.id));
       enqueueSnackbar("Service deleted", { variant: "info" });
     } catch (err) {
-      enqueueSnackbar("Error deleting Service", { variant: "error" });
+      enqueueSnackbar("Error deleting Service", err, { variant: "error" });
     } finally {
       setShowDeleteModal(false);
       setDeleteTarget(null);
     }
   };
 
-  // Fetch businesses from API
+  // Fetch services from API
   useEffect(() => {
     const fetchServices = async () => {
       if (!authToken) {
@@ -96,7 +85,7 @@ export default function Hirings() {
       }
 
       try {
-        const res = await fetch(`${baseUrl}/admin/services`, {
+        const res = await fetch(`${baseUrl}/admin/services?page=${page}&limit=${limit}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -107,7 +96,9 @@ export default function Hirings() {
         const data = await res.json();
         console.log("service", data);
 
-        setServices(Array.isArray(data) ? data : data.services || []);
+        setServices(Array.isArray(data.data) ? data.data : data.data || []);
+        const total = data.meta.total  ?? 0;
+        setTotalPages(Math.ceil(total / limit));
       } catch (err) {
         console.error("Error fetching Services:", err);
         enqueueSnackbar("Failed to fetch Services", { variant: "error" });
@@ -115,14 +106,19 @@ export default function Hirings() {
     };
 
     fetchServices();
-  }, [authToken, enqueueSnackbar]);
+  }, [authToken, enqueueSnackbar, page, limit]);
 
   // Adjust current page if needed after data updates.
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages > 0 ? totalPages : 1);
-    }
-  }, [currentPage, totalPages]);
+    setPage(1);
+  }, [searchTerm]);
+
+  const filtered = services.filter((s) =>
+    [s.name, s.category]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
 
   const handleView = (service) => {
     setSelectedService(service);
@@ -177,7 +173,7 @@ export default function Hirings() {
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            setCurrentPage(1);
+            setPage(1); // Reset to first page on search
           }}
           className="w-full md:w-1/3 p-2 border border-gray-300 rounded"
         />
@@ -197,12 +193,11 @@ export default function Hirings() {
               </tr>
             </thead>
             <tbody>
-              {currentService.length > 0 ? (
-                currentService.map((service, index) => {
-                  const globalIndex = (currentPage - 1) * itemsPerPage + index;
+              {filtered.length > 0 ? (
+                filtered.map((service, index) => {
                   return (
-                    <tr key={globalIndex} className="text-center">
-                      <td className="border p-2">{globalIndex + 1}</td>
+                    <tr key={service.id} className="text-center">
+                      <td className="border p-2"> {(page - 1) * limit + index + 1}</td>
                       <td className="border p-2 capitalize">{service.name}</td>
                       <td className="border p-2">{service.category}</td>
 
@@ -251,16 +246,16 @@ export default function Hirings() {
 
       {/* Mobile Card View */}
       <div className="block md:hidden">
-        {currentService.length > 0 ? (
-          currentService.map((service, index) => {
-            const globalIndex = (currentPage - 1) * itemsPerPage + index;
+        {filtered.length > 0 ? (
+          filtered.map((service, index) => {
+           
             return (
               <div
-                key={globalIndex}
+                key={service.id}
                 className="border border-gray-300 rounded p-4 mb-4"
               >
                 <div className="mb-2">
-                  <span className="font-medium">S/N:</span> {globalIndex + 1}
+                  <span className="font-medium">S/N:</span> {(page - 1) * limit + index + 1}
                 </div>
                 <div className="mb-2">
                   <span className="font-medium capitalize">Name:</span>{" "}
@@ -311,29 +306,25 @@ export default function Hirings() {
       </div>
 
       {/* Pagination Controls */}
-      {services.length > 0 && (
-        <div className="flex items-center justify-center mt-4 space-x-2">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <div className="flex justify-center items-center space-x-4 mt-6">
+        <button
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span>
+         <strong>{page}</strong>/<strong>{totalPages}</strong>
+        </span>
+        <button
+          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+          disabled={page === totalPages}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
 
       {/* Modal for Viewing Business Details (Scrollable) */}
       {isViewModalOpen && selectedService && (
