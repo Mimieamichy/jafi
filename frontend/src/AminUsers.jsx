@@ -401,7 +401,7 @@ const [deleteMode, setDeleteMode] = useState(null);
                     Select admin
                   </option>
                   {admins.map((a) => (
-                    <option key={a.id} value={a.id}>
+                    <option key={a.id} value={a.email}>
                       {a.name} ({a.role})
                     </option>
                   ))}
