@@ -76,8 +76,12 @@ exports.verifyPayment = async (req, res) => {
     const { reference } = req.params
     try {
         const paymentData = await PaymentService.verifyPayment(reference);
+        if (paymentData.status !== 'success') {
+            return res.status(400).json({ message: "Payment was not completed" });
+        }
         res.status(200).json(paymentData)
     } catch (error) {
+        console.log(error)
         res.status(error.status || 500).json({ error: error.message });
     }
 }

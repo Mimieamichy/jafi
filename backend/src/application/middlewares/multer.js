@@ -2,13 +2,12 @@
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary               = require("../../config/cloudinary");
 const multer                   = require("multer");
-const path                     = require("path");
 const fs                       = require("fs");
 
 // 1️⃣ diskStorage for POB
 const pobDisk = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = "/uploads";
+    const uploadDir = "uploads";
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
     cb(null, uploadDir);
   },
