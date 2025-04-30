@@ -427,7 +427,7 @@ const [deleteMode, setDeleteMode] = useState(null);
             {deleteMode === "full" && (
               <>
                 <h3 className="font-bold">
-                  Delete <em>{selectedUser.name}</em> and their business?
+                  Delete user and all their listings?
                 </h3>
                 <div className="flex space-x-2 mt-4">
                   <button
@@ -437,10 +437,10 @@ const [deleteMode, setDeleteMode] = useState(null);
                     Yes, delete both
                   </button>
                   <button
-                    onClick={() => setDeleteMode("choose")}
+                    onClick={() => setShowDeleteModal(false)}
                     className="flex-1 py-2 bg-gray-200 rounded"
                   >
-                    Back
+                    Cancel
                   </button>
                 </div>
               </>
