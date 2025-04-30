@@ -720,27 +720,27 @@ exports.deleteReviewer = async (id) => {
 
 //Exproting of data service
 // 1. Export Users
-exports.exportUsers = async (req, res) => {
+exports.exportUsers = async (res) => {
     await exportTableData(User, 'users', res);
 };
   
 // 2. Export Businesses
-exports.exportBusinesses = async (req, res) => {
+exports.exportBusinesses = async (res) => {
     await exportTableData(Business, 'businesses', res);
 };
   
 // 3. Export Reviewers
-exports.exportReviewers = async (req, res) => {
+exports.exportReviewers = async (res) => {
     await exportTableData(Review, 'reviewers', res);
 };
   
 // 4. Export Services
-exports.exportServices = async (req, res) => {
+exports.exportServices = async (res) => {
     await exportTableData(Service, 'services', res);
 };
   
   // 5. Export Transactions
-exports.exportTransactions = async (req, res) => {
+exports.exportTransactions = async (res) => {
     await exportTableData(Transaction, 'transactions', res);
 };
 

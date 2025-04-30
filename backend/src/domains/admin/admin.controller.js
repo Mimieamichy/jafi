@@ -423,7 +423,7 @@ exports.getAllClaims = async (req, res) => {
 //export management
 exports.exportUsers = async (req, res) => {
   try{
-    const response = await AdminService.exportUsers();
+    const response = await AdminService.exportUsers(res);
     return res.status(200).json(response);
   }catch(error){
     return res.status(500).json({success: false, message: error.message})
@@ -433,9 +433,10 @@ exports.exportUsers = async (req, res) => {
 
 exports.exportBusinesses = async (req, res) => {
   try{
-    const response = await AdminService.exportBusinesses();
+    const response = await AdminService.exportBusinesses(res);
     return res.status(200).json(response);
   }catch(error){
+    console.log(error)
     return res.status(500).json({success: false, message: error.message})
   }
 }
@@ -443,7 +444,7 @@ exports.exportBusinesses = async (req, res) => {
 
 exports.exportServices = async (req, res) => {
   try{
-    const response = await AdminService.exportServices();
+    const response = await AdminService.exportServices(res);
     return res.status(200).json(response);
   }catch(error){
     return res.status(500).json({success: false, message: error.message})
@@ -452,7 +453,7 @@ exports.exportServices = async (req, res) => {
 
 exports.exportReviewers = async (req, res) => {
   try{
-    const response = await AdminService.exportReviewers();
+    const response = await AdminService.exportReviewers(res);
     return res.status(200).json(response);
   }catch(error){
     return res.status(500).json({success: false, message: error.message})
@@ -462,7 +463,7 @@ exports.exportReviewers = async (req, res) => {
 
 exports.exportTransactions = async (req, res) => {
   try{
-    const response = await AdminService.exportTransactions();
+    const response = await AdminService.exportTransactions(res);
     return res.status(200).json(response);
   }catch(error){
     return res.status(500).json({success: false, message: error.message})

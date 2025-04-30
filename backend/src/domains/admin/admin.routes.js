@@ -12,7 +12,8 @@ router.get('/standardPrice', getStandardPrice)
 router.get("/servicePrice", getServicePrice);
 router.get("/premiumCategories", getPremiumCategories);
 router.get("/standardCategories", getStandardCategories);
-router.get('/users', getAllUsers);
+router.get('/exportBusinesses', exportBusinesses);
+
 
 const { authenticate } = require('../../application/middlewares/authenticate');
 const { authorize } = require('../../application/middlewares/authorize');
@@ -53,6 +54,7 @@ router.delete('/user/:id', deleteUser);
 router.post('/transfer/:userId', transferBusiness);
 router.get('/adminCount', getAdminCount)
 router.post('/addCategory', addCategory)
+router.get('/users', getAllUsers);
 //router.delete('/deleteCategory/', deleteCategory)
 
 //export table data as CSV
