@@ -61,7 +61,7 @@ router.get('/users', getAllUsers);
 router.get('/exportUsers', exportUsers);
 router.get('/exportBusinesses', exportBusinesses);
 router.get('/exportServices', exportServices);
-router.get('/exportReviewers', exportReviewers);
+router.get('/exportReviews', exportReviewers);
 router.get('/exportTransactions', exportTransactions);
 
 
