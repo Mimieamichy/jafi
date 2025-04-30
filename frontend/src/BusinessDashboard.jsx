@@ -31,15 +31,12 @@ export default function BusinessDashboard() {
 
   // Parse query string
   const authToken = localStorage.getItem("userToken");
-  console.log("token", authToken);
 
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
 
   const [replyStates, setReplyStates] = useState({});
   const [replyTexts, setReplyTexts] = useState({});
-
-  
 
   const toggleReply = (reviewId) => {
     setReplyStates((prev) => ({ ...prev, [reviewId]: !prev[reviewId] }));
@@ -97,6 +94,7 @@ export default function BusinessDashboard() {
     setReplyTexts((prev) => ({ ...prev, [reviewId]: "" }));
     setReplyStates((prev) => ({ ...prev, [reviewId]: false }));
   };
+
   useEffect(() => {
     if (!authToken) {
       enqueueSnackbar("You need to be logged in to view this page.", {
@@ -116,16 +114,16 @@ export default function BusinessDashboard() {
       .then((data) => {
         console.log("business data:", data);
         if (data) {
-          
-          setFormData(data?.user?.businesses.id); // Set all the data correctly
-          setBusNewImages(data.user.images || []); // Set images from data
-          setBusId(data.user.uniqueId);
-          setId(data.user.id);
-          console.log("Business:", data);
+          setFormData(data[0]);
+          setBusNewImages(data[0]?.images || []);
+          setBusId(data[0]?.uniqueId);
+          setId(data[0]?.id);
+
+          console.log("Business:", data.images);
 
           // Set the first image as profile image if available
-          if (data.user.images && data.user.images.length > 0) {
-            setProfileImage(data.user.images[0]);
+          if (data[0].images && data[0].images.length > 0) {
+            setProfileImage(data[0].images[0]);
           }
         }
       });
@@ -240,7 +238,6 @@ export default function BusinessDashboard() {
       });
     }
   };
-
 
   // Helper function to convert a URL to a File object
   const urlToFile = async (url, fileName, mimeType) => {
@@ -456,7 +453,7 @@ export default function BusinessDashboard() {
       {/* Main content */}
       <div className="flex-1 p-6">
         {/* Mobile nav */}
-        <div className="md:hidden flex justify-between items-center mb-4">
+        <div className="md:hidden flex justify-between items-center mt-5 mb-4">
           <FontAwesomeIcon
             icon={faBars}
             className="text-black text-2xl"

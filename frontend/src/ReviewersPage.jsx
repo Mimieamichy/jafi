@@ -37,11 +37,14 @@ export default function ReviewerPersonalPage() {
 
         // 2) Grab the User object off the first review (they all belong to same user)
         if (reviewsArray.length > 0 && reviewsArray[0].User) {
+          
           setReviewer({
             name: reviewsArray[0].User.name,
             email: reviewsArray[0].User.email,
             profilePic: reviewsArray[0].User.profilePic,
           });
+          
+          
         }
       } catch (err) {
         console.error(err);
@@ -58,7 +61,7 @@ export default function ReviewerPersonalPage() {
       {/* — Profile Header — */}
       <div className="bg-white p-6 flex flex-col items-center md:flex-row md:space-x-6">
         <img
-          src={reviewer?.profilePic || "/default-avatar.png"}
+          src={reviewer?.profilePic}
           alt={reviewer?.name || "Reviewer"}
           className="w-28 h-28 rounded-full object-cover mb-4 md:mb-0"
         />

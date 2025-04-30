@@ -132,12 +132,12 @@ export default function Navbar() {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowCategoriesDropdown((prev) => !prev)}
-              className="text-gray-600 hover:text-black"
+              className="text-gray-600 hover:text-black" ref={dropdownRef}
             >
               Categories
             </button>
             {showCategoriesDropdown && (
-              <div className="absolute left-0 mt-2 bg-white border rounded shadow-md w-48 z-10 max-h-60 overflow-y-auto">
+              <div className="absolute left-0 mt-2 bg-white border rounded shadow-md w-48 z-10 max-h-60 overflow-y-auto" ref={dropdownRef}>
                 <ul>
                   {categories.map((cat, idx) => (
                     <li
@@ -162,6 +162,13 @@ export default function Navbar() {
             className="text-gray-600 hover:text-black"
           >
             About
+          </Link>
+          <Link
+            to="/howtoreview"
+            onClick={handleNavClick}
+            className="text-gray-600 hover:text-black"
+          >
+            How to Review
           </Link>
           <Link
             to="/#services"
@@ -248,11 +255,12 @@ export default function Navbar() {
             <button
               onClick={() => setShowCategoriesDropdown((v) => !v)}
               className="block w-full text-left hover:bg-gray-100"
+              ref={dropdownRef}
             >
               Categories
             </button>
             {showCategoriesDropdown && (
-              <ul className="bg-white border-l-4 ">
+              <ul className="bg-white border-l-4 " ref={dropdownRef}>
                 {categories.map((c, i) => (
                   <li
                     key={i}
@@ -283,6 +291,13 @@ export default function Navbar() {
             className="block text-black hover:text-gray-600"
           >
             About
+          </Link>
+          <Link
+            to="/howtoreview"
+            onClick={handleNavClick}
+            className="block text-black hover:text-gray-600"
+          >
+           How to Review
           </Link>
           <Link
             to="/#services"

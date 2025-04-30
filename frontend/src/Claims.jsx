@@ -73,11 +73,12 @@ export default function Claims() {
   );
 
 
-  const getBaseFilename = (url) => {
-    if (!url) return '';
-    const fullName = url.split('/').pop() || ''; // get last part after last '/'
-    const [nameWithoutExtension] = fullName.split('.'); // remove .pdf or .jpg or whatever
-    return nameWithoutExtension;
+  const getFileName = (proofUrl) => {
+    if (!proofUrl) return "";
+    // convert backslashes to forward slashes:
+    const normalized = proofUrl.replace(/\\/g, "/");
+    const parts = normalized.split("/");
+    return parts[parts.length - 1];
   };
   
 
@@ -115,7 +116,9 @@ export default function Claims() {
                     <td className="p-2 border">{c.phone}</td>
                     <td className="p-2 border">
                       <a
-                         href={`${baseUrl}/download/uploads/${getBaseFilename(c.proof)}.pdf`}
+                        href={`${baseUrl}/download/${getFileName(
+                          c.proof
+                        )}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         download

@@ -31,6 +31,8 @@ export default function Settings() {
         return r.json();
       })
       .then((data) => {
+        console.log("adminCount data", data);
+        
         setAdminCount(data.adminCount ?? data.admin ?? 0);
         setSuperCount(data.superAdminCount ?? data.superadmin ?? 0);
       })

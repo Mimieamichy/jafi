@@ -228,6 +228,7 @@ export default function BusinessPage() {
       if (formData.pob instanceof File) {
         data.append("pob", formData.pob, formData.pob.name);
       }
+      
 
       const response = await fetch(`${baseUrl}/claim/${id}`, {
         method: "POST",
@@ -713,9 +714,10 @@ export default function BusinessPage() {
                   Proof of Business (POB):
                 </label>
                 <input
+                
                   name="pob"
                   type="file"
-                  accept=".pdf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  accept="pdf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   className="border w-full p-2 mb-4"
                   onChange={handleClaimFileChange}
                 />

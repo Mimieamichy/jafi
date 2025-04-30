@@ -12,11 +12,17 @@ const Users = () => {
 
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showModal, setShowModal] = useState(false);
+ 
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  // initialize to null (no mode selected yet)
+const [deleteMode, setDeleteMode] = useState(null);
+
+  const [admins, setAdmins] = useState([]);
+  const [transferTo, setTransferTo] = useState("");
 
   const itemsPerPage = 20;
 
@@ -88,42 +94,54 @@ const Users = () => {
 
   const handleOpenDeleteModal = (user) => {
     setSelectedUser(user);
-    setShowModal(true);
+    // if business, start on "choose" step; otherwise go straight to full delete:
+    setDeleteMode(user.role?.includes("business") ? "choose" : "full");
+    setShowDeleteModal(true);
   };
 
-  const handleCloseModal = () => {
-    setSelectedUser(null);
-    setShowModal(false);
-  };
+  
+
+  useEffect(() => {
+    if (!showDeleteModal || deleteMode !== "transfer") return;
+    fetch(`${baseUrl}/admin/users?role=admin&role=superadmin`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    })
+      .then((r) => r.json())
+      .then((data) => setAdmins(data.users || data))
+      .catch(() =>
+        enqueueSnackbar("Could not load admins", { variant: "error" })
+      );
+      console.log("admins", admins);
+      
+  }, [showDeleteModal, deleteMode, authToken, enqueueSnackbar, admins]);
 
   // Confirm deletion with Authorization header
-  const handleConfirmDelete = async () => {
-    if (!selectedUser) return;
-
-    try {
-      const response = await fetch(`${baseUrl}/admin/user/${selectedUser.id}`, {
-        method: "DELETE",
+  const handleDeleteConfirm = async () => {
+    if (deleteMode === "transfer") {
+      // transfer-only: hit your transfer endpoint
+      await fetch(`${baseUrl}/admin/transfer/${selectedUser.id}`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
+        body: JSON.stringify({ toAdminId: transferTo }),
       });
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(errText || "Failed to delete user");
-      }
-
-      setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
-      enqueueSnackbar("User deleted successfully", { variant: "success" });
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      enqueueSnackbar(
-        error.message || "An error occurred while deleting the user",
-        { variant: "error" }
-      );
-    } finally {
-      handleCloseModal();
+      enqueueSnackbar("User deleted, business transferred", {
+        variant: "success",
+      });
+    } else {
+      // full delete
+      await fetch(`${baseUrl}/admin/user/${selectedUser.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      enqueueSnackbar("User (and business) deleted", { variant: "success" });
     }
+    // cleanup UI
+    setUsers((u) => u.filter((u) => u.id !== selectedUser.id));
+    setShowDeleteModal(false);
+    setSelectedUser(null);
   };
 
   // inside Users component, before `return(...)`
@@ -342,28 +360,89 @@ const Users = () => {
       )}
 
       {/* Confirmation Modal */}
-      {showModal && selectedUser && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-md w-full max-w-sm mx-2">
-            <h3 className="text-lg font-bold mb-4">Confirm Delete</h3>
-            <p className="mb-4">
-              Do you want to delete{" "}
-              <strong>{selectedUser.name || "this user"}</strong>?
-            </p>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={handleCloseModal}
-                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
+      {showDeleteModal && selectedUser && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded p-6 w-80 space-y-4">
+            {deleteMode === "choose" && (
+              <>
+                <h3 className="font-bold">What do you want to do?</h3>
+                <button
+                  onClick={() => setDeleteMode("transfer")}
+                  className="w-full py-2 bg-yellow-500 text-white rounded"
+                >
+                  Delete user & transfer business
+                </button>
+                <button
+                  onClick={() => setDeleteMode("full")}
+                  className="w-full py-2 bg-red-500 text-white rounded"
+                >
+                  Delete user & business
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="mt-2 text-gray-600"
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+
+            {deleteMode === "transfer" && (
+              <>
+                <h3 className="font-bold">Transfer business to:</h3>
+                <select
+                  value={transferTo}
+                  onChange={(e) => setTransferTo(e.target.value)}
+                  className="w-full border p-2 rounded"
+                >
+                  <option value="" disabled>
+                    Select admin
+                  </option>
+                  {admins.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name} ({a.role})
+                    </option>
+                  ))}
+                </select>
+                <div className="flex space-x-2 mt-4">
+                  <button
+                    onClick={handleDeleteConfirm}
+                    disabled={!transferTo}
+                    className="flex-1 py-2 bg-red-500 text-white rounded disabled:opacity-50"
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    onClick={() => setDeleteMode("choose")}
+                    className="flex-1 py-2 bg-gray-200 rounded"
+                  >
+                    Back
+                  </button>
+                </div>
+              </>
+            )}
+
+            {deleteMode === "full" && (
+              <>
+                <h3 className="font-bold">
+                  Delete <em>{selectedUser.name}</em> and their business?
+                </h3>
+                <div className="flex space-x-2 mt-4">
+                  <button
+                    onClick={handleDeleteConfirm}
+                    className="flex-1 py-2 bg-red-600 text-white rounded"
+                  >
+                    Yes, delete both
+                  </button>
+                  <button
+                    onClick={() => setDeleteMode("choose")}
+                    className="flex-1 py-2 bg-gray-200 rounded"
+                  >
+                    Back
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

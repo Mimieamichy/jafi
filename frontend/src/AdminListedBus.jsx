@@ -26,12 +26,12 @@ export default function Businesses() {
   const itemsPerPage = 20;
 
   const filteredBusinesses = businesses.filter((b) => {
-    // ← NEW
-    const term = searchTerm.toLowerCase(); // ← NEW
+    
+    const term = searchTerm.toLowerCase(); 
     return (
-      b.name?.toLowerCase().includes(term) || // ← NEW
-      b.category?.toLowerCase().includes(term) // ← NEW
-    ); // ← NEW
+      b.name?.toLowerCase().includes(term) || 
+      b.category?.toLowerCase().includes(term) 
+    ); 
   });
 
   const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage); // ← UPDATED
@@ -272,20 +272,13 @@ export default function Businesses() {
     }
   };
 
-  const getFileName = (url) => {
-    if (!url) return '';
-    const parts = url.split('/');
-    return parts[parts.length - 1]; // last part
+  const getFileName = (proofUrl) => {
+    if (!proofUrl) return "";
+    // convert backslashes to forward slashes:
+    const normalized = proofUrl.replace(/\\/g, "/");
+    const parts = normalized.split("/");
+    return parts[parts.length - 1];
   };
-  
-  
- 
-  
-  
-  
-  
-  
-
  
 
   return (
@@ -329,6 +322,9 @@ export default function Businesses() {
             <tbody>
               {currentBusinesses.length > 0 ? (
                 currentBusinesses.map((business, index) => {
+                  const raw = selectedBusiness?.proof;
+                  const name = getFileName(raw);
+                  console.log("proofUrl:", raw, "→ filename:", name);
                   const globalIndex = (currentPage - 1) * itemsPerPage + index;
                   return (
                     <tr key={globalIndex} className="text-center">
@@ -528,7 +524,9 @@ export default function Businesses() {
             <p>
               <strong>POB:</strong>{" "}
               <a
-                 href={`${baseUrl}/download/${getFileName(selectedBusiness.proof)}`}
+                href={`${baseUrl}/download/${getFileName(
+                  selectedBusiness.proof
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 download

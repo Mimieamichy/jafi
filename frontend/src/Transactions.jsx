@@ -2,11 +2,13 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import { useSnackbar } from "notistack";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function Transactions() {
   const authToken = localStorage.getItem("userToken");
+  const { enqueueSnackbar } = useSnackbar();
 
   const [txs, setTxs] = useState([]); // all transactions
   const [searchTerm, setSearchTerm] = useState(""); 
@@ -30,6 +32,7 @@ export default function Transactions() {
           ? data.payments
           : [];
         setTxs(arr);
+
       })
       .catch((err) => console.error("transactions error", err));
   }, [authToken]);
@@ -49,8 +52,11 @@ export default function Transactions() {
           t.referenceId === refId ? { ...t, paymentStatus: "verified" } : t
         )
       );
+      enqueueSnackbar("Transaction Verified", { variant: "success" });
+    
     } catch (err) {
-      alert("Verification failed");
+      
+      enqueueSnackbar("Verification failed", { variant: "error" });
       console.error(err);
     } finally {
       setVerifyTarget(null);
