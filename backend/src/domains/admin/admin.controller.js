@@ -1,3 +1,4 @@
+const { response } = require("../../app");
 const AdminService = require("./admin.services");
 
 //users management
@@ -174,8 +175,8 @@ exports.getMyBusiness = async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
   try {
-    const business = await AdminService.getMyBusiness(userId, offset, limit, page);
-    return res.status(200).json({ success: true, business });
+    const response = await AdminService.getMyBusiness(userId, offset, limit, page);
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
