@@ -69,12 +69,12 @@ export default function RecentListings() {
         /* log everything you receive */
         console.log("LISTINGS API →", data);
 
-        const rows = Array.isArray(data)
-          ? data
-          : Array.isArray(data.allListings)
-          ? data.allListings
-          : data.allListings
-          ? [data.allListings]
+        const rows = Array.isArray(data.data)
+          ? data.data
+          : Array.isArray(data.data)
+          ? data.data
+          : data.data
+          ? [data.data]
           : [];
 
         /* most‑recent first (uses createdAt if available) */

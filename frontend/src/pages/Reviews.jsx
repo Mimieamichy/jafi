@@ -80,7 +80,7 @@ const CustomerReviews = () => {
                     handleReviewCardClick(review.listing.id, review.listingType)
                   }
                 >
-                  {review.listingName || review.companyName}
+                  {review.listingName}
                 </h3>
                 <p
                   className="text-gray-700 capitalize"
