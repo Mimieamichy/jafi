@@ -113,16 +113,17 @@ exports.transferBusiness = async (userId, email) => {
     if (!user) throw new Error("User not found");
 
     const newOwner = await User.findOne({ where: { email } });
+    const ownerId = newOwner.id
     if (!newOwner) throw new Error("New owner email not found.");
 
         // Transfer ownership of businesses
     await Business.update(
-        { userId: newOwner.id },
+        { userId: ownerId },
         { where: { userId } }
     );
-        await Service.destroy({ where: { userId: id } });
-        await OTP.destroy({ where: { userId: id } });
-        await Review.destroy({ where: { userId: id } });
+        await Service.destroy({ where: { userId: ownerId } });
+        await OTP.destroy({ where: { userId: ownerId } });
+        await Review.destroy({ where: { userId: ownerId } });
         await user.destroy();
 
     return { message: "Business ownership transferred successfully" };

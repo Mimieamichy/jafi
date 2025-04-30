@@ -26,10 +26,12 @@ exports.deleteUser = async (req, res) => {
 exports.transferBusiness = async (req, res) => {
   const ownerEmail = req.body.email;
   const {userId} = req.params
+  console.log(req.body, userId)
   try {
-    const response = await AdminService.transferBusiness(ownerEmail, userId);
+    const response = await AdminService.transferBusiness(userId, ownerEmail);
     res.status(200).json(response);
   } catch (error) {
+    console.log(error)
     res.status(500).json({ success: false, message: error.message });
   }
 }
