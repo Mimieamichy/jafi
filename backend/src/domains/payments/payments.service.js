@@ -153,8 +153,8 @@ exports.verifyPayment = async (reference) => {
 };
 
 
-exports.viewPayments = async () => {
-  const payments = await Payments.findAll({
+exports.viewPayments = async (offset, limit, page) => {
+  const { count, rows: payments } = await Payments.findAndCountAll({
     include: [
       {
         model: User,
@@ -163,13 +163,17 @@ exports.viewPayments = async () => {
       },
     ],
     order: [["createdAt", "DESC"]],
+    offset,
+    limit
   });
 
   if (!payments) {
     throw new Error("No transactions found");
   }
-
-  return { message: "Transactions retrieved successfully", payments };
+  return {
+    data: payments,
+    meta: { page, limit, total: count },
+  };
 };
 
 

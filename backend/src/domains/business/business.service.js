@@ -55,11 +55,14 @@ exports.getABusiness = async (businessId) => {
   return business;
 };
 
-exports.getAllBusinesses = async (offset, limit) => {
-  const businesses = await Business.findAll({
+exports.getAllBusinesses = async (offset, limit, page) => {
+  const { count, rows: businesses } = await Business.findAndCountAll({
     include: {
       model: User,
       attributes: ["id", "name", "email", "role"],
+    },
+    where: {
+      status: "verified",
     },
     order: [["createdAt", "DESC"]],
     offset,
@@ -70,7 +73,10 @@ exports.getAllBusinesses = async (offset, limit) => {
     throw new Error("No businesses found");
   }
 
-  return businesses;
+  return {
+    data: businesses,
+    meta: { page, limit, total: count },
+  };
 };
 
 exports.updateBusiness = async (businessId, userId, businessData, password, email) => {
@@ -138,7 +144,7 @@ exports.verifyPayment = async (paymentReference) => {
 
 exports.getBusinessByUserId = async (userId) => {
   const business = await Business.findAll({
-    where: { userId },
+    where: { userId, status: "verified" },
     order: [["createdAt", "DESC"]],
   });
 
@@ -178,12 +184,12 @@ exports.getBusinessByCategory = async (category) => {
       category: {
         [Op.like]: `%${category}%`,
       },
-    },  
+      status: "verified",
+    },
     order: [["createdAt", "DESC"]],
     attributes: {
       include: ["id", "name", "address", "category", "average_rating"],
     },
-
   });
 
   if (!businesses || businesses.length === 0) {

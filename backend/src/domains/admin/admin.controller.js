@@ -3,14 +3,16 @@ const AdminService = require("./admin.services");
 //users management
 exports.getAllUsers = async (req, res) => {
   try {
-    const role = req.query.role || ""; // define role safely
-    const response = await AdminService.getAllUsers(role);
+    const role = req.query.role || ""; 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const response = await AdminService.getAllUsers(role, offset, limit, page);
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
-
 
 exports.deleteUser = async (req, res) => {
   const id = req.params.id;
@@ -21,7 +23,6 @@ exports.deleteUser = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 }
-
 
 exports.transferBusiness = async (req, res) => {
   const ownerEmail = req.body.email;
@@ -76,9 +77,12 @@ exports.updateAdminPassword = async (req, res) => {
 
 // Business management
 exports.getAllBusinesses = async (req, res) => {
-  try {;
-    const businesses = await AdminService.getAllBusinesses();
-    return res.status(200).json({businesses });
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const response = await AdminService.getAllBusinesses(offset, limit, page);
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -330,17 +334,14 @@ exports.getServicePrice = async (req, res) => {
 
 
 
-
-
 // Review management
 exports.getAllReviews = async (req, res) => {
   try {
-    const searchTerm = req.query.search || "";
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-    const reviews = await AdminService.getAllReviews();
-    return res.status(200).json({reviews });
+    const response = await AdminService.getAllReviews(offset, limit, page);
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({message: error.message });
   }
@@ -348,12 +349,11 @@ exports.getAllReviews = async (req, res) => {
 
 exports.getAllReviewers = async(req, res) => {
   try {
-    const searchTerm = req.query.search || "";
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-    const reviewers = await AdminService.getAllReviewers()
-    return res.status(200).json({reviewers });
+    const response = await AdminService.getAllReviewers(offset, limit, page);
+    return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({message: error.message });
   }
@@ -408,10 +408,6 @@ exports.getClaim = async (req, res) => {
 
 exports.getAllClaims = async (req, res) => {
   try {
-    const searchTerm = req.query.search || "";
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
     const claims = await AdminService.getAllClaims();
     return res.status(200).json(claims);
   } catch (error) {
@@ -430,7 +426,6 @@ exports.exportUsers = async (req, res) => {
   }
 }
 
-
 exports.exportBusinesses = async (req, res) => {
   try{
     const response = await AdminService.exportBusinesses(res);
@@ -440,7 +435,6 @@ exports.exportBusinesses = async (req, res) => {
     return res.status(500).json({message: error.message})
   }
 }
-
 
 exports.exportServices = async (req, res) => {
   try{
@@ -459,7 +453,6 @@ exports.exportReviewers = async (req, res) => {
     return res.status(500).json({message: error.message})
   }
 }
-
 
 exports.exportTransactions = async (req, res) => {
   try{

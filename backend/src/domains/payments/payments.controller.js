@@ -89,7 +89,10 @@ exports.verifyPayment = async (req, res) => {
 
 exports.viewPayments = async (req, res) => {
     try {
-        const response = await PaymentService.viewPayments();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+        const response = await PaymentService.viewPayments(offset, limit, page);
         res.status(200).json(response);
     } catch (error) {
         res.status(error.status || 500).json({ error: error.message });

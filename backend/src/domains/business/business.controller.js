@@ -42,16 +42,11 @@ exports.getABusiness = async (req, res) => {
 
 exports.getAllBusinesses = async (req, res) => {
   try {
-    const search = req.query.searchTerm || "";
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
-    const businesses = await BusinessService.getAllBusinesses(
-      search,
-      offset,
-      limit
-    );
-    res.status(200).json(businesses);
+    const response = await BusinessService.getAllBusinesses(offset, limit, page);
+    res.status(200).json(response);
   } catch (error) {
     console.log(error);
     res.status(404).json({ error: error.message });

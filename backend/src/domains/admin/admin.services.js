@@ -54,14 +54,16 @@ exports.createAdmin = async (email, name, role) => {
     return newUser
 }
 
-exports.getAllUsers = async (role) => {
+exports.getAllUsers = async (role, offset, limit, page) => {
     // If a specific role is provided, filter by that role
     const whereClause = role ? { role } : {};
 
-    const allUsers = await User.findAll({
+    const {count, rows: allUsers} = await User.findAndCountAll({
         where: whereClause,
         order: [["createdAt", "DESC"]],
         attributes: ["id", "name", "email", "role", "createdAt"],
+        offset,
+        limit
     });
     // Process users to add business info or service count based on role
     const processedUsers = await Promise.all(allUsers.map(async user => {
@@ -89,7 +91,9 @@ exports.getAllUsers = async (role) => {
         return userData;
     }));
     const users = processedUsers;
-    return { message: "Users retrieved successfully", users };
+    return { 
+        data: users, meta: { page, limit, total: count}
+    };
 };
 
 exports.updateAdminPassword = async (userId, newPassword) => {
@@ -156,19 +160,24 @@ exports.getAdminCount = async () => {
 
 
 //Business management
-exports.getAllBusinesses = async () => {
-    const businesses = await Business.findAll({
+exports.getAllBusinesses = async (offset, limit, page) => {
+    const {count, rows} = await Business.findAndCountAll({
         include: {
             model: User,
             attributes: ["id", "name", "email", "role"],
         },
+        order: [["createdAt", "DESC"]],
+        offset,
+        limit
     });
 
-    if (!businesses || businesses.length === 0) {
+    if (count === 0) {
         throw new Error("No businesses found");
     }
 
-    return businesses;
+    return { 
+        data: rows, meta: { page, limit, total: count}
+    };
 };
 
 exports.approveBusiness = async (businessId) => {
@@ -689,27 +698,43 @@ exports.approveClaim = async (claimId) => {
 
 //Review management
 
-exports.getAllReviews = async () => {
-    const reviews = await Review.findAll({
-        include: [
-            {
-                model: User,
-                attributes: ["id", "name", "email", "role"],
-            },
-        ],
-    });
+exports.getAllReviews = async (offset, limit, page) => {
+  const { count, rows: reviews } = await Review.findAndCountAll({
+    include: [
+      {
+        model: User,
+        attributes: ["id", "name", "email", "role"],
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+    offset,
+    limit,
+  });
 
-    if (!reviews) throw new Error("Reviews not found");
+  if (!reviews) throw new Error("Reviews not found");
 
-    return reviews;
+  return {
+    data: reviews,
+    meta: { page, limit, total: count },
+  };
 };
 
 
-exports.getAllReviewers = async () => {
-    const users = await User.findAll({ where: { role: 'reviewer' } });
-    if (!users) throw new Error("No users found");
-    return users;
-}
+exports.getAllReviewers = async (offset, limit, page) => {
+  const { count, rows: users } = await User.findAndCountAll({
+    where: { role: "reviewer" },
+    order: [["createdAt", "DESC"]],
+    attributes: ["id", "name", "email", "role"],
+    offset,
+    limit,
+  }
+);
+  if (!users) throw new Error("No users found");
+  return {
+    data: users,
+    meta: { page, limit, total: count },
+  };
+};
 
 exports.deleteReviews = async (id) => {
     const reviews = await Review.findAll({ where: { id } });
