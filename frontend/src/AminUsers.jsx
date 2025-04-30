@@ -27,8 +27,6 @@ const Users = () => {
   const [admins, setAdmins] = useState([]);
   const [transferToEmail, setTransferToEmail] = useState("");
 
- 
-
   // Filter users by search term (email or role)
   const filteredUsers = users
     .filter((user) => {
@@ -54,13 +52,16 @@ const Users = () => {
         return;
       }
       try {
-        const response = await fetch(`${baseUrl}/admin/users?page=${page}&limit=${limit}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-        });
+        const response = await fetch(
+          `${baseUrl}/admin/users?page=${page}&limit=${limit}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         console.log("Users data:", data);
@@ -88,7 +89,6 @@ const Users = () => {
   useEffect(() => {
     setPage(1);
   }, [searchTerm]);
-
 
   const handleOpenDeleteModal = (user) => {
     setSelectedUser(user);
@@ -254,9 +254,7 @@ const Users = () => {
               ) : (
                 filteredUsers.map((user, index) => (
                   <tr key={user.id || index} className="border-t">
-                    <td className="p-2">
-                    {(page - 1) * limit + index + 1}
-                    </td>
+                    <td className="p-2">{(page - 1) * limit + index + 1}</td>
                     <td className="p-2 capitalize">{user.name}</td>
                     <td className="p-2">{user.email}</td>
 

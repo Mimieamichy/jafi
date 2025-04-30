@@ -15,19 +15,25 @@ const ITEMS_PER_PAGE = 6;
 
 export default function HireProfileCard() {
   const [users, setUsers] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
   const [categoryFilter, setCategoryFilter] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchHires = async () => {
       try {
-        const res = await fetch(`${baseUrl}/service/`);
+        const res = await fetch(
+          `${baseUrl}/service/?page=${page}&limit=${limit}`
+        );
         const data = await res.json();
         console.log("Fetched data:", data);
 
         if (res.ok) {
-          setUsers(data);
+          setUsers(data.data);
+          const total = data.meta.total ?? 0;
+          setTotalPages(Math.ceil(total / limit));
         } else {
           console.error("Failed to fetch hires:", data.message);
         }
@@ -43,23 +49,22 @@ export default function HireProfileCard() {
     ? users.filter((user) => user.category === categoryFilter)
     : users;
 
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
   const paginatedUsers = filteredUsers.slice(
     startIndex,
     startIndex + ITEMS_PER_PAGE
   );
 
   const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+    if (page > 1) setPage(page - 1);
   };
 
   const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    if (page < totalPages) setPage(page + 1);
   };
 
   const handlePageClick = (page) => {
-    setCurrentPage(page);
+    setPage(page);
   };
 
   const categories = [...new Set(users.map((user) => user.category))];
@@ -80,7 +85,7 @@ export default function HireProfileCard() {
               value={categoryFilter}
               onChange={(e) => {
                 setCategoryFilter(e.target.value);
-                setCurrentPage(1);
+                setPage(1);
               }}
               className="p-2 border rounded appearance-none pr-8"
             >
@@ -121,7 +126,7 @@ export default function HireProfileCard() {
         <div className="flex justify-center mt-6 mb-10 gap-2 flex-wrap">
           <button
             onClick={handlePrev}
-            disabled={currentPage === 1}
+            disabled={page === 1}
             className="px-3 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
           >
             <FontAwesomeIcon icon={faChevronLeft} />
@@ -132,7 +137,7 @@ export default function HireProfileCard() {
               key={i + 1}
               onClick={() => handlePageClick(i + 1)}
               className={`px-4 py-2 rounded ${
-                currentPage === i + 1
+                page === i + 1
                   ? "bg-blue-600 text-white"
                   : "bg-gray-200 hover:bg-gray-300"
               }`}
@@ -143,7 +148,7 @@ export default function HireProfileCard() {
 
           <button
             onClick={handleNext}
-            disabled={currentPage === totalPages}
+            disabled={page === totalPages}
             className="px-3 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
           >
             <FontAwesomeIcon icon={faChevronRight} />

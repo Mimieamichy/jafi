@@ -17,18 +17,21 @@ export default function CategoryPage() {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const categoryPerPage = 9;
-  const navigate = useNavigate();
 
- 
+  const categoryPerPage = 9;
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchBusinesses() {
       try {
         setLoading(true);
         const res = await fetch(
-          `${baseUrl}/business/category/${encodeURIComponent(category)}`
+          `${baseUrl}/business/category/${encodeURIComponent(
+            category
+          )}?page=${page}&limit=${limit}`
         );
         if (!res.ok) {
           throw new Error("Failed to fetch businesses");
@@ -36,7 +39,9 @@ export default function CategoryPage() {
         const data = await res.json();
         console.log("businesses", data);
 
-        setBusinesses(data.businesses || []);
+        setBusinesses(data.data || []);
+        const total = data.meta.total ?? 0;
+        setTotalPages(Math.ceil(total / limit));
       } catch (err) {
         console.error(err);
         setError(err.message || "An error occurred");
@@ -45,19 +50,17 @@ export default function CategoryPage() {
       }
     }
     fetchBusinesses();
-  }, [category]);
+  }, [category, page, limit]);
 
-  const indexOfLastListing = currentPage * categoryPerPage;
+  const indexOfLastListing = page * categoryPerPage;
   const indexOfFirstListing = indexOfLastListing - categoryPerPage;
   const currentListings = businesses.slice(
     indexOfFirstListing,
     indexOfLastListing
   );
 
-  const totalPages = Math.ceil(businesses.length / categoryPerPage);
-
   const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+    setPage(pageNumber);
   };
 
   const renderStars = (rating) => {
@@ -120,61 +123,59 @@ export default function CategoryPage() {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
-
       <h2 className="text-4xl font-bold mb-4 mt-5 text-center">
         {category} Businesses
       </h2>
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentListings.map((biz) => (
-              <div
-                key={biz.id}
-                onClick={() => navigate(`/business/${biz.id}`)}
-                className="bg-white p-6 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-              >
-                {/* if backend already sends full url use it; otherwise prefix */}
-                <img
-                  src={biz.images[0] || "/default-image.jpg"}
-                  alt={biz.name}
-                  className="w-full h-40 object-cover rounded-md"
-                />
-                <h3 className="text-lg font-semibold mt-4 capitalize">
-                  {biz.name}
-                </h3>
-                <p className="text-sm text-gray-400">{biz.category}</p>
-                <p className="text-gray-500">{biz.address}</p>
-                <div className="mt-2">
-                  {renderStars(biz.rating || biz.average_rating || 0)}
-                </div>
-                {biz.time && (
-                  <p className="text-blue-600 font-medium mt-2">{biz.time}</p>
-                )}
+      <>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {currentListings.map((biz) => (
+            <div
+              key={biz.id}
+              onClick={() => navigate(`/business/${biz.id}`)}
+              className="bg-white p-6 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+            >
+              {/* if backend already sends full url use it; otherwise prefix */}
+              <img
+                src={biz.images[0] || "/default-image.jpg"}
+                alt={biz.name}
+                className="w-full h-40 object-cover rounded-md"
+              />
+              <h3 className="text-lg font-semibold mt-4 capitalize">
+                {biz.name}
+              </h3>
+              <p className="text-sm text-gray-400">{biz.category}</p>
+              <p className="text-gray-500">{biz.address}</p>
+              <div className="mt-2">
+                {renderStars(biz.rating || biz.average_rating || 0)}
               </div>
-            ))}
-          </div>
-        </>
+              {biz.time && (
+                <p className="text-blue-600 font-medium mt-2">{biz.time}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </>
 
-        {/* Pagination Controls */}
-        <div className="mt-6 flex justify-center space-x-4">
+      {/* Pagination Controls */}
+      <div className="mt-6 flex justify-center space-x-4">
         <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Prev
         </button>
         <span className="self-center text-lg">
-          Page {currentPage} of {totalPages}
+          Page {page} of {totalPages}
         </span>
         <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page === totalPages}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Next
         </button>
       </div>
-    
     </div>
   );
 }

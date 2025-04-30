@@ -15,19 +15,26 @@ export default function AllListings() {
   const [listings, setListings] = useState([]);
   const [filteredListings, setFilteredListings] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+
   const [listingsPerPage] = useState(6);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const response = await fetch(`${baseUrl}/user/listings`);
+        const response = await fetch(
+          `${baseUrl}/user/listings?page=${page}&limit=${limit}`
+        );
         const data = await response.json();
         console.log("Fetched listings:", data);
 
         if (response.ok) {
-          setListings(data.allListings);
-          setFilteredListings(data.allListings);
+          setListings(data.data);
+          setFilteredListings(data.data);
+          const total = data.meta.total ?? 0;
+          setTotalPages(Math.ceil(total / limit));
         } else {
           console.error(
             "Error fetching listings:",
@@ -40,7 +47,7 @@ export default function AllListings() {
     };
 
     fetchListings();
-  }, []);
+  }, [limit, page]);
 
   // Handle Search Query
   useEffect(() => {
@@ -57,17 +64,15 @@ export default function AllListings() {
   }, [searchQuery, listings]);
 
   // Pagination Logic
-  const indexOfLastListing = currentPage * listingsPerPage;
+  const indexOfLastListing = page * listingsPerPage;
   const indexOfFirstListing = indexOfLastListing - listingsPerPage;
   const currentListings = filteredListings.slice(
     indexOfFirstListing,
     indexOfLastListing
   );
 
-  const totalPages = Math.ceil(filteredListings.length / listingsPerPage);
-
   const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+    setPage(pageNumber);
   };
 
   const handleListingClick = (id, type) => {
@@ -89,7 +94,10 @@ export default function AllListings() {
           type="text"
           placeholder="Search by name or category"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setPage(1);
+          }} // Reset page to 1 on search
           className="p-2 pl-10 w-full border border-gray-300 rounded-lg" // Adjust padding and width
         />
         <FontAwesomeIcon
@@ -117,7 +125,9 @@ export default function AllListings() {
             />
 
             <div className="mt-4">
-              <h3 className="text-xl font-semibold capitalize">{listing.name}</h3>
+              <h3 className="text-xl font-semibold capitalize">
+                {listing.name}
+              </h3>
               <p className="text-gray-600">
                 <FontAwesomeIcon
                   icon={faBriefcase}
@@ -161,18 +171,18 @@ export default function AllListings() {
       {/* Pagination Controls */}
       <div className="mt-6 flex justify-center space-x-4">
         <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Prev
         </button>
         <span className="self-center text-lg">
-          Page {currentPage} of {totalPages}
+          Page {page} of {totalPages}
         </span>
         <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page === totalPages}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Next
