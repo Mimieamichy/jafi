@@ -316,8 +316,8 @@ exports.acknowledgeReview = async (listingId) => {
 };
 
 
-exports.getAllReviewsByuserId = async (userId) => {
-  const reviews = await Review.findAll({
+exports.getAllReviewsByuserId = async (userId, offset, limit, page) => {
+  const {count, rows: reviews} = await Review.findAndCountAll({
     where: { userId },
     include: [
       {
@@ -326,9 +326,14 @@ exports.getAllReviewsByuserId = async (userId) => {
       },
     ],
     order: [["createdAt", "DESC"]],
+    offset,
+    limit
   });
 
   if (!reviews) throw new Error("No reviews found for this user");
 
-  return {message: "User reviews fetched successfully", reviews };
+  return {
+    data: reviews,
+    meta: { page, limit, total: count },
+};
 }
