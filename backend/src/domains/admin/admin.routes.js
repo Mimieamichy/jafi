@@ -12,7 +12,7 @@ router.get('/standardPrice', getStandardPrice)
 router.get("/servicePrice", getServicePrice);
 router.get("/premiumCategories", getPremiumCategories);
 router.get("/standardCategories", getStandardCategories);
-router.get('/exportBusinesses', exportBusinesses);
+
 
 
 const { authenticate } = require('../../application/middlewares/authenticate');

@@ -10,7 +10,7 @@ exports.exportTableData = async (model, filename, res) => {
       return res.status(404).json({ message: `No ${filename} data found` });
     }
 
-    const csv = await writeToString(jsonData);
+    const csv = await writeToString(jsonData, { headers: true }); 
 
     res.status(200).send(csv);
   } catch (error) {
