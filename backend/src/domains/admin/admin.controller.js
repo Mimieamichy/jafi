@@ -3,15 +3,14 @@ const AdminService = require("./admin.services");
 //users management
 exports.getAllUsers = async (req, res) => {
   try {
-    if (req.query) {
-      return role = req.query.role || "";
-    }
+    const role = req.query.role || ""; // define role safely
     const response = await AdminService.getAllUsers(role);
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 exports.deleteUser = async (req, res) => {
   const id = req.params.id;
