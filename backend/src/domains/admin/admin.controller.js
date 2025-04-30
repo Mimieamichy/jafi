@@ -170,12 +170,11 @@ exports.deleteBusiness = async (req, res) => {
 
 exports.getMyBusiness = async (req, res) => {
   const userId = req.user.id;
-  const searchTerm = req.query.search || "";
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const offset = (page - 1) * limit;
   try {
-    const business = await AdminService.getMyBusiness(userId, searchTerm, offset, limit);
+    const business = await AdminService.getMyBusiness(userId, offset, limit, page);
     return res.status(200).json({ success: true, business });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

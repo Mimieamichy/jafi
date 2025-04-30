@@ -300,8 +300,8 @@ exports.addBusiness = async (businessData, userId) => {
     };
 };
 
-exports.getMyBusiness = async (userId) => {
-    const business = await Business.findOne({
+exports.getMyBusiness = async (userId, offset, limit, page) => {
+    const {count, rows} = await Business.findAndCountAll({
         where: { userId },
         include: [
             {
@@ -309,9 +309,14 @@ exports.getMyBusiness = async (userId) => {
                 attributes: ["id", "name", "email"],
             },
         ],
+        order: [["createdAt", "DESC"]],
+        offset,
+        limit
     });
 
-    return business;
+    return { 
+        data: rows, meta: { page, limit, total: count}
+    };
 };
 
 exports.updateMyBusiness = async (businessId, userId, businessData, password, email) => {
