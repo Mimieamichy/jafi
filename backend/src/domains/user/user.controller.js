@@ -88,8 +88,10 @@ exports.updateUser = async (req, res) => {
 exports.getAllListings = async (req, res) => {
     try {
       const search = req.query.searchTerm || "";
-  
-      const response = await UserService.getAllListings(search);
+      const offset = req.query.offset || 0;
+      const limit = req.query.limit || 10;
+      const page = req.query.page || 1;
+      const response = await UserService.getAllListings(search, offset, limit, page);
       return res.status(200).json(response);
     } catch (error) {
         console.error(error);

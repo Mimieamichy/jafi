@@ -114,7 +114,7 @@ exports.getUserRole = async (email) => {
   return {message: "User role found", role};
 };
 
-exports.getAllListings = async (searchTerm) => {
+exports.getAllListings = async (searchTerm, offset, limit, page) => {
   let searchFilter = {};
   if (searchTerm) {
     searchFilter = {
@@ -126,37 +126,41 @@ exports.getAllListings = async (searchTerm) => {
     };
   }
 
-  const services = await Service.findAll({
+  // Fetch full result sets to allow for accurate sorting and slicing
+  const serviceData = await Service.findAndCountAll({
     where: searchFilter,
     order: [["createdAt", "DESC"]],
   });
 
-  const businesses = await Business.findAll({
+  const businessData = await Business.findAndCountAll({
     where: searchFilter,
     attributes: { exclude: ["proof"] },
     order: [["createdAt", "DESC"]],
   });
 
   const combined = [
-    ...services.map((service) => ({ type: "service", ...service.toJSON() })),
-    ...businesses.map((business) => ({
-      type: "business",
-      ...business.toJSON(),
-    })),
+    ...serviceData.rows.map((service) => ({ type: "service", ...service.toJSON() })),
+    ...businessData.rows.map((business) => ({ type: "business", ...business.toJSON() })),
   ];
 
   if (!combined.length) {
-    return {message: "No listings found"}
+    return { message: "No listings found" };
   }
 
   const sortedListings = combined.sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
 
-  const allListings = sortedListings.slice();
+  // Apply pagination AFTER combining and sorting
+  const paginatedListings = sortedListings.slice(offset, offset + limit);
+  const total = serviceData.count + businessData.count;
 
-  return {message: "Listings found", allListings };
+  return {
+    data: paginatedListings,
+    meta: { page, limit, total },
+  };
 };
+
 
 exports.replyToReview = async (reviewId, userId, comment) => {
   const originalReview = await Review.findByPk(reviewId);
