@@ -337,10 +337,7 @@ exports.getServicePrice = async (req, res) => {
 // Review management
 exports.getAllReviews = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
-    const response = await AdminService.getAllReviews(offset, limit, page);
+    const response = await AdminService.getAllReviews();
     return res.status(200).json(response);
   } catch (error) {
     return res.status(500).json({message: error.message });

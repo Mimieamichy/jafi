@@ -698,8 +698,8 @@ exports.approveClaim = async (claimId) => {
 
 //Review management
 
-exports.getAllReviews = async (offset, limit, page) => {
-  const reviews = await Review.find({
+exports.getAllReviews = async () => {
+  const reviews = await Review.findAll({
     include: [
       {
         model: User,
@@ -707,8 +707,6 @@ exports.getAllReviews = async (offset, limit, page) => {
       },
     ],
     order: [["createdAt", "DESC"]],
-    offset,
-    limit,
   });
 
   if (!reviews) throw new Error("Reviews not found");
