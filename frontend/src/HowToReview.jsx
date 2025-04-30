@@ -34,7 +34,7 @@ export default function HowToReview() {
       <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
         <p className="font-semibold">NB:</p>
         <p className="text-gray-700">
-          Always ensure that your review is honest—it helps others make informed
+          Always ensure that your review is honest, it helps others make informed
           decisions!
         </p>
       </div>

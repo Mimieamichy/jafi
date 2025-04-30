@@ -129,11 +129,45 @@ export default function Hirings() {
     setIsViewModalOpen(true);
   };
 
+  // 1️⃣ Add the export handler:
+  const handleExport = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/admin/exportServices`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
+      const blob = await res.blob();
+      // create a URL for the blob and trigger the download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      // you can customize the filename
+      a.download = "services.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      enqueueSnackbar("Failed to export Services", { variant: "error" });
+    }
+  };
+
   return (
     <div className="p-6">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">All Services</h2>
+        <h2 className="text-2xl font-bold mb-2 mx-2">
+          All Services
+          <button
+            onClick={handleExport}
+            className="px-2 py-1 mx-2 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Export CSV
+          </button>
+        </h2>
       </div>
       {/* Search Filter */}
       <div className="mb-4">
@@ -192,7 +226,6 @@ export default function Hirings() {
                           </button>
                         )}
 
-                        
                         <button
                           title="Delete"
                           onClick={() => openDeleteModal(service)}

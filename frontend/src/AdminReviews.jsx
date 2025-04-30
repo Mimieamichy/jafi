@@ -29,15 +29,11 @@ export default function Reviews() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
- 
 
   // modal state
   const [viewTarget, setViewTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  
-  
 
   const renderStars = (n) =>
     [...Array(Number(n))].map((_, i) => (
@@ -75,12 +71,9 @@ export default function Reviews() {
       .then((data) => {
         console.log("Reviews →", data);
         setAllReviews(Array.isArray(data) ? data : data.reviews || []);
-        
       })
       .catch((err) => console.error("reviews err", err));
   }, [authToken]);
-
- 
 
   /* ---------- delete reviewer ---------- */
   const confirmDelete = async () => {
@@ -91,10 +84,11 @@ export default function Reviews() {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setReviewers((prev) => prev.filter((r) => r.id !== deleteTarget.id));
-      return enqueueSnackbar("Reviewer deleted successfully", { variant: "success" })
+      return enqueueSnackbar("Reviewer deleted successfully", {
+        variant: "success",
+      });
     } catch {
-      
-      return enqueueSnackbar("Delete failed", { variant: "error" })
+      return enqueueSnackbar("Delete failed", { variant: "error" });
     } finally {
       setDeleteTarget(null);
       setShowDeleteModal(false);
@@ -105,13 +99,44 @@ export default function Reviews() {
     setCurrentPage(1);
   }, [searchTerm]);
 
-
-  
+  // 1️⃣ Add the export handler:
+  const handleExport = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/admin/exportReviews`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
+      const blob = await res.blob();
+      // create a URL for the blob and trigger the download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      // you can customize the filename
+      a.download = "reviews.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      enqueueSnackbar("Failed to export Reviews", { variant: "error" });
+    }
+  };
 
   /* ---------- render ---------- */
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Reviewers</h2>
+      <h2 className="text-2xl font-bold mb-4">
+        Reviewers
+        <button
+          onClick={handleExport}
+          className="px-2 py-1 mx-2 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Export CSV
+        </button>
+      </h2>
       <div className="mb-4">
         <input
           type="text"
@@ -144,7 +169,9 @@ export default function Reviews() {
             ) : (
               pageSlice.map((r, idx) => {
                 const sn = (currentPage - 1) * itemsPerPage + idx + 1;
-                const reviewCount = allReviews.filter(rv => rv.userId === r.id).length;
+                const reviewCount = allReviews.filter(
+                  (rv) => rv.userId === r.id
+                ).length;
                 return (
                   <tr key={r.id} className="border-t text-center">
                     <td className="p-2 border">{sn}</td>
@@ -185,7 +212,9 @@ export default function Reviews() {
         ) : (
           pageSlice.map((r, idx) => {
             const sn = (currentPage - 1) * itemsPerPage + idx + 1;
-            const reviewCount = allReviews.filter(rv => rv.userId === r.id).length;
+            const reviewCount = allReviews.filter(
+              (rv) => rv.userId === r.id
+            ).length;
             return (
               <div
                 key={r.id}

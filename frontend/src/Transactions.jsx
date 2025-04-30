@@ -11,7 +11,7 @@ export default function Transactions() {
   const { enqueueSnackbar } = useSnackbar();
 
   const [txs, setTxs] = useState([]); // all transactions
-  const [searchTerm, setSearchTerm] = useState(""); 
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [verifyTarget, setVerifyTarget] = useState(null); // tx awaiting confirm
 
@@ -32,12 +32,9 @@ export default function Transactions() {
           ? data.payments
           : [];
         setTxs(arr);
-
       })
       .catch((err) => console.error("transactions error", err));
   }, [authToken]);
-
-  
 
   /* ---------------- verify handler ---------------- */
   const verifyPayment = async (refId) => {
@@ -53,9 +50,7 @@ export default function Transactions() {
         )
       );
       enqueueSnackbar("Transaction Verified", { variant: "success" });
-    
     } catch (err) {
-      
       enqueueSnackbar("Verification failed", { variant: "error" });
       console.error(err);
     } finally {
@@ -85,10 +80,44 @@ export default function Transactions() {
     setCurrentPage(1);
   }, [searchTerm]);
 
+  // 1️⃣ Add the export handler:
+  const handleExport = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/admin/exportTransactions`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
+      const blob = await res.blob();
+      // create a URL for the blob and trigger the download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      // you can customize the filename
+      a.download = "transactions.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      enqueueSnackbar("Failed to export Transactions", { variant: "error" });
+    }
+  };
+
   /* ---------------- render ---------------- */
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4">Transactions</h2>
+      <h2 className="text-xl font-bold mb-4">
+        Transactions
+        <button
+          onClick={handleExport}
+          className="px-2 py-1 mx-2 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Export CSV
+        </button>
+      </h2>
       <div className="mb-4">
         <input
           type="text"
@@ -134,15 +163,13 @@ export default function Transactions() {
                     <td className="p-2 border">{t.entity_type}</td>
                     <td className="p-2 border capitalize">{t.status}</td>
                     <td className="p-2 border">
-                      
-                        <button
-                          title="Verify payment"
-                          onClick={() => setVerifyTarget(t)}
-                          className="text-green-600 hover:text-green-800"
-                        >
-                          <FontAwesomeIcon icon={faCheck} />
-                        </button>
-                     
+                      <button
+                        title="Verify payment"
+                        onClick={() => setVerifyTarget(t)}
+                        className="text-green-600 hover:text-green-800"
+                      >
+                        <FontAwesomeIcon icon={faCheck} />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -182,16 +209,15 @@ export default function Transactions() {
                 <div>
                   <strong>Status:</strong> {t.status}
                 </div>
-                
-                  <button
-                    title="Verify payment"
-                    onClick={() => setVerifyTarget(t)}
-                    className="text-green-600 hover:text-green-800 mt-1"
-                  >
-                    <FontAwesomeIcon icon={faCheck} />
-                    Verify
-                  </button>
-                
+
+                <button
+                  title="Verify payment"
+                  onClick={() => setVerifyTarget(t)}
+                  className="text-green-600 hover:text-green-800 mt-1"
+                >
+                  <FontAwesomeIcon icon={faCheck} />
+                  Verify
+                </button>
               </div>
             );
           })
@@ -228,7 +254,6 @@ export default function Transactions() {
             <h4 className="text-lg font-bold mb-4">Verify Payment?</h4>
             <p className="mb-4">
               Confirm payment&nbsp;
-              
               <strong>{verifyTarget.user.name}</strong>?
             </p>
             <div className="flex justify-end space-x-2">

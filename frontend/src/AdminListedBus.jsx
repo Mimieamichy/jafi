@@ -26,12 +26,11 @@ export default function Businesses() {
   const itemsPerPage = 20;
 
   const filteredBusinesses = businesses.filter((b) => {
-    
-    const term = searchTerm.toLowerCase(); 
+    const term = searchTerm.toLowerCase();
     return (
-      b.name?.toLowerCase().includes(term) || 
-      b.category?.toLowerCase().includes(term) 
-    ); 
+      b.name?.toLowerCase().includes(term) ||
+      b.category?.toLowerCase().includes(term)
+    );
   });
 
   const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage); // ← UPDATED
@@ -279,13 +278,46 @@ export default function Businesses() {
     const parts = normalized.split("/");
     return parts[parts.length - 1];
   };
- 
+
+  // 1️⃣ Add the export handler:
+  const handleExport = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/admin/exportBusinesses`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
+      const blob = await res.blob();
+      // create a URL for the blob and trigger the download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      // you can customize the filename
+      a.download = "businesses.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      enqueueSnackbar("Failed to export businesses", { variant: "error" });
+    }
+  };
 
   return (
     <div className="p-6">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Listed Businesses</h2>
+        <h2 className="text-2xl font-bold mb-2">
+          Listed Businesses{" "}
+          <button
+            onClick={handleExport}
+            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Export CSV
+          </button>
+        </h2>
         <button
           onClick={() => setIsAddModalOpen(true)}
           className="px-2 py-1 bg-blue-600 text-white rounded"

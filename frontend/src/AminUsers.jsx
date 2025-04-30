@@ -427,14 +427,14 @@ const [deleteMode, setDeleteMode] = useState(null);
             {deleteMode === "full" && (
               <>
                 <h3 className="font-bold">
-                  Delete user and all their listings?
+                  Delete user (and all their listings)?
                 </h3>
                 <div className="flex space-x-2 mt-4">
                   <button
                     onClick={handleDeleteConfirm}
                     className="flex-1 py-2 bg-red-600 text-white rounded"
                   >
-                    Yes, delete both
+                    Yes,( delete both)
                   </button>
                   <button
                     onClick={() => setShowDeleteModal(false)}

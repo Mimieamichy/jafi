@@ -117,7 +117,7 @@ export default function Navbar() {
     <nav className="bg-white shadow-md p-4  fixed top-0 left-0 w-full z-50  ">
       <div className="container mx-auto flex justify-between items-center h-full">
         <Link to="/" className="flex items-center">
-          <img src="../jafia.jpg" alt="Logo" className="h-16 w-auto" />
+          <img src="../jafia.png" alt="Logo" className="h-16 w-auto" />
         </Link>
 
         <div className="hidden md:flex space-x-6 items-center">
@@ -155,6 +155,13 @@ export default function Navbar() {
               </div>
             )}
           </div>
+          <Link
+            to="/howtoreview"
+            onClick={handleNavClick}
+            className="text-gray-600 hover:text-black"
+          >
+            How to Review
+          </Link>
 
           <Link
             to="/#about"
@@ -163,13 +170,7 @@ export default function Navbar() {
           >
             About
           </Link>
-          <Link
-            to="/howtoreview"
-            onClick={handleNavClick}
-            className="text-gray-600 hover:text-black"
-          >
-            How to Review
-          </Link>
+          
           <Link
             to="/#services"
             onClick={handleNavClick}
@@ -251,6 +252,14 @@ export default function Navbar() {
 
       {isOpen && (
         <div className="md:hidden mt-4 space-y-2 bg-white p-4 rounded-lg shadow-md max-h-60 overflow-y-auto">
+         
+          <Link
+            to="/"
+            onClick={handleNavClick}
+            className="block text-black hover:text-gray-600"
+          >
+            Home
+          </Link>
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowCategoriesDropdown((v) => !v)}
@@ -279,11 +288,11 @@ export default function Navbar() {
           </div>
 
           <Link
-            to="/"
+            to="/howtoreview"
             onClick={handleNavClick}
             className="block text-black hover:text-gray-600"
           >
-            Home
+           How to Review
           </Link>
           <Link
             to="/#about"
@@ -292,13 +301,7 @@ export default function Navbar() {
           >
             About
           </Link>
-          <Link
-            to="/howtoreview"
-            onClick={handleNavClick}
-            className="block text-black hover:text-gray-600"
-          >
-           How to Review
-          </Link>
+          
           <Link
             to="/#services"
             onClick={handleNavClick}
