@@ -699,7 +699,7 @@ exports.approveClaim = async (claimId) => {
 //Review management
 
 exports.getAllReviews = async (offset, limit, page) => {
-  const { count, rows: reviews } = await Review.findAndCountAll({
+  const reviews = await Review.find({
     include: [
       {
         model: User,
@@ -713,10 +713,7 @@ exports.getAllReviews = async (offset, limit, page) => {
 
   if (!reviews) throw new Error("Reviews not found");
 
-  return {
-    data: reviews,
-    meta: { page, limit, total: count },
-  };
+  return { reviews};
 };
 
 
