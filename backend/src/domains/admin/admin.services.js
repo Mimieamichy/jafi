@@ -483,10 +483,18 @@ exports.getPremiumCategories = async () => {
 
 
 //Service management
-exports.getAllServices = async () => {
-    const services = await Service.findAll();
-    if (!services) throw new Error("No services found");
-    return services;
+exports.getAllServices = async (offset, limit, page) => {
+    const {count , rows} = await Service.findAndCountAll(
+        {
+            order: [["createdAt", "DESC"]],
+            offset,
+            limit
+        }
+    );
+    if (count === 0) throw new Error("No services found");
+    return { 
+        data: rows, meta: { page, limit, total: count}
+    };
 }
 
 exports.getAService = async (serviceId) => {

@@ -55,7 +55,7 @@ exports.getABusiness = async (businessId) => {
   return business;
 };
 
-exports.getAllBusinesses = async (searchTerm, offset, limit) => {
+exports.getAllBusinesses = async (offset, limit) => {
   const businesses = await Business.findAll({
     include: {
       model: User,
