@@ -52,8 +52,13 @@ exports.createAdmin = async (email, name, role) => {
     return newUser
 }
 
-exports.getAllUsers = async () => {
+exports.getAllUsers = async (role) => {
+    // If a specific role is provided, filter by that role
+    const whereClause = role ? { role } : {};
+
     const allUsers = await User.findAll({
+        where: whereClause,
+        order: [["createdAt", "DESC"]],
         attributes: ["id", "name", "email", "role", "createdAt"],
     });
     // Process users to add business info or service count based on role
@@ -103,31 +108,37 @@ exports.updateAdminPassword = async (userId, newPassword) => {
     return { message: "Password updated successfully" };
 }
 
-exports.deleteUser = async (id, email) => {
+exports.transferBusiness = async (userId, email) => {
+    const user = await User.findOne({ where: { id: userId } });
+    if (!user) throw new Error("User not found");
+
+    const newOwner = await User.findOne({ where: { email } });
+    if (!newOwner) throw new Error("New owner email not found.");
+
+        // Transfer ownership of businesses
+    await Business.update(
+        { userId: newOwner.id },
+        { where: { userId } }
+    );
+        await Service.destroy({ where: { userId: id } });
+        await OTP.destroy({ where: { userId: id } });
+        await Review.destroy({ where: { userId: id } });
+        await user.destroy();
+
+    return { message: "Business ownership transferred successfully" };
+
+}
+
+
+exports.deleteUser = async (id) => {
     const user = await User.findOne({ where: { id } });
     if (!user) throw new Error("User not found");
 
-    if (!email) {
-        // No email: Delete all related manually if cascade not used
-        await Business.destroy({ where: { userId: id } });
-        await Service.destroy({ where: { userId: id } });
-        await OTP.destroy({ where: { userId: id } });
-        await Review.destroy({ where: { userId: id } });
-        await user.destroy();
-    } else {
-        const newOwner = await User.findOne({ where: { email } });
-        if (!newOwner) throw new Error("New owner email not found.");
-
-        // Transfer ownership of businesses
-        await Business.update(
-            { userId: newOwner.id },
-            { where: { userId: id } }
-        );
-        await Service.destroy({ where: { userId: id } });
-        await OTP.destroy({ where: { userId: id } });
-        await Review.destroy({ where: { userId: id } });
-        await user.destroy();
-    }
+    await Business.destroy({ where: { userId: id } });
+    await Service.destroy({ where: { userId: id } });
+    await OTP.destroy({ where: { userId: id } });
+    await Review.destroy({ where: { userId: id } });
+    await user.destroy()
 
 
     return { message: "User deleted successfully" };

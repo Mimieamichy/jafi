@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPremium, updateBusinessStandard, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getPremiumPrice, getStandardPrice, getServicePrice, getAdminCount, addCategory, deleteCategory, getPremiumCategories, getStandardCategories} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPremium, updateBusinessStandard, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getPremiumPrice, getStandardPrice, getServicePrice, getAdminCount, addCategory, deleteCategory, getPremiumCategories, getStandardCategories, transferBusiness} = require('./admin.controller')
 
 
 const { cloudUpload } = require("../../application/middlewares/cloudinary");
@@ -50,6 +50,7 @@ router.delete('/deleteReview/:id', deleteReview);
 router.delete('/deleteReviewer/:id', deleteReviewer);
 router.delete('/deleteService/:id', deleteService);
 router.delete('/user/:id', deleteUser);
+router.post('/transfer/:userId', transferBusiness);
 router.get('/adminCount', getAdminCount)
 router.post('/addCategory', addCategory)
 
