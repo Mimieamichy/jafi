@@ -419,3 +419,52 @@ exports.getAllClaims = async (req, res) => {
   }
 };
 
+
+//export management
+exports.exportUsers = async (req, res) => {
+  try{
+    const response = await AdminService.exportUsers();
+    return res.status(200).json(response);
+  }catch(error){
+    return res.status(500).json({success: false, message: error.message})
+  }
+}
+
+
+exports.exportBusinesses = async (req, res) => {
+  try{
+    const response = await AdminService.exportBusinesses();
+    return res.status(200).json(response);
+  }catch(error){
+    return res.status(500).json({success: false, message: error.message})
+  }
+}
+
+
+exports.exportServices = async (req, res) => {
+  try{
+    const response = await AdminService.exportServices();
+    return res.status(200).json(response);
+  }catch(error){
+    return res.status(500).json({success: false, message: error.message})
+  }
+}
+
+exports.exportReviewers = async (req, res) => {
+  try{
+    const response = await AdminService.exportReviewers();
+    return res.status(200).json(response);
+  }catch(error){
+    return res.status(500).json({success: false, message: error.message})
+  }
+}
+
+
+exports.exportTransactions = async (req, res) => {
+  try{
+    const response = await AdminService.exportTransactions();
+    return res.status(200).json(response);
+  }catch(error){
+    return res.status(500).json({success: false, message: error.message})
+  }
+}

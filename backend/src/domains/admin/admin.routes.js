@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPremium, updateBusinessStandard, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getPremiumPrice, getStandardPrice, getServicePrice, getAdminCount, addCategory, deleteCategory, getPremiumCategories, getStandardCategories, transferBusiness} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPremium, updateBusinessStandard, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getPremiumPrice, getStandardPrice, getServicePrice, getAdminCount, addCategory, deleteCategory, getPremiumCategories, getStandardCategories, transferBusiness, exportUsers, exportBusinesses, exportServices, exportReviewers, exportTransactions} = require('./admin.controller')
 
 
 const { cloudUpload } = require("../../application/middlewares/cloudinary");
@@ -53,8 +53,14 @@ router.delete('/user/:id', deleteUser);
 router.post('/transfer/:userId', transferBusiness);
 router.get('/adminCount', getAdminCount)
 router.post('/addCategory', addCategory)
-
 //router.delete('/deleteCategory/', deleteCategory)
+
+//export table data as CSV
+router.get('/exportUsers', exportUsers);
+router.get('/exportBusinesses', exportBusinesses);
+router.get('/exportServices', exportServices);
+router.get('/exportReviewers', exportReviewers);
+router.get('/exportTransactions', exportTransactions);
 
 
 module.exports = router;

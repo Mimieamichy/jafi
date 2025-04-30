@@ -4,12 +4,14 @@ const Business = require("../business/business.model");
 const Service = require("../service/service.model");
 const AdminSettings = require('./admin.model')
 const Review = require('../review/review.model')
+const Transaction = require('../payments/payments.model')
 const bcrypt = require("bcryptjs");
 const Claim = require("../claim/claim.model");
 const { generatePassword } = require("../../utils/generatePassword")
 const { sendMail } = require("../../utils/sendEmail");
 const { Op } = require('sequelize');
 const OTP = require("../otp/otp.model");
+const { exportTableData } = require("../../utils/exports");
 
 
 
@@ -716,7 +718,33 @@ exports.deleteReviewer = async (id) => {
 };
 
 
+//Exproting of data service
+// 1. Export Users
+exports.exportUsers = async (req, res) => {
+    await exportTableData(User, 'users', res);
+};
+  
+// 2. Export Businesses
+exports.exportBusinesses = async (req, res) => {
+    await exportTableData(Business, 'businesses', res);
+};
+  
+// 3. Export Reviewers
+exports.exportReviewers = async (req, res) => {
+    await exportTableData(Review, 'reviewers', res);
+};
+  
+// 4. Export Services
+exports.exportServices = async (req, res) => {
+    await exportTableData(Service, 'services', res);
+};
+  
+  // 5. Export Transactions
+exports.exportTransactions = async (req, res) => {
+    await exportTableData(Transaction, 'transactions', res);
+};
 
+  
 
 //Transaction management{check in payments service}
 
