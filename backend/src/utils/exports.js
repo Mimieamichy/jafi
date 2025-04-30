@@ -5,15 +5,13 @@ exports.exportTableData = async (model, filename, res) => {
     const data = await model.findAll();
     const jsonData = data.map(item => item.toJSON());
 
-    
+
     if (jsonData.length === 0) {
       return res.status(404).json({ message: `No ${filename} data found` });
     }
 
     const csv = await writeToString(jsonData);
 
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}.csv`);
     res.status(200).send(csv);
   } catch (error) {
     console.error(`Error exporting ${filename}:`, error);
