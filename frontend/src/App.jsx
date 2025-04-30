@@ -59,7 +59,6 @@ export default function App() {
                 <Route path="/signup" element={<SignupModal />} />
                 <Route path="/howtoreview" element={<HowToReview />} />
                 <Route path="/category/:category" element={<CategoryPage />} />
-
                 <Route path="/reveiwerPage/:userId" element={<ReviewerPersonalPage />} />
                 <Route path="/premium-payment" element={<PremuimPricing />} />
                 <Route path="/standard-payment" element={<StandardPricing />} />

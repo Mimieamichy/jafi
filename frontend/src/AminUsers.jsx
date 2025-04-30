@@ -12,19 +12,22 @@ const Users = () => {
 
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
- 
+
   const [selectedUser, setSelectedUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   // initialize to null (no mode selected yet)
-const [deleteMode, setDeleteMode] = useState(null);
+  const [deleteMode, setDeleteMode] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [admins, setAdmins] = useState([]);
   const [transferToEmail, setTransferToEmail] = useState("");
 
-  const itemsPerPage = 20;
+ 
 
   // Filter users by search term (email or role)
   const filteredUsers = users
@@ -43,12 +46,6 @@ const [deleteMode, setDeleteMode] = useState(null);
       return true;
     });
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const currentUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   // Fetch users with Authorization header
   useEffect(() => {
     const fetchUsers = async () => {
@@ -57,7 +54,7 @@ const [deleteMode, setDeleteMode] = useState(null);
         return;
       }
       try {
-        const response = await fetch(`${baseUrl}/admin/users`, {
+        const response = await fetch(`${baseUrl}/admin/users?page=${page}&limit=${limit}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -68,9 +65,11 @@ const [deleteMode, setDeleteMode] = useState(null);
         const data = await response.json();
         console.log("Users data:", data);
 
-        if (Array.isArray(data)) {
-          setUsers(data);
-        } else if (data.users && Array.isArray(data.users)) {
+        if (Array.isArray(data.data)) {
+          setUsers(data.data);
+          const total = data.meta.total ?? 0;
+          setTotalPages(Math.ceil(total / limit));
+        } else if (data.data && Array.isArray(data)) {
           setUsers(data.users);
         } else {
           console.error("Unexpected data format:", data);
@@ -83,14 +82,13 @@ const [deleteMode, setDeleteMode] = useState(null);
     };
 
     fetchUsers();
-  }, [authToken, enqueueSnackbar]);
+  }, [authToken, enqueueSnackbar, page, limit]);
 
   // Adjust page if out of bounds when filtering or pagination changes
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages > 0 ? totalPages : 1);
-    }
-  }, [currentPage, totalPages]);
+    setPage(1);
+  }, [searchTerm]);
+
 
   const handleOpenDeleteModal = (user) => {
     setSelectedUser(user);
@@ -98,8 +96,6 @@ const [deleteMode, setDeleteMode] = useState(null);
     setDeleteMode(user.role?.includes("business") ? "choose" : "full");
     setShowDeleteModal(true);
   };
-
-  
 
   useEffect(() => {
     if (!showDeleteModal || deleteMode !== "transfer") return;
@@ -111,8 +107,6 @@ const [deleteMode, setDeleteMode] = useState(null);
       .catch(() =>
         enqueueSnackbar("Could not load admins", { variant: "error" })
       );
-      
-      
   }, [showDeleteModal, deleteMode, authToken, enqueueSnackbar, admins]);
 
   // Confirm deletion with Authorization header
@@ -173,7 +167,7 @@ const [deleteMode, setDeleteMode] = useState(null);
 
   return (
     <div className="mx-auto max-w-7xl p-4">
-      <h2 className="text-xl font-bold mb-2">
+      <h2 className="text-2xl font-bold mb-2">
         All Users{" "}
         <button
           onClick={exportCSV}
@@ -192,7 +186,7 @@ const [deleteMode, setDeleteMode] = useState(null);
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            setCurrentPage(1);
+            setPage(1);
           }}
           className="md:w-full w-64 p-2 border border-gray-300 rounded"
         />
@@ -204,7 +198,7 @@ const [deleteMode, setDeleteMode] = useState(null);
             value={dateFrom}
             onChange={(e) => {
               setDateFrom(e.target.value);
-              setCurrentPage(1);
+              setPage(1);
             }}
             className="p-2 border border-gray-300 rounded"
           />
@@ -214,7 +208,7 @@ const [deleteMode, setDeleteMode] = useState(null);
             value={dateTo}
             onChange={(e) => {
               setDateTo(e.target.value);
-              setCurrentPage(1);
+              setPage(1);
             }}
             className="p-2 border border-gray-300 rounded"
           />
@@ -223,7 +217,7 @@ const [deleteMode, setDeleteMode] = useState(null);
               onClick={() => {
                 setDateFrom("");
                 setDateTo("");
-                setCurrentPage(1);
+                setPage(1);
               }}
               className="ml-2 px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
             >
@@ -248,7 +242,7 @@ const [deleteMode, setDeleteMode] = useState(null);
               </tr>
             </thead>
             <tbody>
-              {currentUsers.length === 0 ? (
+              {filteredUsers.length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
@@ -258,10 +252,10 @@ const [deleteMode, setDeleteMode] = useState(null);
                   </td>
                 </tr>
               ) : (
-                currentUsers.map((user, index) => (
+                filteredUsers.map((user, index) => (
                   <tr key={user.id || index} className="border-t">
                     <td className="p-2">
-                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    {(page - 1) * limit + index + 1}
                     </td>
                     <td className="p-2 capitalize">{user.name}</td>
                     <td className="p-2">{user.email}</td>
@@ -291,19 +285,19 @@ const [deleteMode, setDeleteMode] = useState(null);
 
       {/* Mobile Card View */}
       <div className="block md:hidden">
-        {currentUsers.length === 0 ? (
+        {filteredUsers.length === 0 ? (
           <div className="p-4 text-center text-gray-500 italic">
             No users found.
           </div>
         ) : (
-          currentUsers.map((user, index) => (
+          filteredUsers.map((user, index) => (
             <div
               key={user.id || index}
               className="border border-gray-200 rounded p-4 mb-4"
             >
               <div className="mb-2">
                 <span className="font-medium">S/N:</span>{" "}
-                {(currentPage - 1) * itemsPerPage + index + 1}
+                {(page - 1) * limit + index + 1}
               </div>
               <div className="mb-2">
                 <span className="font-medium capitalize">Name:</span>{" "}
@@ -335,29 +329,25 @@ const [deleteMode, setDeleteMode] = useState(null);
       </div>
 
       {/* Pagination Controls */}
-      {filteredUsers.length > 0 && (
-        <div className="flex items-center justify-center mt-4 space-x-2">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 rounded bg-blue-500 text-white disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <div className="flex justify-center items-center space-x-4 mt-6">
+        <button
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span>
+          <strong>{page}</strong>/<strong>{totalPages}</strong>
+        </span>
+        <button
+          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+          disabled={page === totalPages}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
 
       {/* Confirmation Modal */}
       {showDeleteModal && selectedUser && (
@@ -391,8 +381,8 @@ const [deleteMode, setDeleteMode] = useState(null);
               <>
                 <h3 className="font-bold">Transfer business to:</h3>
                 <select
-                name="transferToEmail"
-                type="email"
+                  name="transferToEmail"
+                  type="email"
                   value={transferToEmail}
                   onChange={(e) => setTransferToEmail(e.target.value)}
                   className="w-full border p-2 rounded"

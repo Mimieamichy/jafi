@@ -12,9 +12,10 @@ export default function Reviews() {
 
   const [reviewers, setReviewers] = useState([]);
   const [allReviews, setAllReviews] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const itemsPerPage = 20;
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
 
   const filteredReviewers = reviewers.filter((r) => {
     const term = searchTerm.toLowerCase();
@@ -24,11 +25,9 @@ export default function Reviews() {
     );
   });
 
-  const totalPages = Math.ceil(filteredReviewers.length / itemsPerPage);
-  const pageSlice = filteredReviewers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm]);
 
   // modal state
   const [viewTarget, setViewTarget] = useState(null);
@@ -57,11 +56,13 @@ export default function Reviews() {
     };
 
     // reviewers
-    fetch(`${baseUrl}/admin/reviewers`, { headers })
+    fetch(`${baseUrl}/admin/reviewers?page=${page}&limit=${limit}`, { headers })
       .then((r) => r.json())
       .then((data) => {
         console.log("Reviewers →", data);
-        setReviewers(Array.isArray(data) ? data : data.reviewers || []);
+        setReviewers(Array.isArray(data.data) ? data.data : data.data || []);
+        const total = data.meta.total ?? 0;
+        setTotalPages(Math.ceil(total / limit));
       })
       .catch((err) => console.error("reviewers err", err));
 
@@ -73,7 +74,7 @@ export default function Reviews() {
         setAllReviews(Array.isArray(data) ? data : data.reviews || []);
       })
       .catch((err) => console.error("reviews err", err));
-  }, [authToken]);
+  }, [authToken, page, limit]);
 
   /* ---------- delete reviewer ---------- */
   const confirmDelete = async () => {
@@ -94,10 +95,6 @@ export default function Reviews() {
       setShowDeleteModal(false);
     }
   };
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
 
   // 1️⃣ Add the export handler:
   const handleExport = async () => {
@@ -142,7 +139,10 @@ export default function Reviews() {
           type="text"
           placeholder="Search by name or email"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(1); // Reset to first page on search
+          }}
           className="w-full md:w-1/3 p-2 border border-gray-300 rounded"
         />
       </div>
@@ -160,21 +160,22 @@ export default function Reviews() {
             </tr>
           </thead>
           <tbody>
-            {pageSlice.length === 0 ? (
+            {filteredReviewers.length === 0 ? (
               <tr>
                 <td colSpan={4} className="p-4 text-center">
                   No reviewers found.
                 </td>
               </tr>
             ) : (
-              pageSlice.map((r, idx) => {
-                const sn = (currentPage - 1) * itemsPerPage + idx + 1;
+              filteredReviewers.map((r, idx) => {
                 const reviewCount = allReviews.filter(
                   (rv) => rv.userId === r.id
                 ).length;
                 return (
                   <tr key={r.id} className="border-t text-center">
-                    <td className="p-2 border">{sn}</td>
+                    <td className="p-2 border">
+                      {(page - 1) * limit + idx + 1}
+                    </td>
                     <td className="p-2 border capitalize">{r.name}</td>
                     <td className="p-2 border">{r.email}</td>
                     <td className="p-2 border">{reviewCount}</td>
@@ -207,11 +208,10 @@ export default function Reviews() {
 
       {/* -------- Mobile cards -------- */}
       <div className="md:hidden space-y-4">
-        {pageSlice.length === 0 ? (
+        {filteredReviewers.length === 0 ? (
           <p className="text-center text-gray-500">No reviewers found.</p>
         ) : (
-          pageSlice.map((r, idx) => {
-            const sn = (currentPage - 1) * itemsPerPage + idx + 1;
+          filteredReviewers.map((r, idx) => {
             const reviewCount = allReviews.filter(
               (rv) => rv.userId === r.id
             ).length;
@@ -221,7 +221,7 @@ export default function Reviews() {
                 className="border border-gray-300 rounded p-4 space-y-2"
               >
                 <div>
-                  <strong>S/N:</strong> {sn}
+                  <strong>S/N:</strong> {(page - 1) * limit + idx + 1}
                 </div>
                 <div>
                   <strong>Reviewer&#39;s Name:</strong> {r.name}
@@ -258,27 +258,25 @@ export default function Reviews() {
       </div>
 
       {/* -------- Pagination -------- */}
-      {reviewers.length > 0 && (
-        <div className="flex justify-center space-x-3 mt-4">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span>
-            Page {currentPage}/{totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <div className="flex justify-center items-center space-x-4 mt-6">
+        <button
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span>
+          <strong>{page}</strong>/<strong>{totalPages}</strong>
+        </span>
+        <button
+          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+          disabled={page === totalPages}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
 
       {/* -------- View Modal -------- */}
       {viewTarget && (
