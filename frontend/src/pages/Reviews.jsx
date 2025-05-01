@@ -18,9 +18,9 @@ const CustomerReviews = () => {
       try {
         const res = await fetch(`${baseUrl}/review/`);
         const data = await res.json();
-        console.log("Fetched reviews:", data.reviews);
+        console.log("Fetched reviews:", data.data);
 
-        const sorted = (data.reviews || [])
+        const sorted = (data.data || [])
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 10);
         setReviews(sorted);

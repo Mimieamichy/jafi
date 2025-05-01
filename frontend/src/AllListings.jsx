@@ -10,17 +10,18 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
+const REVIEWS_PER_PAGE = 6;
 
 export default function AllListings() {
   const [listings, setListings] = useState([]);
   const [filteredListings, setFilteredListings] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [listingsPerPage] = useState(6);
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const [limit] = useState(REVIEWS_PER_PAGE);
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
+
+
   useEffect(() => {
     const fetchListings = async () => {
       try {
@@ -64,15 +65,15 @@ export default function AllListings() {
   }, [searchQuery, listings]);
 
   // Pagination Logic
-  const indexOfLastListing = page * listingsPerPage;
-  const indexOfFirstListing = indexOfLastListing - listingsPerPage;
-  const currentListings = filteredListings.slice(
-    indexOfFirstListing,
-    indexOfLastListing
-  );
+ 
+  const currentListings = filteredListings
 
-  const handlePageChange = (pageNumber) => {
-    setPage(pageNumber);
+  const handleNextPage = () => {
+    setPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePreviousPage = () => {
+    setPage((prev) => Math.max(prev - 1, 1));
   };
 
   const handleListingClick = (id, type) => {
@@ -96,7 +97,7 @@ export default function AllListings() {
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
-            setPage(1);
+            
           }} // Reset page to 1 on search
           className="p-2 pl-10 w-full border border-gray-300 rounded-lg" // Adjust padding and width
         />
@@ -171,8 +172,8 @@ export default function AllListings() {
       {/* Pagination Controls */}
       <div className="mt-6 flex justify-center space-x-4">
         <button
-          onClick={() => handlePageChange(page - 1)}
-          disabled={page === 1}
+           onClick={handlePreviousPage}
+           disabled={page === 1}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Prev
@@ -181,8 +182,8 @@ export default function AllListings() {
           Page {page} of {totalPages}
         </span>
         <button
-          onClick={() => handlePageChange(page + 1)}
-          disabled={page === totalPages}
+           onClick={handleNextPage}
+           disabled={page === totalPages || totalPages === 0}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Next

@@ -16,7 +16,7 @@ export default function CategoryPage() {
   const { category } = useParams();
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
 
   const categoryPerPage = 9;
   const [page, setPage] = useState(1);
@@ -39,12 +39,16 @@ export default function CategoryPage() {
         const data = await res.json();
         console.log("businesses", data);
 
-        setBusinesses(data.data || []);
+        setBusinesses(data.data || data.message || []);
         const total = data.meta.total ?? 0;
         setTotalPages(Math.ceil(total / limit));
+        
       } catch (err) {
         console.error(err);
-        setError(err.message || "An error occurred");
+        setBusinesses([]);
+        setTotalPages(0);
+       
+       
       } finally {
         setLoading(false);
       }
@@ -109,9 +113,7 @@ export default function CategoryPage() {
     );
   }
 
-  if (error) {
-    return <div className="text-red-500 text-center py-8">Error: {error}</div>;
-  }
+  
 
   if (businesses.length === 0) {
     return (

@@ -110,11 +110,14 @@ const ReviewCard = ({
 
 export default function PaginatedReviews() {
   const [allReviews, setAllReviews] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImages, setModalImages] = useState([]);
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [selectedReply, setSelectedReply] = useState("");
+   const [page, setPage] = useState(1);
+   const [limit] = useState(REVIEWS_PER_PAGE);
+    const [totalPages, setTotalPages] = useState(1);
 
   const handleReviewCardClick = (id, listingType) => {
     // Navigate to the appropriate route based on listingType (either service or business)
@@ -128,20 +131,20 @@ export default function PaginatedReviews() {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const res = await fetch(`${baseUrl}/review/`);
+        const res = await fetch(`${baseUrl}/review/?page=${page}&limit=${limit}`);
         const data = await res.json();
         console.log("Fetched reviews:", data);
 
-        const sorted = data.reviews
-          ?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 10);
-        setAllReviews(sorted || []);
+        
+        setAllReviews(data.data || []);
+        const total = data.meta.total ?? 0;
+        setTotalPages(Math.ceil(total / limit));
       } catch (error) {
         console.error("Failed to fetch reviews", error);
       }
     };
     fetchReviews();
-  }, []);
+  }, [limit, page]);
 
   const openReplyModal = (replyText) => {
     setSelectedReply(replyText);
@@ -153,18 +156,15 @@ export default function PaginatedReviews() {
     setReplyModalOpen(false);
   };
 
-  const totalPages = Math.ceil(allReviews.length / REVIEWS_PER_PAGE);
-  const currentReviews = allReviews.slice(
-    (currentPage - 1) * REVIEWS_PER_PAGE,
-    currentPage * REVIEWS_PER_PAGE
-  );
+ 
+  const currentReviews = allReviews; // backend already paged it
 
   const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    setPage((prev) => Math.min(prev + 1, totalPages));
   };
 
   const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
+    setPage((prev) => Math.max(prev - 1, 1));
   };
 
   const navigate = useNavigate();
@@ -204,17 +204,17 @@ export default function PaginatedReviews() {
         <div className="mt-6 flex justify-center gap-2">
           <button
             onClick={handlePreviousPage}
-            disabled={currentPage === 1}
+            disabled={page === 1}
             className="px-4 py-2 bg-blue-600 rounded-md disabled:bg-gray-300 text-white cursor-pointer"
           >
             Prev
           </button>
           <span className="px-4 py-2">
-            Page {currentPage} of {totalPages || 1}
+            Page {page} of {totalPages}
           </span>
           <button
             onClick={handleNextPage}
-            disabled={currentPage === totalPages || totalPages === 0}
+            disabled={page === totalPages || totalPages === 0}
             className="px-4 py-2 bg-blue-600 rounded-md disabled:bg-gray-300 text-white cursor-pointer"
           >
             Next

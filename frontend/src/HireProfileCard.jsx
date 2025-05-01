@@ -16,7 +16,7 @@ const ITEMS_PER_PAGE = 6;
 export default function HireProfileCard() {
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const [limit] = useState(ITEMS_PER_PAGE);
   const [totalPages, setTotalPages] = useState(1);
   const [categoryFilter, setCategoryFilter] = useState("");
   const navigate = useNavigate();
@@ -43,29 +43,23 @@ export default function HireProfileCard() {
     };
 
     fetchHires();
-  }, []);
+  }, [limit, page]);
 
   const filteredUsers = categoryFilter
     ? users.filter((user) => user.category === categoryFilter)
     : users;
 
-  const startIndex = (page - 1) * ITEMS_PER_PAGE;
-  const paginatedUsers = filteredUsers.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
+    const paginatedUsers = filteredUsers
+  
 
-  const handlePrev = () => {
-    if (page > 1) setPage(page - 1);
-  };
-
-  const handleNext = () => {
-    if (page < totalPages) setPage(page + 1);
-  };
-
-  const handlePageClick = (page) => {
-    setPage(page);
-  };
+    const handleNextPage = () => {
+      setPage((prev) => Math.min(prev + 1, totalPages));
+    };
+  
+    const handlePreviousPage = () => {
+      setPage((prev) => Math.max(prev - 1, 1));
+    
+    };
 
   const categories = [...new Set(users.map((user) => user.category))];
 
@@ -125,29 +119,17 @@ export default function HireProfileCard() {
       {totalPages > 1 && (
         <div className="flex justify-center mt-6 mb-10 gap-2 flex-wrap">
           <button
-            onClick={handlePrev}
+            onClick={handlePreviousPage}
             disabled={page === 1}
             className="px-3 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
           >
             <FontAwesomeIcon icon={faChevronLeft} />
           </button>
 
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => handlePageClick(i + 1)}
-              className={`px-4 py-2 rounded ${
-                page === i + 1
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+          {page} of {totalPages}
 
           <button
-            onClick={handleNext}
+            onClick={handleNextPage}
             disabled={page === totalPages}
             className="px-3 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
           >
