@@ -16,11 +16,10 @@ export default function CategoryPage() {
   const { category } = useParams();
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
-  
 
-  const categoryPerPage = 9;
+  const categoryPerPage = 6;
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const [limit] = useState(categoryPerPage);
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
@@ -42,13 +41,10 @@ export default function CategoryPage() {
         setBusinesses(data.data || data.message || []);
         const total = data.meta.total ?? 0;
         setTotalPages(Math.ceil(total / limit));
-        
       } catch (err) {
         console.error(err);
         setBusinesses([]);
         setTotalPages(0);
-       
-       
       } finally {
         setLoading(false);
       }
@@ -56,15 +52,14 @@ export default function CategoryPage() {
     fetchBusinesses();
   }, [category, page, limit]);
 
-  const indexOfLastListing = page * categoryPerPage;
-  const indexOfFirstListing = indexOfLastListing - categoryPerPage;
-  const currentListings = businesses.slice(
-    indexOfFirstListing,
-    indexOfLastListing
-  );
+  const currentListings = businesses;
 
-  const handlePageChange = (pageNumber) => {
-    setPage(pageNumber);
+  const handleNextPage = () => {
+    setPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePreviousPage = () => {
+    setPage((prev) => Math.max(prev - 1, 1));
   };
 
   const renderStars = (rating) => {
@@ -113,8 +108,6 @@ export default function CategoryPage() {
     );
   }
 
-  
-
   if (businesses.length === 0) {
     return (
       <div className="text-gray-600 text-center py-8">
@@ -161,7 +154,7 @@ export default function CategoryPage() {
       {/* Pagination Controls */}
       <div className="mt-6 flex justify-center space-x-4">
         <button
-          onClick={() => handlePageChange(page - 1)}
+          onClick={handlePreviousPage}
           disabled={page === 1}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
@@ -171,8 +164,8 @@ export default function CategoryPage() {
           Page {page} of {totalPages}
         </span>
         <button
-          onClick={() => handlePageChange(page + 1)}
-          disabled={page === totalPages}
+          onClick={handleNextPage}
+          disabled={page === totalPages || totalPages === 0}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Next
