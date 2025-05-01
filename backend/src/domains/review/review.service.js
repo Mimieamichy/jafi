@@ -8,6 +8,7 @@ const { Op } = require("sequelize");
 
 
 
+
 exports.registerReviewerWithGoogle = async (googleUser) => {
   const { email, displayName, picture } = googleUser;
   const profilePic = picture || null;
@@ -150,9 +151,12 @@ exports.updateReview = async (reviewId, userId, comment) => {
   const review = await Review.findOne({ where: { id: reviewId, userId } });
   if (!review) throw new Error("Review not found or unauthorized");
 
-  review.comment = comment
-  await review.save();
-  return {message: "Review updated successfully", review };
+  await Review.update(
+    { comment },
+    { where: { id: reviewId, userId } }
+  )
+  const updatedReview = await Review.findByPk(reviewId);
+  return {message: "Review updated successfully", review: updatedReview };
 };
 
 exports.deleteReview = async (reviewId, userId) => {
@@ -192,7 +196,7 @@ exports.getAllReviews = async (offset, limit, page) => {
     })
   );
   return {
-    data: reviews,
+    data: reviews.map(item => item.toJSON()),
     meta: { page, limit, total: count },
 };
 };
@@ -262,7 +266,7 @@ exports.getReviewsForListings = async (listingId) => {
 exports.getReviewsByUser = async (userId) => {
   const reviews = await Review.findAll({ where: { userId } });
   if (!reviews || reviews.length === 0) {
-    throw new Error("No reviews found for this user");
+    return {mesage: "No reviews found for this user"};
   }
   return {message: "User reviews fetched successfully", reviews };
 };

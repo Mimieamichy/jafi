@@ -82,10 +82,11 @@ exports.getAllServices = async (offset, limit, page) => {
     }
 
     return {
-        data: services,
+        data: services.map(item => item.toJSON()),
         meta: { page, limit, total: count },
     };
 };
+
 exports.updateService = async (serviceId, userId, serviceData, password, email) => {
     const service = await Service.findByPk(serviceId);
     if (!service) throw new Error("Service not found");
@@ -107,10 +108,12 @@ exports.updateService = async (serviceId, userId, serviceData, password, email) 
     await User.update(updatedFields, { where: { id: userId } });
   
     // Update service
-    service.set(serviceData);
-    await service.save();
+    await service.update({ ...serviceData, userId });
+    const updatedService = await Service.findByPk(serviceId, {
+        attributes: { exclude: ['password'] },
+      });
   
-    return service;
+    return updatedService;
 };
 
 exports.payForService = async (serviceId, amount, transaction) => {

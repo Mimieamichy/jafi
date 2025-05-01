@@ -94,17 +94,32 @@ exports.getAllUsers = async () => {
   return {message: "Users found", users }; 
 };
 
-exports.updateUser = async (id, data) => {
-  const user = await User.findByPk(id);
-  if (!user) throw new Error("User not found");
 
+exports.updateUser = async (id, data) => {
+  // Hash password if it's included
   if (data.password) {
     data.password = await bcrypt.hash(data.password, 10);
   }
 
-  await user.update(data);
-  return {message: "User updated successfully", user };
+  const [updatedCount] = await User.update(data, {
+    where: { id },
+  });
+
+  if (updatedCount === 0) {
+    throw new Error("User not found or no changes applied");
+  }
+
+  // Optionally return the updated user if needed
+  const updatedUser = await User.findByPk(id, {
+    attributes: { exclude: ['password'] },
+  });
+
+  return {
+    message: "User updated successfully",
+    user: updatedUser,
+  };
 };
+
 
 exports.getUserRole = async (email) => {
   const user = await User.findOne({ where: { email } });

@@ -1,5 +1,6 @@
 const BusinessService = require("./business.service");
 const sequelize = require("../../config/database");
+const cache = require("../../utils/cache")
 
 
 exports.registerBusiness = async (req, res) => {
@@ -33,6 +34,7 @@ exports.registerBusiness = async (req, res) => {
 exports.getABusiness = async (req, res) => {
   try {
     const { id } = req.params;
+    
     const business = await BusinessService.getABusiness(id);
     res.status(200).json(business);
   } catch (error) {
@@ -45,7 +47,17 @@ exports.getAllBusinesses = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
+
+    //Cache the response for 1 hour
+    const cacheKey = `allBusiness:page=${page}-limit=${limit}`;
+    const cached = cache.get(cacheKey);
+
+    if (cached) {
+      console.log(`✅ Cache HIT for key: ${cacheKey}`);
+      return res.status(200).json(cached);
+    }
     const response = await BusinessService.getAllBusinesses(offset, limit, page);
+    cache.set(cacheKey, response);
     res.status(200).json(response);
   } catch (error) {
     console.log(error);
@@ -61,17 +73,18 @@ exports.updateBusiness = async (req, res) => {
 
 
     // Handle images
-    const images = req.files?.["images"]? req.files["images"].map(file => file.path) : [];
-    const logo = req.files?.["logo"]? req.files["logo"].map(file => file.path) : [];
+    const images = req.files?.["images"] ? req.files["images"].map(file => file.path) : [];
+    const logo = req.files?.["logo"] ? req.files["logo"].map(file => file.path) : [];
     businessData.images = images;
     businessData.logo = logo;
-    
+
     const password = businessData.password;
     const email = businessData.email
     delete businessData.password;
     delete businessData.email
 
-
+    //Delete cacke key
+  cache.flushAll();
     const business = await BusinessService.updateBusiness(id, userId, businessData, password, email);
     res.status(200).json(business);
   } catch (error) {
@@ -116,7 +129,7 @@ exports.getBusinessByUserId = async (req, res) => {
       throw new Error("Unauthorized to access this business");
     }
     const business = await BusinessService.getBusinessByUserId(id);
-    res.status(200).json(business );
+    res.status(200).json(business);
   } catch (error) {
     console.log(error);
     res.status(error.status || 500).json({ message: error.message });
@@ -127,6 +140,8 @@ exports.deleteBusiness = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
+    //Delete cacke key
+    cache.flushAll();
     const business = await BusinessService.deleteBusiness(id, userId);
     res.status(200).json(business);
   } catch (error) {
@@ -140,7 +155,16 @@ exports.getBusinessByCategory = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
+    //Cache the response for 1 hour
+    const cacheKey = `businessCat:page=${page}-limit=${limit}`;
+    const cached = cache.get(cacheKey);
+
+    if (cached) {
+      console.log(`✅ Cache HIT for key: ${cacheKey}`);
+      return res.status(200).json(cached);
+    }
     const response = await BusinessService.getBusinessByCategory(category, offset, limit, page);
+    cache.set(cacheKey, response);
     res.status(200).json(response);
   } catch (error) {
     console.log(error)

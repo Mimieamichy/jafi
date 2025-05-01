@@ -1,5 +1,6 @@
 const ServiceService = require("./service.service");
 const sequelize = require("../../config/database");
+const cache = require('../../utils/cache')
 
 
 
@@ -53,7 +54,17 @@ exports.getAllServices = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
+
+    //Caching
+    const cacheKey = `services:page=${page}-limit=${limit}`;
+    const cached = cache.get(cacheKey);
+
+    if (cached) {
+      console.log(`✅ Cache HIT for key: ${cacheKey}`);
+      return res.status(200).json(cached);
+    }
     const response = await ServiceService.getAllServices(offset, limit, page);
+    cache.set(cacheKey, response);
     res.status(200).json(response);
   } catch (error) {
     console.log(error);
@@ -78,6 +89,8 @@ exports.updateService = async (req, res) => {
     delete serviceData.email
 
 
+    //Delete cacke key
+    cache.flushAll();
     const service = await ServiceService.updateService(id, userId, serviceData, password, email);
     res.status(200).json(service);
   } catch (error) {
@@ -130,6 +143,8 @@ exports.deleteService = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
+    //Delete cacke key
+    cache.flushAll();
     const service = await ServiceService.deleteService(id, userId);
     res.status(200).json(service);
   } catch (error) {

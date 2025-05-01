@@ -74,7 +74,7 @@ exports.getAllBusinesses = async (offset, limit, page) => {
   }
 
   return {
-    data: businesses,
+    data: businesses.map(item => item.toJSON()),
     meta: { page, limit, total: count },
   };
 };
@@ -100,10 +100,13 @@ exports.updateBusiness = async (businessId, userId, businessData, password, emai
   await User.update(updatedFields, { where: { id: userId } });
 
   // Update business
-  business.set(businessData);
-  await business.save();
+  await Business.update(
+    { ...businessData },
+    { where: { id: businessId } }
+  );
+  const updatedBusiness = await Business.findByPk(businessId);
 
-  return business;
+  return updatedBusiness;
 };
 
 exports.payForBusiness = async (businessId, amount, transaction) => {

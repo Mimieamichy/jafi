@@ -1,13 +1,13 @@
 const ReviewService = require("../review/review.service");
 const passport = require("passport");
 require("../../config/google");
+const cache = require("../../utils/cache")
+
 
 
 exports.googleAuth = async (req, res, next) => {
     const redirect = req.query.redirect || "/";
     const state = Buffer.from(JSON.stringify({ redirect })).toString("base64");
-
-    console.log(req.query)
 
     passport.authenticate("google", {
     scope: ["email", "profile"],
@@ -68,6 +68,9 @@ exports.updateReview = async (req, res) => {
         const { id } = req.params;
         const { comment } = req.body;
         const userId = req.user.id; 
+
+        //Delete cacke key
+        cache.flushAll();
         const response = await ReviewService.updateReview(id, userId, comment);
         return res.status(200).json(response);
     } catch (error) {
@@ -79,9 +82,12 @@ exports.deleteReview = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id; 
+        //Delete cacke key
+        cache.flushAll();
         const response = await ReviewService.deleteReview(id, userId);
         return res.status(200).json(response);
     } catch (error) {
+        console.log(error)
         res.status(error.status || 500).json({ message: error.message });
     }
 };
@@ -91,7 +97,17 @@ exports.getAllReviews = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const offset = (page - 1) * limit;
+
+        //Cache the response for 20mins
+        const cacheKey = `reviews:page=${page}-limit=${limit}`;
+        const cached = cache.get(cacheKey);
+
+        if (cached) {
+            console.log(`✅ Cache HIT for key: ${cacheKey}`);
+            return res.status(200).json(cached);
+        }
         const response = await ReviewService.getAllReviews(offset, limit, page);
+        cache.set(cacheKey, response);
         return res.status(200).json(response);
     } catch (error) {
         console.log(error);

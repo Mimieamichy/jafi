@@ -1,4 +1,5 @@
 const UserService = require("../user/user.service");
+const cache = require('../../utils/cache')
 
 
 
@@ -18,7 +19,7 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
     const response = await UserService.userForgotPassword(email);
 
-    res.status(200).json({response })
+    res.status(200).json({ response })
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }
@@ -83,20 +84,30 @@ exports.updateUser = async (req, res) => {
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
   }
-} 
+}
 
 exports.getAllListings = async (req, res) => {
-    try {
-      const search = req.query.searchTerm || "";
-      const offset = req.query.offset || 0;
-      const limit = req.query.limit || 10;
-      const page = req.query.page || 1;
-      const response = await UserService.getAllListings(search, offset, limit, page);
-      return res.status(200).json(response);
-    } catch (error) {
-        console.error(error);
-        res.status(error.status || 500).json({ message: error.message });
+  try {
+    const search = req.query.searchTerm || "";
+    const offset = req.query.offset || 0;
+    const limit = req.query.limit || 10;
+    const page = req.query.page || 1;
+
+    //Caching
+    const cacheKey = `allListings:page=${page}-limit=${limit}`;
+    const cached = cache.get(cacheKey);
+
+    if (cached) {
+      console.log(`✅ Cache HIT for key: ${cacheKey}`);
+      return res.status(200).json(cached);
     }
+    const response = await UserService.getAllListings(search, offset, limit, page);
+    cache.set(cacheKey, response);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(error.status || 500).json({ message: error.message });
+  }
 };
 
 exports.getUserRole = async (req, res) => {
@@ -111,13 +122,13 @@ exports.getUserRole = async (req, res) => {
 }
 
 exports.replyToReview = async (req, res) => {
-    try {
-        const { reviewId } = req.params;
-        const newReply = req.body.reply;
-        const userId = req.user.id; 
-        const response = await UserService.replyToReview(reviewId, userId, newReply);
-        return res.status(201).json(response);
-    } catch (error) {
-        res.status(error.status || 500).json({ message: error.message });
-    }
+  try {
+    const { reviewId } = req.params;
+    const newReply = req.body.reply;
+    const userId = req.user.id;
+    const response = await UserService.replyToReview(reviewId, userId, newReply);
+    return res.status(201).json(response);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
 }
