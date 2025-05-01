@@ -9,7 +9,11 @@ export default function ReviewersDashboard() {
   const [reviews, setReviews] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const reviewsPerPage = 3;
-  const token = localStorage.getItem("reviewerToken");
+  const token =  localStorage.getItem("reviewerToken") || localStorage.getItem("userToken") 
+  
+  
+
+  
 
   const fetchReviews = useCallback(async () => {
     if (!token) return;
@@ -143,7 +147,7 @@ function ReviewCard({ review, onEdit, onDelete }) {
     const reviewTime = new Date(review.createdAt).getTime();
     const now = Date.now();
     const diffInHours = (now - reviewTime) / (1000 * 60 * 60); // ms to hours
-    return diffInHours <= 3;
+    return diffInHours <= 5;
   })();
 
   return (

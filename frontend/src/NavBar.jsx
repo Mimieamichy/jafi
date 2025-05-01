@@ -27,6 +27,7 @@ export default function Navbar() {
   const location = useLocation();
   const dropdownRef = useRef(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const data = localStorage.getItem("userData");
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function Navbar() {
         } else {
           localStorage.setItem("reviewerToken", token);
           localStorage.setItem("reviewer", JSON.stringify(decodedToken));
-          setReviewer(decodedToken);
+          setReviewer(data);
           const cleanedUrl = location.pathname;
           window.history.replaceState({}, document.title, cleanedUrl);
         }
@@ -64,7 +65,7 @@ export default function Navbar() {
         console.error("Error decoding token:", error);
       }
     } else {
-      const storedToken = localStorage.getItem("reviewerToken");
+      const storedToken = localStorage.getItem("userToken");
       const storedRole = localStorage.getItem("userRole");
       if (storedToken) {
         try {
@@ -86,7 +87,7 @@ export default function Navbar() {
         setUserRole(storedRole);
       }
     }
-  }, [location]);
+  }, [location, data]);
 
   const handleLogout = () => {
     localStorage.removeItem("reviewer");

@@ -46,6 +46,7 @@ export default function HireProfileDetails() {
 
   // Reviewer & authentication
   const [reviewer, setReviewer] = useState(null);
+  const authToken = localStorage.getItem("userToken");
 
   // Review Form state
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -90,50 +91,16 @@ export default function HireProfileDetails() {
 
   // Google Sign-in & token handling
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        const isExpired = decoded.exp * 1000 < Date.now();
-        if (isExpired) {
-          localStorage.removeItem("reviewerToken");
-          localStorage.removeItem("reviewer");
-          enqueueSnackbar("Session expired. Please sign in again.", {
-            variant: "info",
-          });
-          const currentPath = encodeURIComponent(location.pathname);
-          window.location.href = `${baseUrl}/review/google?redirect=${currentPath}`;
-        } else {
-          localStorage.setItem("reviewerToken", token);
-          localStorage.setItem("reviewer", JSON.stringify(decoded));
-          setReviewer(decoded);
-          console.log("User authenticated:", decoded);
-          const cleanedUrl = location.pathname;
-          window.history.replaceState({}, document.title, cleanedUrl);
-        }
-      } catch (error) {
-        console.error("Token decode error:", error);
-        enqueueSnackbar("Invalid login token", { variant: "error" });
-      }
+    const token = authToken
+    const user = localStorage.getItem("userData");
+  
+    if (token && user) {
+      setReviewer(JSON.parse(user)); // or rename `setReviewer` to `setUser` if you prefer
     } else {
-      const storedToken = localStorage.getItem("reviewerToken");
-      const stored = localStorage.getItem("reviewer");
-      if (storedToken && stored) {
-        const decoded = jwtDecode(storedToken);
-        if (decoded.exp * 1000 < Date.now()) {
-          localStorage.removeItem("reviewerToken");
-          localStorage.removeItem("reviewer");
-          enqueueSnackbar(
-            "Session expired. Please sign in again to write a review.",
-            { variant: "info" }
-          );
-        } else {
-          setReviewer(JSON.parse(stored));
-        }
-      }
+      setReviewer(null); // or setUser(null)
     }
-  }, [location, enqueueSnackbar]);
+  }, [location, authToken]);
+  
 
   // Handle review rating change
   const handleRating = (i) => {
@@ -144,30 +111,27 @@ export default function HireProfileDetails() {
     setReviewData({ ...reviewData, comment: e.target.value });
   };
 
-  // Review form image upload handler (max 2 images)
 
   // Submit review using FormData (to include images)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("reviewerToken");
-    console.log("Submitting review with token:", token);
-    if (!token) {
+    
+    console.log("Submitting review with token:", authToken);
+    if (!authToken) {
       enqueueSnackbar("Please login to submit your review.", {
         variant: "warning",
       });
-      const currentUrl = encodeURIComponent(window.location.pathname);
-      window.location.href = `${baseUrl}/review/google?redirect=${currentUrl}`;
+      
       return;
     }
-    const decoded = jwtDecode(token);
+    const decoded = jwtDecode(authToken);
     if (decoded.exp * 1000 < Date.now()) {
       enqueueSnackbar("Session expired. Please login again.", {
         variant: "info",
       });
       localStorage.removeItem("reviewerToken");
       localStorage.removeItem("reviewer");
-      const currentUrl = encodeURIComponent(window.location.pathname);
-      window.location.href = `${baseUrl}/review/google?redirect=${currentUrl}`;
+     navigate("/sign-in", { replace: true });
       return;
     }
     try {
@@ -182,7 +146,7 @@ export default function HireProfileDetails() {
       const res = await fetch(`${baseUrl}/review/${uniqueId}`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: formDataObj,
       });
@@ -243,10 +207,7 @@ export default function HireProfileDetails() {
     );
   };
 
-  const handleGoogleLogin = () => {
-    const currentUrl = encodeURIComponent(window.location.pathname);
-    window.location.href = `${baseUrl}/review/google?redirect=${currentUrl}`;
-  };
+  
 
   // Review Images Modal handlers using react-slick carousel
 
@@ -342,8 +303,9 @@ export default function HireProfileDetails() {
             </button>
             <button
               onClick={() =>
-                reviewer ? setShowReviewForm(true) : handleGoogleLogin()
+                authToken ? setShowReviewForm(true) : navigate("/sign-in")
               }
+              
               className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md shadow hover:bg-blue-700 transition"
             >
               <FontAwesomeIcon icon={faPen} />

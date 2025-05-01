@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
@@ -9,15 +9,44 @@ import { jwtDecode } from "jwt-decode";
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function SignIn() {
+  const location = useLocation();
   const { enqueueSnackbar } = useSnackbar(); // Use Snackbar for notifications
   const navigate = useNavigate();
-  const location = useLocation(); // To get the 'redirect' URL parameter
+  // To get the 'redirect' URL parameter
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(""); // Added error state
+
+  // If Google redirected back with a token param, handle it immediately
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const token = params.get("token");
+    const redirect = params.get("redirect") || "/";
+
+    if (!token) return;
+
+    try {
+      // 1. Persist the token
+      localStorage.setItem("userToken", token);
+      // 2. Decode and store user info
+      const decoded = jwtDecode(token);
+      console.log("Decoded token:", decoded);
+      
+      localStorage.setItem("userData", JSON.stringify(decoded));
+      localStorage.setItem("userRole", decoded.role);
+      enqueueSnackbar("Google login successful!", { variant: "success" });
+
+      // 3. Remove the token from the URL (optional, for cleanliness)
+      navigate(redirect, { replace: true });
+    } catch (err) {
+      console.error("Invalid token:", err);
+      enqueueSnackbar("Invalid login token, please try again.", { variant: "error" });
+      navigate("/signin", { replace: true });
+    }
+  }, [location.search, navigate, enqueueSnackbar]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
