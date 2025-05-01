@@ -29,6 +29,11 @@ exports.registerReviewerWithGoogle = async (googleUser) => {
       process.env.JWT_SECRET,
       { expiresIn: "3d" }
     );
+    
+    await User.update(
+      { profilePic },
+      { where: { email } }
+    )
 
     return { message: "Login successful", token };
   }

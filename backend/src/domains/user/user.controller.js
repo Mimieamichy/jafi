@@ -94,7 +94,7 @@ exports.getAllListings = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
 
     //Caching
-    const cacheKey = `allListings:page=${page}-limit=${limit}`;
+    const cacheKey = `allListings:search=${search}-page=${page}-limit=${limit}`;
     const cached = cache.get(cacheKey);
 
     if (cached) {

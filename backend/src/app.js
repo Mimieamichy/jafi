@@ -7,7 +7,7 @@ const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const passport = require('./config/passport');
 const path = require('path');
-const sequelize = require("./config/database");
+
 
 
 const app_url = process.env.APP_URL || "/api/v1";
@@ -66,17 +66,8 @@ app.use(`${app_url}/download/:filename`,  DocumentDownloader);
 app.use(errorHandler);
 
 
-const connectDb = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log("Database connected successfully") 
 
-    } catch (error) {
-      console.error("Database connection error:", error);
-    }
-}
-
-module.exports = {app, connectDb};
+module.exports = app;
 
 
 
