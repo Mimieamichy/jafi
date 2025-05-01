@@ -163,8 +163,8 @@ exports.deleteReview = async (reviewId, userId) => {
   return { message: "Review deleted successfully" };
 };
 
-exports.getAllReviews = async () => {
-  const allReviews = await Review.findAll({
+exports.getAllReviews = async (offset, limit, page) => {
+  const {count, rows: allReviews} = await Review.findAndCountAll({
     include: [
       {
         model: User,
@@ -172,6 +172,8 @@ exports.getAllReviews = async () => {
       },
     ],
     order: [["createdAt", "DESC"]],
+    offset,
+    limit
   });
 
   // Manually attach the correct listing (either Business or Service)
@@ -189,8 +191,10 @@ exports.getAllReviews = async () => {
       return review;
     })
   );
-
-  return {message: "All reviews fetched successfully", reviews };
+  return {
+    data: reviews,
+    meta: { page, limit, total: count },
+};
 };
 
 exports.searchReviews = async (searchQuery) => {

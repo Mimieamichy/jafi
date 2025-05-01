@@ -88,7 +88,10 @@ exports.deleteReview = async (req, res) => {
 
 exports.getAllReviews = async (req, res) => {
     try {
-        const response = await ReviewService.getAllReviews();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+        const response = await ReviewService.getAllReviews(offset, limit, page);
         return res.status(200).json(response);
     } catch (error) {
         console.log(error);
