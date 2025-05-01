@@ -14,26 +14,22 @@ const REVIEWS_PER_PAGE = 6;
 
 export default function AllListings() {
   const [listings, setListings] = useState([]);
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(REVIEWS_PER_PAGE);
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
-
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        console.log("URL:", `${baseUrl}/user/listings?page=${page}&limit=${limit}&search=${searchQuery}`);
-
         const response = await fetch(
-
-          `${baseUrl}/user/listings?page=${page}&limit=${limit}&search=${searchQuery}`
+          `${baseUrl}/user/listings?page=${page}&limit=${limit}&searchTerm=${searchQuery}`
         );
         const data = await response.json();
         console.log("Fetched listings:", data);
-  
+
         if (response.ok) {
           setListings(data.data);
           const total = data.meta.total ?? 0;
@@ -48,14 +44,11 @@ export default function AllListings() {
         console.error("Error fetching listings:", error);
       }
     };
-  
+
     fetchListings();
   }, [page, limit, searchQuery]);
-  
-  
+
   // Pagination Logic
- 
-  
 
   const handleNextPage = () => {
     setPage((prev) => Math.min(prev + 1, totalPages));
@@ -162,8 +155,8 @@ export default function AllListings() {
       {/* Pagination Controls */}
       <div className="mt-6 flex justify-center space-x-4">
         <button
-           onClick={handlePreviousPage}
-           disabled={page === 1}
+          onClick={handlePreviousPage}
+          disabled={page === 1}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Prev
@@ -172,8 +165,8 @@ export default function AllListings() {
           Page {page} of {totalPages}
         </span>
         <button
-           onClick={handleNextPage}
-           disabled={page === totalPages || totalPages === 0}
+          onClick={handleNextPage}
+          disabled={page === totalPages || totalPages === 0}
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Next
