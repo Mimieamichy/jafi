@@ -50,7 +50,7 @@ export default function HeroSection() {
           const response = await axios.get(`${baseUrl}/user/listings`, {
             params: { searchTerm: searchQuery },
           });
-          setSuggestions(response.data.allListings  || [])
+          setSuggestions(response.data.data  || [])
           console.log("Fetched data:", response.data);
           setMessage(response.data.message);
           

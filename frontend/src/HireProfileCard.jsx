@@ -67,7 +67,7 @@ export default function HireProfileCard() {
     <div className="flex flex-col min-h-screen justify-between">
       <div>
         {users.length > 0 ? (
-          <h2 className="text-4xl font-bold text-gray-900 m-3 text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mt-7 m-3 text-center">
             People Available for Hire
           </h2>
         ) : (

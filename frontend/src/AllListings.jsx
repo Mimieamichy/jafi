@@ -14,7 +14,7 @@ const REVIEWS_PER_PAGE = 6;
 
 export default function AllListings() {
   const [listings, setListings] = useState([]);
-  const [filteredListings, setFilteredListings] = useState([]);
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(REVIEWS_PER_PAGE);
@@ -25,15 +25,17 @@ export default function AllListings() {
   useEffect(() => {
     const fetchListings = async () => {
       try {
+        console.log("URL:", `${baseUrl}/user/listings?page=${page}&limit=${limit}&search=${searchQuery}`);
+
         const response = await fetch(
-          `${baseUrl}/user/listings?page=${page}&limit=${limit}`
+
+          `${baseUrl}/user/listings?page=${page}&limit=${limit}&search=${searchQuery}`
         );
         const data = await response.json();
         console.log("Fetched listings:", data);
-
+  
         if (response.ok) {
           setListings(data.data);
-          setFilteredListings(data.data);
           const total = data.meta.total ?? 0;
           setTotalPages(Math.ceil(total / limit));
         } else {
@@ -46,27 +48,14 @@ export default function AllListings() {
         console.error("Error fetching listings:", error);
       }
     };
-
+  
     fetchListings();
-  }, [limit, page]);
-
-  // Handle Search Query
-  useEffect(() => {
-    if (searchQuery) {
-      const filtered = listings.filter(
-        (listing) =>
-          listing.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          listing.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredListings(filtered);
-    } else {
-      setFilteredListings(listings);
-    }
-  }, [searchQuery, listings]);
-
+  }, [page, limit, searchQuery]);
+  
+  
   // Pagination Logic
  
-  const currentListings = filteredListings
+  
 
   const handleNextPage = () => {
     setPage((prev) => Math.min(prev + 1, totalPages));
@@ -97,8 +86,9 @@ export default function AllListings() {
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
-            
-          }} // Reset page to 1 on search
+            setPage(1); // Reset page to 1 on search
+          }}
+          // Reset page to 1 on search
           className="p-2 pl-10 w-full border border-gray-300 rounded-lg" // Adjust padding and width
         />
         <FontAwesomeIcon
@@ -109,7 +99,7 @@ export default function AllListings() {
 
       {/* Displaying the Listings */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {currentListings.map((listing) => (
+        {listings.map((listing) => (
           <div
             key={listing.id}
             className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:scale-105 transform transition-all"
