@@ -89,9 +89,9 @@ exports.updateUser = async (req, res) => {
 exports.getAllListings = async (req, res) => {
   try {
     const search = req.query.searchTerm || "";
-    const offset = req.query.offset || 0;
-    const limit = req.query.limit || 10;
-    const page = req.query.page || 1;
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
 
     //Caching
     const cacheKey = `allListings:page=${page}-limit=${limit}`;
