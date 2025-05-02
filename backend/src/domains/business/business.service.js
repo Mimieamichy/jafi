@@ -45,6 +45,7 @@ exports.getABusiness = async (businessId) => {
   const business = await Business.findByPk(businessId, {
     include: {
       model: User,
+      as: 'user',
       attributes: ["id", "name", "email", "role"],
     },
   });
@@ -58,6 +59,7 @@ exports.getAllBusinesses = async (offset, limit, page) => {
   const { count, rows: businesses } = await Business.findAndCountAll({
     include: {
       model: User,
+      as: "user",
       attributes: ["id", "name", "email", "role"],
     },
     where: {
@@ -111,7 +113,7 @@ exports.updateBusiness = async (businessId, userId, businessData, password, emai
 exports.payForBusiness = async (businessId, amount, transaction) => {
   const business = await Business.findOne({
     where: { id: businessId },
-    include: [{ model: User, attributes: ["id", "email", "name", "role"] }],
+    include: [{ model: User, as: 'user', attributes: ["id", "email", "name", "role"] }],
     transaction,
   });
 

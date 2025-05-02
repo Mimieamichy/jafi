@@ -153,7 +153,7 @@ exports.verifyPayment = async (reference) => {
 
 
 exports.viewPayments = async (offset, limit, page) => {
-  const { count, rows: payments } = await Payments.findAndCountAll({
+  const { count, rows: payments } = await Payment.findAndCountAll({
     include: [
       {
         model: User,

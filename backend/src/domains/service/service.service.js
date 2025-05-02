@@ -57,6 +57,7 @@ exports.getAService = async (serviceId) => {
     const service = await Service.findByPk(serviceId, {
         include: {
             model: User,
+            as: 'user',
             attributes: ["id", "name", "email", "role"],
         },
     });
@@ -70,6 +71,7 @@ exports.getAllServices = async (offset, limit, page) => {
     const { count, rows: services } = await Service.findAndCountAll({
       include: {
         model: User,
+        as: "user",
         attributes: ["id", "name", "email", "role"],
       },
       where: { status: "verified" },
@@ -120,7 +122,8 @@ exports.payForService = async (serviceId, amount, transaction) => {
     const service = await Service.findOne({
         where: { id: serviceId },
         include: [{
-            model: User, attributes: ["id", "email", "name", "role"]
+            model: User, attributes: ["id", "email", "name", "role"],
+            as: 'user'
         }],
         transaction
     });

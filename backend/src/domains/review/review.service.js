@@ -258,6 +258,7 @@ exports.getReviewsForListings = async (listingId) => {
     include: [
       {
         model: User,
+        as: 'user',
         attributes: ["id", "name", "email", "role"],
       },
     ],
@@ -281,6 +282,7 @@ exports.getAReviewwithReplies = async (reviewId) => {
     include: [
       {
         model: User,
+        as: 'user',
       },
     ],
     order: [["createdAt", "ASC"]],
@@ -294,9 +296,10 @@ exports.getAllReviewsWithReplies = async () => {
     include: [
       {
         model: User,
+        as: 'user',
+        attributes: ["id", "name", "email", "role"],
       },
       {
-        model: Review,
         include: [
           {
             model: User,
@@ -333,6 +336,7 @@ exports.getAllReviewsByuserId = async (userId, offset, limit, page) => {
     include: [
       {
         model: User,
+        as: 'user',
         attributes: ["id", "name", "email", "profilePic"],
       },
     ],
