@@ -27,7 +27,7 @@ export default function Navbar() {
   const location = useLocation();
   const dropdownRef = useRef(null);
   const [showDropdown, setShowDropdown] = useState(false);
-  const data = localStorage.getItem("userData");
+ 
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -44,49 +44,52 @@ export default function Navbar() {
   // Authentication token handling
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    if (token) {
-      try {
-        const decodedToken = jwtDecode(token);
-        console.log(decodedToken);
+    const tokenFromUrl = params.get("token");
+    const storedToken = localStorage.getItem("userToken");
+    const storedUser = localStorage.getItem("userData");
+    const storedRole = localStorage.getItem("userRole");
 
-        const isExpired = decodedToken.exp * 1000 < Date.now();
-        if (isExpired) {
-          localStorage.removeItem("reviewerToken");
-          localStorage.removeItem("reviewer");
-        } else {
-          
-          setReviewer(data);
-          const cleanedUrl = location.pathname;
-          window.history.replaceState({}, document.title, cleanedUrl);
-        }
-      } catch (error) {
-        console.error("Error decoding token:", error);
+    const handleDecoded = (rawToken) => {
+      try {
+        const decoded = jwtDecode(rawToken);
+        // if your token payload wraps the user object under `user`, use decoded.user
+        const user = decoded.user || decoded;
+        localStorage.setItem("userToken", rawToken);
+        localStorage.setItem("userData", JSON.stringify(user));
+        setReviewer(user);
+      } catch (err) {
+        console.error("Invalid token:", err);
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("userData");
       }
-    } else {
-      const storedToken = localStorage.getItem("userToken");
-      const storedRole = localStorage.getItem("userRole");
-      if (storedToken) {
-        try {
-          const decodedToken = jwtDecode(storedToken);
-          const isExpired = decodedToken.exp * 1000 < Date.now();
-          if (isExpired) {
-            localStorage.removeItem("userToken");
-            localStorage.removeItem("userData");
-          } else {
-            setReviewer(JSON.parse(localStorage.getItem("userData") || "null"));
-          }
-        } catch (error) {
-          console.error("Error with stored token:", error);
+    };
+
+    if (tokenFromUrl) {
+      handleDecoded(tokenFromUrl);
+      // remove token from URL
+      const cleanPath = location.pathname;
+      window.history.replaceState({}, document.title, cleanPath);
+    } else if (storedToken && storedUser) {
+      try {
+        const decoded = jwtDecode(storedToken);
+        if (decoded.exp * 1000 > Date.now()) {
+          setReviewer(JSON.parse(storedUser));
+        } else {
+          // token expired
           localStorage.removeItem("userToken");
           localStorage.removeItem("userData");
         }
-      }
-      if (storedRole) {
-        setUserRole(storedRole);
+      } catch (err) {
+        console.error("Error decoding stored token:", err);
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("userData");
       }
     }
-  }, [location, data]);
+
+    if (storedRole) {
+      setUserRole(storedRole);
+    }
+  }, [location]);
 
   const handleLogout = () => {
     localStorage.removeItem("userData");
