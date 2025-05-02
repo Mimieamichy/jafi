@@ -557,7 +557,7 @@ export default function AdminPage() {
       {/* Modal for Adding a Business */}
       {isAddModalOpen && (
         <div className="fixed inset-0 overflow-y-auto bg-black/50 flex items-start justify-center p-4">
-          <div className="bg-white p-6 w-full max-w-xl rounded shadow max-h-[90vh] overflow-y-auto">
+          <div className="bg-white p-6 w-full max-w-xl rounded mt-7 shadow max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Add Business</h2>
             <form onSubmit={handleCreateBusiness} className="space-y-4">
               <div>

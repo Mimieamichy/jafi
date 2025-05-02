@@ -112,7 +112,7 @@ export default function HiringSignup() {
   // Handle form submission
   const handleSubmit = async (e) => {
     if (formData.workSamples.length < 3) {
-      enqueueSnackbar("Please select at least two images.", {
+      enqueueSnackbar("Please select at least three images.", {
         variant: "warning",
       });
       return;

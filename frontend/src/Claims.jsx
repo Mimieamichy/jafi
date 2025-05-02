@@ -92,9 +92,10 @@ export default function Claims() {
         <table className="w-full border-collapse">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-2 border">S/N</th>
+              <th className="p-2 border">S/N</th>              
+              <th className="p-2 border">Business Name</th>
               <th className="p-2 border">Email</th>
-              <th className="p-2 border">Phone&nbsp;Number</th>
+              <th className="p-2 border">Transaction Id</th>
               <th className="p-2 border">POB</th>
               <th className="p-2 border">Actions</th>
             </tr>
@@ -111,9 +112,10 @@ export default function Claims() {
                 const sn = (currentPage - 1) * itemsPerPage + idx + 1;
                 return (
                   <tr key={c.id} className="border-t text-center">
-                    <td className="p-2 border">{sn}</td>
+                    <td className="p-2 border">{sn}</td>         
+                    <td className="p-2 border">{c.bussinessName}</td>
                     <td className="p-2 border">{c.email}</td>
-                    <td className="p-2 border">{c.phone}</td>
+                    <td className="p-2 border">{c.transactionId}</td>
                     <td className="p-2 border">
                       <a
                         href={`${baseUrl}/download/${getFileName(
