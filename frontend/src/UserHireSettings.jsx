@@ -11,6 +11,7 @@ export default function SettingsSection({
   handleWorkSampleUpload,
   removeImage,
   handleSave,
+  isSaving,
 }) {
   return (
     <div className="mt-6">
@@ -131,7 +132,13 @@ export default function SettingsSection({
             onClick={handleSave}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg mt-4 font-medium transition-colors"
           >
-            Save Changes
+            {isSaving ? (
+              "Updating..."
+            ) : (
+              <>
+                <span> Save Changes</span>
+              </>
+            )}
           </button>
         </div>
       </div>

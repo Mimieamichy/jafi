@@ -43,6 +43,7 @@ export default function HireProfileDetails() {
   const reviewsPerPage = 3;
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
   const [reviewModalImages, setReviewModalImages] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Reviewer & authentication
   const [reviewer, setReviewer] = useState(null);
@@ -91,16 +92,15 @@ export default function HireProfileDetails() {
 
   // Google Sign-in & token handling
   useEffect(() => {
-    const token = authToken
+    const token = authToken;
     const user = localStorage.getItem("userData");
-  
+
     if (token && user) {
       setReviewer(JSON.parse(user)); // or rename `setReviewer` to `setUser` if you prefer
     } else {
       setReviewer(null); // or setUser(null)
     }
   }, [location, authToken]);
-  
 
   // Handle review rating change
   const handleRating = (i) => {
@@ -111,17 +111,16 @@ export default function HireProfileDetails() {
     setReviewData({ ...reviewData, comment: e.target.value });
   };
 
-
   // Submit review using FormData (to include images)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setIsSaving(true);
     console.log("Submitting review with token:", authToken);
     if (!authToken) {
       enqueueSnackbar("Please login to submit your review.", {
         variant: "warning",
       });
-      
+
       return;
     }
     const decoded = jwtDecode(authToken);
@@ -131,7 +130,7 @@ export default function HireProfileDetails() {
       });
       localStorage.removeItem("reviewerToken");
       localStorage.removeItem("reviewer");
-     navigate("/sign-in", { replace: true });
+      navigate("/sign-in", { replace: true });
       return;
     }
     try {
@@ -166,6 +165,8 @@ export default function HireProfileDetails() {
     } catch (error) {
       console.error("Review submission error:", error);
       enqueueSnackbar("Something went wrong", { variant: "error" });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -206,8 +207,6 @@ export default function HireProfileDetails() {
       </div>
     );
   };
-
-  
 
   // Review Images Modal handlers using react-slick carousel
 
@@ -305,7 +304,6 @@ export default function HireProfileDetails() {
               onClick={() =>
                 authToken ? setShowReviewForm(true) : navigate("/sign-in")
               }
-              
               className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md shadow hover:bg-blue-700 transition"
             >
               <FontAwesomeIcon icon={faPen} />
@@ -452,7 +450,13 @@ export default function HireProfileDetails() {
                     type="submit"
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                   >
-                    Submit
+                    {isSaving ? (
+                      "Processing..."
+                    ) : (
+                      <>
+                        <span>Submit</span>
+                      </>
+                    )}
                   </button>
                   <button
                     type="button"

@@ -21,6 +21,7 @@ export default function AdminPage() {
     name: "",
     category: "",
     address: "",
+    businessType: "standard",
     phone_number1: "",
     start: "",
     end: "",
@@ -31,25 +32,6 @@ export default function AdminPage() {
     images: [], // Will be handled as a FileList.
   };
 
-  const categories = [
-    "Automotives",
-    "Hotels",
-    "Healthcare",
-    "Groceries",
-    "Malls & Supermarkets",
-    "Banking & FinTech",
-    "Churches",
-    "Aircrafts",
-    "Nigerian Made",
-    "Nightlife & Entertainment",
-    "Restaurants & Cafes",
-    "Real Estate",
-    "Education & Training",
-    "Fashion & Beauty",
-    "Fitness & Wellness",
-    "Travel & Tours",
-    "Tech Hubs",
-  ];
   const daysOfWeek = [
     "Monday",
     "Tuesday",
@@ -70,12 +52,14 @@ export default function AdminPage() {
         : prev.day.filter((day) => day !== value),
     }));
   };
+  const [standardCategories, setStandardCategories] = useState([]);
+  const [premiumCategories, setPremiumCategories] = useState([]);
 
   /* ---------------- state ---------------- */
   const [rows, setRows] = useState([]);
 
   const [previewImages, setPreviewImages] = useState([]);
-
+ const [isSaving, setIsSaving] = useState(false);
   const [editTarget, setEditTarget] = useState(null); // full biz obj
   const [editData, setEditData] = useState({}); // working copy
   const [previewImgs, setPreviewImgs] = useState([]);
@@ -142,11 +126,13 @@ export default function AdminPage() {
   // Submit form to create a new business
   const handleCreateBusiness = async (e) => {
     e.preventDefault();
+    setIsSaving(true);
     const dataToSend = new FormData();
     dataToSend.append("name", formData.name);
 
     dataToSend.append("category", formData.category);
     dataToSend.append("address", formData.address);
+    dataToSend.append("businessType", formData.businessType);
     dataToSend.append("phone_number1", formData.phone_number1);
     dataToSend.append("start", formData.start);
     dataToSend.append("end", formData.end);
@@ -184,31 +170,46 @@ export default function AdminPage() {
       });
     } catch (error) {
       console.error(error);
+    }finally {
+      setIsSaving(false);
     }
   };
+
+  const handlebusinessTypeChange = (e) => {
+    const businessType = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      businessType,
+      category: "",
+    }));
+  };
+
 
   /* ---------------- fetch only *my* businesses ---------------- */
   /* example with async / await */
   useEffect(() => {
     const fetchBusinesses = async () => {
       try {
-        const res = await fetch(`${baseUrl}/admin/myBusiness?page=${page}&limit=${limit}`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
+        const res = await fetch(
+          `${baseUrl}/admin/myBusiness?page=${page}&limit=${limit}`,
+          {
+            headers: { Authorization: `Bearer ${authToken}` },
+          }
+        );
         const data = await res.json();
 
         // 👇 inspect everything that comes back
         console.log("MY‑BUSINESSES API →", data);
         const rowsArr = Array.isArray(data.data)
-        ? data.data
-        : Array.isArray(data.data)
-        ? data.data
-        : Array.isArray(data.data)
-        ? data.data // if backend ever sends an array here
-        : data.data
-        ? [data.data] // wrap single object
-        : [];
-        setTotal(data.meta.total); 
+          ? data.data
+          : Array.isArray(data.data)
+          ? data.data
+          : Array.isArray(data.data)
+          ? data.data // if backend ever sends an array here
+          : data.data
+          ? [data.data] // wrap single object
+          : [];
+        setTotal(data.meta.total);
 
         setRows(rowsArr);
       } catch (e) {
@@ -218,8 +219,31 @@ export default function AdminPage() {
     fetchBusinesses();
   }, [authToken, page, limit]);
 
- 
- 
+  // ─── FETCH LIVE CATEGORIES ON MOUNT ───────────────────
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const [stdRes, premRes] = await Promise.all([
+          fetch(`${baseUrl}/admin/standardCategories`),
+          fetch(`${baseUrl}/admin/premiumCategories`),
+        ]);
+
+        if (!stdRes.ok) throw new Error("Failed to load standard categories");
+        if (!premRes.ok) throw new Error("Failed to load premium categories");
+
+        const stdJson = await stdRes.json();
+        const premJson = await premRes.json();
+
+        // assuming your API returns { categories: ["...", "..."] }
+        setStandardCategories(stdJson.categories || []);
+        setPremiumCategories(premJson.categories || []);
+      } catch (err) {
+        console.error(err);
+        enqueueSnackbar("Error loading categories", { variant: "error" });
+      }
+    }
+    loadCategories();
+  }, [enqueueSnackbar]);
 
   /* ---------------- open edit modal ---------------- */
   const openEdit = (biz) => {
@@ -251,6 +275,7 @@ export default function AdminPage() {
 
   const saveEdit = async () => {
     if (!editTarget) return;
+    setIsSaving(true);
     const fd = new FormData();
     [
       "address",
@@ -278,6 +303,8 @@ export default function AdminPage() {
     } catch (e) {
       enqueueSnackbar("Update failed", { variant: "error" });
       console.error(e);
+    }finally {
+      setIsSaving(false);
     }
   };
 
@@ -319,9 +346,7 @@ export default function AdminPage() {
           <tbody>
             {rows.map((b, idx) => (
               <tr key={b.id} className="border-t text-center">
-                <td className="p-2 border">
-                {idx + 1 + (page - 1) * limit}
-                </td>
+                <td className="p-2 border">{idx + 1 + (page - 1) * limit}</td>
                 <td className="p-2 border capitalize">{b.name}</td>
                 <td className="p-2 border">{b.phone_number1}</td>
                 <td className="p-2 border">{b.city}</td>
@@ -380,25 +405,24 @@ export default function AdminPage() {
 
       {/* -------- pagination -------- */}
       <div className="flex justify-center space-x-3 mt-4">
-          <button
-           onClick={() => setPage(p => Math.max(p - 1, 1))}
-           disabled={page === 1}
-            
-            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span>
+        <button
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span>
           <strong>{page}</strong>/<strong>{totalPagess}</strong>
-          </span>
-          <button
-             onClick={() => setPage(p => Math.min(p + 1, totalPagess))}
-             disabled={page === totalPagess}
-            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+        </span>
+        <button
+          onClick={() => setPage((p) => Math.min(p + 1, totalPagess))}
+          disabled={page === totalPagess}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
       {/* -------- edit modal -------- */}
       {editTarget && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -517,8 +541,14 @@ export default function AdminPage() {
                 onClick={saveEdit}
                 className="px-4 py-2 bg-blue-600 text-white rounded flex items-center space-x-1"
               >
-                <FontAwesomeIcon icon={faSave} />
-                <span>Save</span>
+                {isSaving
+              ? "Processing..."
+              : <>
+                  
+                  <FontAwesomeIcon icon={faSave} />
+                  <span>Save</span>
+                </>}
+                
               </button>
             </div>
           </div>
@@ -526,8 +556,7 @@ export default function AdminPage() {
       )}
       {/* Modal for Adding a Business */}
       {isAddModalOpen && (
-        <div
-          className="fixed inset-0 overflow-y-auto bg-black/50 flex items-start justify-center p-4">
+        <div className="fixed inset-0 overflow-y-auto bg-black/50 flex items-start justify-center p-4">
           <div className="bg-white p-6 w-full max-w-xl rounded shadow max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Add Business</h2>
             <form onSubmit={handleCreateBusiness} className="space-y-4">
@@ -543,28 +572,65 @@ export default function AdminPage() {
                 />
               </div>
 
-              <div>
-                <label htmlFor="category" className="font-semibold">
-                  Category:
+              {/* Category */}
+              <fieldset className="flex gap-6">
+                <legend className="font-semibold">Plan Type:</legend>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="businessType"
+                    value="standard"
+                    checked={formData.businessType === "standard"}
+                    onChange={handlebusinessTypeChange}
+                  />
+                  <span>Standard </span>
                 </label>
-                <select
-                  name="category"
-                  id="category"
-                  className="p-2 border rounded-md w-full"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="" disabled>
-                    Select Category
-                  </option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="businessType"
+                    value="premium"
+                    checked={formData.businessType === "premium"}
+                    onChange={handlebusinessTypeChange}
+                  />
+                  <span>Premium </span>
+                </label>
+              </fieldset>
+
+              {/* Sub-Category */}
+              <label htmlFor="category" className="font-semibold">
+                {formData.businessType === "standard"
+                  ? "Standard Categories"
+                  : "Premium Categories"}
+                :
+              </label>
+              <select
+                id="category"
+                name="category"
+                className="p-2 border rounded-md w-full"
+                value={formData.category}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="" disabled>
+                  Select{" "}
+                  {formData.businessType === "standard"
+                    ? "Standard"
+                    : "Premium"}{" "}
+                  Category
+                </option>
+                {formData.businessType === "standard"
+                  ? standardCategories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))
+                  : premiumCategories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+              </select>
 
               <div>
                 <label className="block font-medium">Phone Number</label>
@@ -693,7 +759,12 @@ export default function AdminPage() {
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded"
                 >
-                  Create Business
+                 {isSaving
+              ? "Processing..."
+              : <>
+                  
+                  <span>Create a Business</span>
+                </>}
                 </button>
               </div>
             </form>

@@ -22,42 +22,34 @@ import {
   faLinkedin,
   faXTwitter,
 } from "@fortawesome/free-brands-svg-icons";
-
 import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
-
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function BusinessPage() {
+
+
   const { enqueueSnackbar } = useSnackbar();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-
   const [business, setBusiness] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [reviewer, setReviewer] = useState(null);
-
-  // Claim modal state
+  const [isSaving, setIsSaving] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
     pob: null,
   });
-
-  // Review form state
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 0, comment: "" });
-  // Review images state for form uploads (max 2)
   const [reviewImages, setReviewImages] = useState([]);
   const [uniqueId, setUniqueId] = useState(null);
-
-  // Pagination for reviews
   const [currentPage, setCurrentPage] = useState(1);
   const reviewsPerPage = 3;
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
   const authToken = localStorage.getItem("userToken");
-
   // Review Images Modal state (for full-size preview)
   const [reviewImageModalOpen, setReviewImageModalOpen] = useState(false);
   const [reviewModalImages, setReviewModalImages] = useState([]);
@@ -147,16 +139,16 @@ export default function BusinessPage() {
   }, [uniqueId, showReviewForm, enqueueSnackbar]);
 
   // Google sign-in & token handling
-   useEffect(() => {
-      const token = authToken
-      const user = localStorage.getItem("userData");
-    
-      if (token && user) {
-        setReviewer(JSON.parse(user)); // or rename `setReviewer` to `setUser` if you prefer
-      } else {
-        setReviewer(null); // or setUser(null)
-      }
-    }, [location, authToken]);
+  useEffect(() => {
+    const token = authToken;
+    const user = localStorage.getItem("userData");
+
+    if (token && user) {
+      setReviewer(JSON.parse(user)); // or rename `setReviewer` to `setUser` if you prefer
+    } else {
+      setReviewer(null); // or setUser(null)
+    }
+  }, [location, authToken]);
 
   const handleClaimChange = (e) => {
     const { name, value } = e.target;
@@ -187,6 +179,7 @@ export default function BusinessPage() {
 
   const handleClaimSubmit = async (e) => {
     e.preventDefault();
+    setIsSaving(true);
     try {
       const data = new FormData();
       data.append("email", formData.email);
@@ -194,7 +187,6 @@ export default function BusinessPage() {
       if (formData.pob instanceof File) {
         data.append("pob", formData.pob, formData.pob.name);
       }
-      
 
       const response = await fetch(`${baseUrl}/claim/${id}`, {
         method: "POST",
@@ -202,15 +194,22 @@ export default function BusinessPage() {
       });
       if (response.ok) {
         enqueueSnackbar("Claim submitted", { variant: "success" });
-        navigate("/premium-payment");
-        console.log("response", response);
+        
+       
         const data = await response.json();
         console.log("climid", data);
-
         const claimid = data.claim.id;
+         const bussinessType = data.claim.bussinessType;
         localStorage.setItem("claimid", claimid);
+        if (bussinessType === "premium") {
+          navigate("/claim-premium-payment");
+        } else {
+          navigate("/claim-standard-payment");
+        }
+        
+
       } else {
-        const errorData = await response.text();
+        const errorData = await response.message
         enqueueSnackbar("Claim error:", errorData, { variant: "error" });
 
         console.error("Claim error:", errorData);
@@ -218,6 +217,8 @@ export default function BusinessPage() {
     } catch (error) {
       enqueueSnackbar("Error submitting claim:", error, { variant: "error" });
       console.error("Error submitting claim:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -233,13 +234,13 @@ export default function BusinessPage() {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    
+    setIsSaving(true);
     console.log("Submitting review with token:", authToken);
     if (!authToken) {
       enqueueSnackbar("Please login to submit your review.", {
         variant: "warning",
       });
-      
+
       return;
     }
     const decoded = jwtDecode(authToken);
@@ -284,10 +285,10 @@ export default function BusinessPage() {
     } catch (error) {
       console.error("Review submission error:", error);
       enqueueSnackbar("Something went wrong", { variant: "error" });
+    } finally {
+      setIsSaving(false);
     }
   };
-
-  
 
   // Review Images Modal handlers
 
@@ -330,15 +331,15 @@ export default function BusinessPage() {
           {/* Business Info - remains unchanged */}
           <div className="mt-4">
             <div className="flex items-center m-2">
-             
-              <h1 className="text-2xl font-bold capitalize">{business.name}</h1>
-              {business.logo && (
+            {business?.logo && (
                 <img
                   src={business.logo}
                   alt={`${business.name} Logo`}
-                  className="w-10 h-10 object-cover rounded-full mr-2"
+                  className="w-20 h-10 object-cover rounded-full mr-2"
                 />
               )}
+              <h1 className="text-2xl font-bold capitalize">{business.name}</h1>
+              
             </div>
             <p className="text-sm text-gray-500 m-2">
               {business.category} | {business.address}, {business.city},{" "}
@@ -446,9 +447,9 @@ export default function BusinessPage() {
               </button>
               <div className="flex items-center gap-4">
                 <button
-                 onClick={() =>
-                  authToken ? setShowReviewForm(true) : navigate("/sign-in")
-                }
+                  onClick={() =>
+                    authToken ? setShowReviewForm(true) : navigate("/sign-in")
+                  }
                   className="px-4 py-2 bg-blue-600 md:text-base text-sm text-white rounded hover:bg-blue-700"
                 >
                   Write a Review
@@ -627,7 +628,13 @@ export default function BusinessPage() {
                     type="submit"
                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                   >
-                    Submit
+                    {isSaving ? (
+                      "Processing..."
+                    ) : (
+                      <>
+                        <span>Submit</span>
+                      </>
+                    )}
                   </button>
                   <button
                     type="button"
@@ -675,7 +682,6 @@ export default function BusinessPage() {
                   Proof of Business (POB):
                 </label>
                 <input
-                
                   name="pob"
                   type="file"
                   accept="pdf,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -695,7 +701,13 @@ export default function BusinessPage() {
                     type="submit"
                     className="px-4 py-2 bg-yellow-500 text-white rounded"
                   >
-                    Submit
+                    {isSaving ? (
+                      "Processing..."
+                    ) : (
+                      <>
+                        <span>Submit</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

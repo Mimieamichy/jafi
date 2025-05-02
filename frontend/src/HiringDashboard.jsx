@@ -9,7 +9,6 @@ import DashboardSection from "./UserHireDashboard";
 import SettingsSection from "./UserHireSettings";
 import ReviewsSection from "./UserHireReview";
 
-
 export default function HiringDashboard() {
   const { enqueueSnackbar } = useSnackbar();
   const baseUrl = import.meta.env.VITE_BACKEND_URL;
@@ -32,10 +31,11 @@ export default function HiringDashboard() {
   const [profileImage, setProfileImage] = useState(null);
   const [replyStates, setReplyStates] = useState({});
   const [replyTexts, setReplyTexts] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
 
   // Get and decode auth token
   const authToken = localStorage.getItem("userToken");
-  
+
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
 
@@ -108,19 +108,21 @@ export default function HiringDashboard() {
       .then((res) => res.json())
       .then((data) => {
         console.log("Service data:", data);
-        
+
         if (data) {
-          setFormData(data.user);
-          setWorkSampleImages(data.user.images || []);
-          setServiceId(data.user.uniqueId);
-          setId(data.user.id);
-          if (data.user.images && data.user.images.length > 0) {
-            setProfileImage(data.user.images[0]);
+          setFormData(data);
+          setWorkSampleImages(data.images || []);
+          setServiceId(data.uniqueId);
+          setId(data.id);
+          if (data.images && data.images.length > 0) {
+            setProfileImage(data.images[0]);
           }
         }
       })
       .catch((error) =>
-        enqueueSnackbar(error, "Error fetching service data.", { variant: "error" })
+        enqueueSnackbar(error, "Error fetching service data.", {
+          variant: "error",
+        })
       );
 
     // Fetch reviews
@@ -161,7 +163,15 @@ export default function HiringDashboard() {
     if (serviceId) {
       fetchReviews();
     }
-  }, [authToken, baseUrl, userId, serviceId, currentPage, reviewsPerPage, enqueueSnackbar]);
+  }, [
+    authToken,
+    baseUrl,
+    userId,
+    serviceId,
+    currentPage,
+    reviewsPerPage,
+    enqueueSnackbar,
+  ]);
 
   // Adjust reviews per page on window resize
   useEffect(() => {
@@ -209,6 +219,7 @@ export default function HiringDashboard() {
 
   // Save changes (update profile)
   const handleSave = () => {
+    setIsSaving(true);
     if (!formData) {
       enqueueSnackbar("No data to save", { variant: "error" });
       return;
@@ -249,8 +260,6 @@ export default function HiringDashboard() {
       .then((data) => {
         console.log("Profile updated successfully:", data);
         if (data) {
-         
-          
           enqueueSnackbar("Profile updated successfully!", {
             variant: "success",
           });
@@ -263,10 +272,13 @@ export default function HiringDashboard() {
         }
       })
       .catch((error) => {
-        enqueueSnackbar(
-          `${error} There was an error updating your profile.`,
-          { variant: "error" }
-        );
+        enqueueSnackbar(`${error} There was an error updating your profile.`, {
+          variant: "error",
+        });
+      })
+      .finally(() => {
+        // runs whether success or failure
+        setIsSaving(false);
       });
   };
 
@@ -290,10 +302,9 @@ export default function HiringDashboard() {
           }
         })
         .catch((error) => {
-          enqueueSnackbar(
-            `${error} There was an error deleting the account.`,
-            { variant: "error" }
-          );
+          enqueueSnackbar(`${error} There was an error deleting the account.`, {
+            variant: "error",
+          });
         });
     } else {
       enqueueSnackbar("Service ID not found.", { variant: "info" });
@@ -468,6 +479,7 @@ export default function HiringDashboard() {
             handleWorkSampleUpload={handleWorkSampleUpload}
             removeImage={removeImage}
             handleSave={handleSave}
+            isSaving={isSaving}
           />
         )}
 

@@ -15,6 +15,7 @@ export default function BusinessSignup() {
   const [premiumPrice, setPremiumPrice] = useState(null);
   const [standardCategories, setStandardCategories] = useState([]);
   const [premiumCategories, setPremiumCategories] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -152,7 +153,9 @@ export default function BusinessSignup() {
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (formData.images.length + files.length > 5) {
-      alert("You can upload a maximum of 5 images!");
+      enqueueSnackbar("You can upload a maximum of 5 images!", {
+        variant: "error",
+      });
       return;
     }
 
@@ -185,13 +188,13 @@ export default function BusinessSignup() {
   const handlePobChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
+
     const validTypes = [
       "application/pdf",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
-  
+
     if (!validTypes.includes(file.type)) {
       enqueueSnackbar(
         "Only PDF or Word documents (.pdf, .doc, .docx) are allowed for Proof of Business.",
@@ -199,7 +202,7 @@ export default function BusinessSignup() {
       );
       return;
     }
-  
+
     setFormData((prev) => ({
       ...prev,
       pob: file,
@@ -257,7 +260,7 @@ export default function BusinessSignup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setIsSaving(true);
     // build FormData payload
     const formPayload = new FormData();
     Object.entries(formData).forEach(([key, val]) => {
@@ -298,6 +301,8 @@ export default function BusinessSignup() {
       enqueueSnackbar("Error registering business. Please try again.", {
         variant: "error",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -614,9 +619,15 @@ export default function BusinessSignup() {
           type="submit"
           className="bg-blue-600 text-white py-2 rounded-lg cursor-pointer w-full text-center"
         >
-          {formData.businessType === "premium"
-            ? "Proceed to Premium Payment"
-            : "Proceed to Standard Payment"}
+          {isSaving ? (
+            "Processing..."
+          ) : (
+            <>
+              {formData.businessType === "premium"
+                ? "Proceed to Premium Payment"
+                : "Proceed to Standard Payment"}
+            </>
+          )}
         </button>
       </form>
     </div>

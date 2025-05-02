@@ -12,12 +12,11 @@ export default function AdminBusiness() {
 
   /* ---------------- state ---------------- */
   const [rows, setRows] = useState([]);
- ;
+  const [isSaving, setIsSaving] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   const [total, setTotal] = useState(0);
   const totalPagess = Math.ceil(total / limit);
-
   const [editTarget, setEditTarget] = useState(null); // full biz obj
   const [editData, setEditData] = useState({}); // working copy
   const [previewImgs, setPreviewImgs] = useState([]);
@@ -27,9 +26,12 @@ export default function AdminBusiness() {
   useEffect(() => {
     const fetchBusinesses = async () => {
       try {
-        const res = await fetch(`${baseUrl}/admin/myBusiness?page=${page}&limit=${limit}`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
+        const res = await fetch(
+          `${baseUrl}/admin/myBusiness?page=${page}&limit=${limit}`,
+          {
+            headers: { Authorization: `Bearer ${authToken}` },
+          }
+        );
         const data = await res.json();
 
         // 👇 inspect everything that comes back
@@ -45,7 +47,7 @@ export default function AdminBusiness() {
           : [];
 
         setRows(rowsArr);
-        setTotal(data.meta.total); 
+        setTotal(data.meta.total);
         console.log("total", data.meta.total); // total number of businesses
         // total number of businesses
       } catch (e) {
@@ -56,7 +58,6 @@ export default function AdminBusiness() {
   }, [authToken, page, limit]);
 
   /* ---------------- pagination helpers ---------------- */
-  
 
   /* ---------------- open edit modal ---------------- */
   const openEdit = (biz) => {
@@ -88,6 +89,7 @@ export default function AdminBusiness() {
 
   const saveEdit = async () => {
     if (!editTarget) return;
+    setIsSaving(true);
     const fd = new FormData();
     [
       "address",
@@ -115,6 +117,8 @@ export default function AdminBusiness() {
     } catch (e) {
       enqueueSnackbar("Update failed", { variant: "error" });
       console.error(e);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -170,7 +174,9 @@ export default function AdminBusiness() {
             key={b.id}
             className="border border-gray-300 rounded p-4 space-y-2"
           >
-           <div><strong>S/N:</strong> {idx + 1 + (page - 1) * limit}</div>
+            <div>
+              <strong>S/N:</strong> {idx + 1 + (page - 1) * limit}
+            </div>
             <div>
               <strong>Name:</strong> {b.name}
             </div>
@@ -194,28 +200,26 @@ export default function AdminBusiness() {
       </div>
 
       {/* -------- pagination -------- */}
-      
-        <div className="flex justify-center space-x-3 mt-4">
-          <button
-           onClick={() => setPage(p => Math.max(p - 1, 1))}
-           disabled={page === 1}
-            
-            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span>
+
+      <div className="flex justify-center space-x-3 mt-4">
+        <button
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span>
           Page <strong>{page}</strong> of <strong>{totalPagess}</strong>
-          </span>
-          <button
-             onClick={() => setPage(p => Math.min(p + 1, totalPagess))}
-             disabled={page === totalPagess}
-            className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-    
+        </span>
+        <button
+          onClick={() => setPage((p) => Math.min(p + 1, totalPagess))}
+          disabled={page === totalPagess}
+          className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
 
       {/* -------- edit modal -------- */}
       {editTarget && (
@@ -335,8 +339,14 @@ export default function AdminBusiness() {
                 onClick={saveEdit}
                 className="px-4 py-2 bg-blue-600 text-white rounded flex items-center space-x-1"
               >
-                <FontAwesomeIcon icon={faSave} />
-                <span>Save</span>
+                {isSaving ? (
+                  "Processing..."
+                ) : (
+                  <>
+                    <FontAwesomeIcon icon={faSave} />
+                    <span>Save</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
