@@ -175,6 +175,7 @@ exports.getAllReviews = async (offset, limit, page) => {
       {
         model: User,
         attributes: ["id", "email", "name", "role"],
+        as: 'user'
       },
     ],
     order: [["createdAt", "DESC"]],
