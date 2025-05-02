@@ -89,8 +89,8 @@ export default function Navbar() {
   }, [location, data]);
 
   const handleLogout = () => {
-    localStorage.removeItem("reviewer");
-    localStorage.removeItem("reviewerToken");
+    localStorage.removeItem("userData");
+    localStorage.removeItem("userToken");
     localStorage.removeItem("userRole");
     setShowDropdown(false);
     setUserRole(null);
