@@ -16,6 +16,10 @@ businessType: {
     type: DataTypes.ENUM("standard", "premium"),
     allowNull: false,
 },
+businessName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+},
 email: {
     type: DataTypes.STRING,
     allowNull: false,

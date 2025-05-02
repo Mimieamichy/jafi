@@ -19,7 +19,7 @@ exports.createClaim = async (businessId, email, phone, proof) => {
 
   const existingClaim = await Claim.findOne({ where: { businessId } });
   if (existingClaim) {
-    return {message: "A pending claim already exists for this business"};
+    return { message: "A pending claim already exists for this business"};
   }
 
   const name = business.name;
