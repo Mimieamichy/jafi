@@ -259,6 +259,11 @@ export default function BusinessSignup() {
   };
 
   const handleSubmit = async (e) => {
+
+    if (formData.images.length < 3) {
+      enqueueSnackbar("Please select at least two images.", { variant: "warning" });
+      return;
+    }
     e.preventDefault();
     setIsSaving(true);
     // build FormData payload
