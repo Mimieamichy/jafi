@@ -73,7 +73,6 @@ exports.getAllServices = async (offset, limit, page) => {
         model: User,
         attributes: ["id", "name", "email", "role"],
       },
-      where: { status: "verified" },
       order: [["createdAt", "DESC"]],
       offset,
       limit,
