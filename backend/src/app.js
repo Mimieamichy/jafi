@@ -68,10 +68,3 @@ app.use(errorHandler);
 
 
 module.exports = app;
-
-
-
-// const apicache = require('apicache');
-// const cache = apicache.middleware;
-
-// app.use(`${app_url}/business`, cache('5 minutes'), businessRoutes);

@@ -68,14 +68,15 @@ exports.getAService = async (serviceId) => {
 };
 
 exports.getAllServices = async (offset, limit, page) => {
-    const {count, rows: services} = await Service.findAndCountAll({
-        include: {
-            model: User,
-            attributes: ["id", "name", "email", "role"],
-        },
-        order: [["createdAt", "DESC"]],
-        offset,
-        limit,
+    const { count, rows: services } = await Service.findAndCountAll({
+      include: {
+        model: User,
+        attributes: ["id", "name", "email", "role"],
+      },
+      where: { status: "verified" },
+      order: [["createdAt", "DESC"]],
+      offset,
+      limit,
     });
     if (!services || services.length === 0) {
         throw new Error("No services found");

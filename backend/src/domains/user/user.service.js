@@ -138,6 +138,7 @@ exports.getAllListings = async (searchTerm, offset, limit, page) => {
         { category: { [Op.like]: `%${searchTerm}%` } },
         { address: { [Op.like]: `%${searchTerm}%` } },
       ],
+      status: "verified",
     };
   }
 
