@@ -25,7 +25,7 @@ export default function HiringPayment() {
         console.log("Service price →", data.price);
         console.log("Service price →", data.price);
         console.log("Service price →", data.price.value);
-        setPrice(Number(data.price));
+        setPrice(data.price);
       } catch (e) {
         console.error(e);
         enqueueSnackbar("Couldn’t fetch price", { variant: "error" });
