@@ -9,7 +9,7 @@ export default function ReviewersDashboard() {
   const [reviews, setReviews] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const reviewsPerPage = 3;
-  const token =  localStorage.getItem("reviewerToken") || localStorage.getItem("userToken") 
+  const token =  localStorage.getItem("userToken") 
 
   const fetchReviews = useCallback(async () => {
     if (!token) return;
