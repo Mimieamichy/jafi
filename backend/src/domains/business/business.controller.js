@@ -156,7 +156,7 @@ exports.getBusinessByCategory = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
     //Cache the response for 1 hour
-    const cacheKey = `businessCat:page=${page}-limit=${limit}`;
+    const cacheKey = `businessCat:category=${category}-page=${page}-limit=${limit}`;
     const cached = cache.get(cacheKey);
 
     if (cached) {
