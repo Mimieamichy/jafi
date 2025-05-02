@@ -19,13 +19,12 @@ export default function AllListings() {
   const [page, setPage] = useState(1);
   const [limit] = useState(REVIEWS_PER_PAGE);
   const [totalPages, setTotalPages] = useState(1);
-  const [error, setError] = useState(""); 
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        
         const response = await fetch(
           `${baseUrl}/user/listings?page=${page}&limit=${limit}&searchTerm=${searchQuery}`
         );
@@ -34,12 +33,10 @@ export default function AllListings() {
 
         if (response.ok) {
           setListings(data.data);
+         
+            setError(data.message || "No listings found");
+          
 
-          if (data.data.length === 0 && searchQuery.trim() !== "") {
-            setError(`No listings found for “${searchQuery}”`);
-          } else {
-            setError("");
-          }
           const total = data.meta.total ?? 0;
           setTotalPages(Math.ceil(total / limit));
         } else {
@@ -98,16 +95,10 @@ export default function AllListings() {
         />
       </div>
 
-      {error && (
-        <p className="text-red-600 mb-4">
-          {error}
-        </p>
-      )}
-
-
+     
       {/* Displaying the Listings */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {listings.map((listing) => (
+       {listings ? (listings.map((listing) => (
           <div
             key={listing.id}
             className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:scale-105 transform transition-all"
@@ -164,7 +155,9 @@ export default function AllListings() {
               )}
             </div>
           </div>
-        ))}
+        ))) : (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
+        )}
       </div>
 
       {/* Pagination Controls */}

@@ -8,7 +8,7 @@ import {
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 const ITEMS_PER_PAGE = 6;
@@ -16,7 +16,7 @@ const ITEMS_PER_PAGE = 6;
 export default function ReviewerPersonalPage() {
   const { enqueueSnackbar } = useSnackbar();
   const { userId } = useParams();
-
+  const navigate = useNavigate();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -28,6 +28,8 @@ export default function ReviewerPersonalPage() {
     email: "",
     profilePic: null,
   });
+
+  
 
   useEffect(() => {
     async function fetchReviews() {
@@ -68,15 +70,23 @@ export default function ReviewerPersonalPage() {
     fetchReviews();
   }, [enqueueSnackbar, userId, page, limit]);
 
- 
-  const paginatedUsers = reviews
+  const paginatedUsers = reviews;
 
-   const handleNextPage = () => {
+  const handleNextPage = () => {
     setPage((prev) => Math.min(prev + 1, totalPages));
   };
 
   const handlePreviousPage = () => {
     setPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleReviewCardClick = (id, listingType) => {
+    // Navigate to the appropriate route based on listingType (either service or business)
+    if (listingType === "service") {
+      navigate(`/hire/${id}`);
+    } else if (listingType === "business") {
+      navigate(`/business/${id}`);
+    }
   };
 
   return (
@@ -108,7 +118,11 @@ export default function ReviewerPersonalPage() {
       ) : (
         <div className="max-w-6xl mx-auto px-4 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {paginatedUsers.map((r) => (
-            <ReviewCard key={r.id} review={r} />
+            <ReviewCard
+              key={r.id}
+              review={r}
+              handleReviewCardClick={handleReviewCardClick}
+            />
           ))}
         </div>
       )}
@@ -122,7 +136,6 @@ export default function ReviewerPersonalPage() {
           >
             <FontAwesomeIcon icon={faChevronLeft} />
           </button>
-
           Page {page} of {totalPages}
           <button
             onClick={handleNextPage}
@@ -139,8 +152,17 @@ export default function ReviewerPersonalPage() {
 
 function ReviewCard({ review }) {
   const [expanded, setExpanded] = useState(false);
-  const { listingName, user_name, star_rating, comment, images, createdAt } =
-    review;
+  const {
+    listingName,
+    user_name,
+    star_rating,
+    comment,
+    images,
+    createdAt,
+    listing,
+    listingType,
+    handleReviewCardClick,
+  } = review;
 
   const isLong = comment.length > 150;
   const displayText =
@@ -148,7 +170,12 @@ function ReviewCard({ review }) {
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col">
-      <h3 className="text-xl font-semibold text-center mb-1">{listingName}</h3>
+      <h3
+        className="text-xl font-semibold text-center mb-1, cursor-pointer capitalize"
+        onClick={() => handleReviewCardClick(listing.id, listingType)}
+      >
+        {listingName}
+      </h3>
       <p className="text-gray-700 text-center mb-3 capitalize">{user_name}</p>
 
       <div className="flex justify-center space-x-1 text-yellow-400 mb-4">

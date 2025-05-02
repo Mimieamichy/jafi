@@ -55,8 +55,7 @@ export default function Navbar() {
           localStorage.removeItem("reviewerToken");
           localStorage.removeItem("reviewer");
         } else {
-          localStorage.setItem("reviewerToken", token);
-          localStorage.setItem("reviewer", JSON.stringify(decodedToken));
+          
           setReviewer(data);
           const cleanedUrl = location.pathname;
           window.history.replaceState({}, document.title, cleanedUrl);
@@ -72,15 +71,15 @@ export default function Navbar() {
           const decodedToken = jwtDecode(storedToken);
           const isExpired = decodedToken.exp * 1000 < Date.now();
           if (isExpired) {
-            localStorage.removeItem("reviewerToken");
-            localStorage.removeItem("reviewer");
+            localStorage.removeItem("userToken");
+            localStorage.removeItem("userData");
           } else {
-            setReviewer(JSON.parse(localStorage.getItem("reviewer") || "null"));
+            setReviewer(JSON.parse(localStorage.getItem("userData") || "null"));
           }
         } catch (error) {
           console.error("Error with stored token:", error);
-          localStorage.removeItem("reviewerToken");
-          localStorage.removeItem("reviewer");
+          localStorage.removeItem("userToken");
+          localStorage.removeItem("userData");
         }
       }
       if (storedRole) {

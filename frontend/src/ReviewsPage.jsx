@@ -9,8 +9,6 @@ const REVIEWS_PER_PAGE = 6;
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 import { useNavigate } from "react-router-dom";
 
-
-
 const ReviewCard = ({
   id,
   user_name,
@@ -27,26 +25,29 @@ const ReviewCard = ({
   onReviewerClick,
   userId,
   listingType,
-  handleReviewCardClick
+  handleReviewCardClick,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const isLong = comment.length > 150;
-  
+
   // const handleNavigate = () => navigate("/reveiwerPage");
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md text-center flex flex-col justify-between h-full cursor-pointer">
       <div>
-        <h3 className="text-lg font-semibold text-black capitalize"  onClick={() =>
-                    handleReviewCardClick(listing.id, listingType)
-                  }>
+        <h3
+          className="text-lg font-semibold text-black capitalize"
+          onClick={() => handleReviewCardClick(listing.id, listingType)}
+        >
           {listingName || ""}
         </h3>
-        <p className="text-gray-700 capitalize" onClick={(e) => {
-         e.stopPropagation();
-          onReviewerClick(userId);
-       }}>
-
+        <p
+          className="text-gray-700 capitalize"
+          onClick={(e) => {
+            e.stopPropagation();
+            onReviewerClick(userId);
+          }}
+        >
           {user_name || ""}
         </p>
         <div className="flex justify-center text-yellow-500 mt-2">
@@ -115,9 +116,9 @@ export default function PaginatedReviews() {
   const [modalImages, setModalImages] = useState([]);
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [selectedReply, setSelectedReply] = useState("");
-   const [page, setPage] = useState(1);
-   const [limit] = useState(REVIEWS_PER_PAGE);
-    const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(REVIEWS_PER_PAGE);
+  const [totalPages, setTotalPages] = useState(1);
 
   const handleReviewCardClick = (id, listingType) => {
     // Navigate to the appropriate route based on listingType (either service or business)
@@ -131,11 +132,12 @@ export default function PaginatedReviews() {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const res = await fetch(`${baseUrl}/review/?page=${page}&limit=${limit}`);
+        const res = await fetch(
+          `${baseUrl}/review/?page=${page}&limit=${limit}`
+        );
         const data = await res.json();
         console.log("Fetched reviews:", data);
 
-        
         setAllReviews(data.data || []);
         const total = data.meta.total ?? 0;
         setTotalPages(Math.ceil(total / limit));
@@ -156,7 +158,6 @@ export default function PaginatedReviews() {
     setReplyModalOpen(false);
   };
 
- 
   const currentReviews = allReviews; // backend already paged it
 
   const handleNextPage = () => {
@@ -168,7 +169,6 @@ export default function PaginatedReviews() {
   };
 
   const navigate = useNavigate();
-
 
   // When a review card is clicked, if there are images, open modal to show a larger view with slide navigation.
   const openImageModal = (images) => {
