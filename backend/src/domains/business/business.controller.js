@@ -74,9 +74,9 @@ exports.updateBusiness = async (req, res) => {
 
     // Handle images
     const images = req.files?.["images"] ? req.files["images"].map(file => file.path) : [];
-    const logo = req.files?.["logo"] ? req.files["logo"].map(file => file.path) : [];
+    //const logo = req.files?.["logo"] ? req.files["logo"].map(file => file.path) : [];
     businessData.images = images;
-    businessData.logo = logo;
+    // businessData.logo = logo;
 
     const password = businessData.password;
     const email = businessData.email
@@ -84,7 +84,7 @@ exports.updateBusiness = async (req, res) => {
     delete businessData.email
 
     //Delete cacke key
-  cache.flushAll();
+    cache.flushAll();
     const business = await BusinessService.updateBusiness(id, userId, businessData, password, email);
     res.status(200).json(business);
   } catch (error) {
