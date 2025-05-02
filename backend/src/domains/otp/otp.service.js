@@ -1,6 +1,6 @@
 const {africastalking} = require('../../config/africastalking');
 const bcrypt = require('bcryptjs');
-const OTP = require('./otp.model');
+const {OTP} = require('../../models/index');
 
 const generateOTP = (length = 6) => {
     let otp = '';

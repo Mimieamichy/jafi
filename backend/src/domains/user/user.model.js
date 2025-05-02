@@ -1,8 +1,9 @@
-const { DataTypes } = require("sequelize");
+// src/domains/user/user.model.js
+const { DataTypes, Model } = require("sequelize");
 const sequelize = require("../../config/database");
 
-const User = sequelize.define(
-  "User",
+class User extends Model {}
+User.init(
   {
     id: {
       type: DataTypes.UUID,
@@ -32,9 +33,48 @@ const User = sequelize.define(
     },
   },
   {
+    sequelize,
+    modelName: "User",
     tableName: "users",
     timestamps: true,
   }
 );
+
+User.associate = (models) => {
+  // A user can own many businesses
+  User.hasMany(models.Business, {
+    foreignKey: "userId",
+    as: "businesses",
+    onDelete: "CASCADE",
+  });
+
+  // A user can own many services
+  User.hasMany(models.Service, {
+    foreignKey: "userId",
+    as: "services",
+    onDelete: "CASCADE",
+  });
+
+  // A user can have many payments
+  User.hasMany(models.Payment, {
+    foreignKey: "userId",
+    as: "payments",
+    onDelete: "CASCADE",
+  });
+
+  // A user can write many reviews
+  User.hasMany(models.Review, {
+    foreignKey: "userId",
+    as: "reviews",
+    onDelete: "CASCADE",
+  });
+
+  // A user can have multiple OTP entries
+  User.hasMany(models.OTP, {
+    foreignKey: "userId",
+    as: "otps",
+    onDelete: "CASCADE",
+  });
+};
 
 module.exports = User;

@@ -1,9 +1,8 @@
-const Business = require("./business.model");
-const User = require("../user/user.model");
 const PaymentService = require("../payments/payments.service");
 const { generatePassword } = require("../../utils/generatePassword")
 const bcrypt = require("bcryptjs")
 const {Op} = require('sequelize')
+const {Business, User} = require('../../models/index')
 
 exports.registerBusiness = async (businessData) => {
   const existingUser = await User.findOne({
@@ -60,6 +59,9 @@ exports.getAllBusinesses = async (offset, limit, page) => {
     include: {
       model: User,
       attributes: ["id", "name", "email", "role"],
+    },
+    where: {
+      status: "verified",
     },
     order: [["createdAt", "DESC"]],
     offset,

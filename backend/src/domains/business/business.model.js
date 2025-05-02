@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
-const User = require("../user/user.model");
 
 const Business = sequelize.define(
   "Business",
@@ -19,7 +18,7 @@ const Business = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "users", // Reference to the 'users' table
+        model: "users",
         key: "id",
       },
     },
@@ -126,10 +125,7 @@ const Business = sequelize.define(
     average_rating: {
       type: DataTypes.FLOAT,
       defaultValue: 0,
-      validate: {
-        min: 0,
-        max: 5,
-      },
+      validate: { min: 0, max: 5 },
     },
     faqs: {
       type: DataTypes.JSON,
@@ -154,9 +150,30 @@ const Business = sequelize.define(
   }
 );
 
+// Associations are defined in the central loader via the .associate hook
+Business.associate = (models) => {
+  // Owner user
+  Business.belongsTo(models.User, {
+    foreignKey: "userId",
+    as: "user",
+    onDelete: "CASCADE",
+  });
 
-Business.belongsTo(User, {
-  foreignKey: "userId",
-});
+  // Payments for this business (polymorphic)
+  Business.hasMany(models.Payment, {
+    foreignKey: "entity_id",
+    constraints: false,
+    scope: { entity_type: "business" },
+    as: "payments",
+  });
+
+  // Reviews can be attached similarly if needed
+  Business.hasMany(models.Review, {
+    foreignKey: "entity_id",
+    constraints: false,
+    scope: { entity_type: "business" },
+    as: "reviews",
+  });
+};
 
 module.exports = Business;

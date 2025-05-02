@@ -1,9 +1,8 @@
-const Service = require("./service.model");
-const User = require("../user/user.model");
 const OTPService = require("../otp/otp.service");
 const PaymentService = require("../payments/payments.service");
 const { generatePassword } = require("../../utils/generatePassword")
 const bcrypt = require('bcryptjs')
+const {Service, User} = require('../../models/index')
 
 
 
@@ -73,6 +72,7 @@ exports.getAllServices = async (offset, limit, page) => {
         model: User,
         attributes: ["id", "name", "email", "role"],
       },
+      where: { status: "verified" },
       order: [["createdAt", "DESC"]],
       offset,
       limit,

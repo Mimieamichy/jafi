@@ -1,8 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
-const User = require("../user/user.model");
-const Business = require("../business/business.model");
-const Service = require("../service/service.model");
 
 const Review = sequelize.define(
   "Review",
@@ -16,10 +13,6 @@ const Review = sequelize.define(
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: {
-        model: User,
-        key: "id",
-      },
     },
     listingId: {
       type: DataTypes.STRING,
@@ -69,29 +62,32 @@ const Review = sequelize.define(
   }
 );
 
+// Defer associations until all models are loaded
+Review.associate = (models) => {
+  // A review belongs to the user who wrote it
+  Review.belongsTo(models.User, {
+    foreignKey: "userId",
+    as: "user",
+    onDelete: "CASCADE",
+  });
 
-Review.belongsTo(User, {
-  foreignKey: "userId",
-  onDelete: "CASCADE"
-})
+  // Polymorphic business review
+  Review.belongsTo(models.Business, {
+    foreignKey: "listingId",
+    targetKey: "uniqueId",
+    constraints: false,
+    scope: { listingType: "business" },
+    as: "business",
+  });
 
-
-Review.belongsTo(Business, {
-  foreignKey: "listingId",
-  targetKey: "uniqueId", // This tells Sequelize which column in Business to match
-  constraints: false,
-  scope: {
-    listingType: "business"
-  }
-});
-
-Review.belongsTo(Service, {
-  foreignKey: "listingId",
-  targetKey: "uniqueId", // This tells Sequelize which column in Service to match
-  constraints: false,
-  scope: {
-    listingType: "service"
-  }
-});
+  // Polymorphic service review
+  Review.belongsTo(models.Service, {
+    foreignKey: "listingId",
+    targetKey: "uniqueId",
+    constraints: false,
+    scope: { listingType: "service" },
+    as: "service",
+  });
+};
 
 module.exports = Review;

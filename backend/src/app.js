@@ -24,6 +24,7 @@ app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
 
+
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -64,6 +65,7 @@ app.use(`${app_url}/download/:filename`,  DocumentDownloader);
 
 // Error Handling Middleware
 app.use(errorHandler);
+
 
 
 

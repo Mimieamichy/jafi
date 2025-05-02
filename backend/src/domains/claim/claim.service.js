@@ -1,8 +1,6 @@
-const Business = require("../business/business.model");
-const User = require("../user/user.model");
-const Claim = require("./claim.model");
 const PaymentService = require("../payments/payments.service");
 const { Op } = require("sequelize");
+const {Business, User, Claim} = require('../../models/index')
 
 
 
@@ -25,7 +23,8 @@ exports.createClaim = async (businessId, email, phone, proof) => {
   const name = business.name;
   const role = "business";
   const businessType = business.businessType;
-  const claim = await Claim.create({ businessId, email, phone, proof, businessType });
+  const businessName = business.name;
+  const claim = await Claim.create({ businessId, email, phone, proof, businessType, businessName });
   await User.create({ email, name, role });
   return { message: "Claim submitted", claim };
 };
@@ -78,7 +77,6 @@ exports.payForClaim = async (businessId, claimId, amount, transaction) => {
   const userId = claim.Business.userId;
   const entity_type = "claim";
 
-  console.log(userId, businessId, entity_type, amount);
   // Create payment
   const response = await PaymentService.createPayment(
     userId,

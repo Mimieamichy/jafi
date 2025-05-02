@@ -1,9 +1,8 @@
-const { DataTypes } = require("sequelize");
+const { DataTypes, Model } = require("sequelize");
 const sequelize = require("../../config/database");
-const User = require("../user/user.model"); 
 
-const Service = sequelize.define(
-  "Service",
+class Service extends Model {}
+Service.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -18,10 +17,6 @@ const Service = sequelize.define(
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: {
-        model: "users", // Reference to the 'users' table
-        key: "id",
-      },
     },
     email: {
       type: DataTypes.STRING,
@@ -66,6 +61,8 @@ const Service = sequelize.define(
     },
   },
   {
+    sequelize,
+    modelName: "Service",
     tableName: "services",
     timestamps: true,
     hooks: {
@@ -79,9 +76,29 @@ const Service = sequelize.define(
   }
 );
 
-// Define associations 
-Service.belongsTo(User, {
-  foreignKey: "userId",
-  onDelete: "CASCADE"
-});
+Service.associate = (models) => {
+  // Who owns this service
+  Service.belongsTo(models.User, {
+    foreignKey: "userId",
+    as: "user",
+    onDelete: "CASCADE",
+  });
+
+  // Polymorphic payments
+  Service.hasMany(models.Payment, {
+    foreignKey: "entity_id",
+    constraints: false,
+    scope: { entity_type: "service" },
+    as: "payments",
+  });
+
+  // Polymorphic reviews
+  Service.hasMany(models.Review, {
+    foreignKey: "listingId",
+    constraints: false,
+    scope: { listingType: "service" },
+    as: "reviews",
+  });
+};
+
 module.exports = Service;

@@ -1,8 +1,9 @@
-const { DataTypes } = require("sequelize");
+// src/domains/admin/admin.model.js
+const { DataTypes, Model } = require("sequelize");
 const sequelize = require("../../config/database");
 
-const AdminSettings = sequelize.define(
-  "AdminSettings",
+class AdminSettings extends Model {}
+AdminSettings.init(
   {
     id: {
       type: DataTypes.UUID,
@@ -20,9 +21,16 @@ const AdminSettings = sequelize.define(
     },
   },
   {
-    tableName: "AdminSettings",
+    sequelize,
+    modelName: "AdminSettings",
+    tableName: "admin_settings",
     timestamps: true,
   }
 );
+
+// no associations for this one, but stub it so the loader won’t break
+AdminSettings.associate = (models) => {
+  // e.g. models.AdminSettings.hasMany(models.Other)…
+};
 
 module.exports = AdminSettings;

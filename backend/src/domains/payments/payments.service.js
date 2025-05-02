@@ -1,5 +1,4 @@
-const Payments = require("../payments/payments.model")
-const User = require("../user/user.model")
+const {Payment, User} = require('../../models/index')
 const https = require('https')
 
 
@@ -23,13 +22,13 @@ exports.createPayment = async (userId, entityId, entityType, amount) => {
     created_at: new Date(),
   };
 
-  return await Payments.create(paymentData);
+  return await Payment.create(paymentData);
 };
 
 
 exports.makePayment = async (transactionId) => {
   // Find the transaction and its associated user
-  const transaction = await Payments.findByPk(transactionId, {
+  const transaction = await Payment.findByPk(transactionId, {
     include: [
       {
         model: User,

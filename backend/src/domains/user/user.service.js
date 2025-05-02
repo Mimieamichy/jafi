@@ -1,12 +1,9 @@
 require("dotenv").config();
-const User = require("./user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const Service = require("../service/service.model");
-const Business = require("../business/business.model");
 const { Op } = require("sequelize");
 const { sendMail } = require("../../utils/sendEmail");
-const Review = require("../review/review.model");
+const {Review, Service, Business, User} = require('../../models/index')
 
 exports.userLogin = async (email, password) => {
   const user = await User.findOne({ where: { email } });

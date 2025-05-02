@@ -1,17 +1,10 @@
 require("dotenv").config();
-const User = require("../user/user.model");
-const Business = require("../business/business.model");
-const Service = require("../service/service.model");
-const AdminSettings = require('./admin.model')
-const Review = require('../review/review.model')
-const Transaction = require('../payments/payments.model')
 const bcrypt = require("bcryptjs");
-const Claim = require("../claim/claim.model");
 const { generatePassword } = require("../../utils/generatePassword")
 const { sendMail } = require("../../utils/sendEmail");
 const { Op } = require('sequelize');
 const { exportTableData } = require("../../utils/exports");
-const Payment = require("../payments/payments.model");
+const {User, Business, Service, Review, AdminSettings, Claim, Payment } = require("../../models/index");
 
 
 
@@ -162,22 +155,23 @@ exports.getAdminCount = async () => {
 //Business management
 exports.getAllBusinesses = async (offset, limit, page) => {
     const { count, rows } = await Business.findAndCountAll({
-        include: {
+        include: [
+          {
             model: User,
             attributes: ["id", "name", "email", "role"],
+          },
+          {
             model: Payment,
-            as: "bus_entity",
-            required: true,
-            where: {
-                entity_type: "business",
-                status: "successful",
-            },
-
-        },
+            attributes: ["status"],
+            where: { status: "successful" },
+            required: true, 
+          },
+        ],
         order: [["createdAt", "DESC"]],
         offset,
-        limit
-    });
+        limit,
+      });
+      
 
     if (count === 0) {
         throw new Error("No businesses found");
@@ -501,13 +495,10 @@ exports.getAllServices = async (offset, limit, page) => {
         include: [
             {
                 model: Payment,
-                as: "ser_entity",
-                required: true,
-                where: {
-                    entity_type: "service",
-                    status: "successful",
-                },
-            },
+                attributes: ["status"],
+                where: { status: "successful" },
+                required: true, 
+              },
         ],
         order: [["createdAt", "DESC"]],
         offset,
@@ -568,7 +559,7 @@ exports.approveAService = async (serviceId) => {
         &copy; 2025 JAFIAI. All rights reserved.
     </p>
 </div>`
-    await sendMail(service.email, "AFI AI Service Approved", mailContent);
+    await sendMail(service.email, "JAFI AI Service Approved", mailContent);
     return { message: "Service approved successfully" };
 }
 
