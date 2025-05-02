@@ -27,6 +27,7 @@ export default function Businesses() {
     address: "",
     phone_number1: "",
     start: "",
+    businessType: "standard",
     end: "",
     city: "",
     state: "",
@@ -46,39 +47,12 @@ export default function Businesses() {
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
+  const [standardCategories, setStandardCategories] = useState([]);
+  const [premiumCategories, setPremiumCategories] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // const filteredBusinesses = businesses.filter((b) => {
-  //   const term = searchTerm.toLowerCase();
-  //   return (
-  //     b.name?.toLowerCase().includes(term) ||
-  //     b.category?.toLowerCase().includes(term)
-  //   );
-  // });
-
-  
   // State for the Add Business Modal & Form
- 
 
-  const categories = [
-    "Automotives",
-    "Hotels",
-    "Healthcare",
-    "Groceries",
-    "Malls & Supermarkets",
-    "Banking & FinTech",
-    "Churches",
-    "Aircrafts",
-    "Nigerian Made",
-    "Nightlife & Entertainment",
-    "Restaurants & Cafes",
-    "Real Estate",
-    "Education & Training",
-    "Fashion & Beauty",
-    "Fitness & Wellness",
-    "Travel & Tours",
-    "Tech Hubs",
-  ];
   const daysOfWeek = [
     "Monday",
     "Tuesday",
@@ -99,8 +73,6 @@ export default function Businesses() {
         : prev.day.filter((day) => day !== value),
     }));
   };
-
-
 
   // open modals
   const openApproveModal = (biz) => {
@@ -151,6 +123,32 @@ export default function Businesses() {
     }
   };
 
+  // ─── FETCH LIVE CATEGORIES ON MOUNT ───────────────────
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const [stdRes, premRes] = await Promise.all([
+          fetch(`${baseUrl}/admin/standardCategories`),
+          fetch(`${baseUrl}/admin/premiumCategories`),
+        ]);
+
+        if (!stdRes.ok) throw new Error("Failed to load standard categories");
+        if (!premRes.ok) throw new Error("Failed to load premium categories");
+
+        const stdJson = await stdRes.json();
+        const premJson = await premRes.json();
+
+        // assuming your API returns { categories: ["...", "..."] }
+        setStandardCategories(stdJson.categories || []);
+        setPremiumCategories(premJson.categories || []);
+      } catch (err) {
+        console.error(err);
+        enqueueSnackbar("Error loading categories", { variant: "error" });
+      }
+    }
+    loadCategories();
+  }, [enqueueSnackbar]);
+
   // Fetch businesses from API
   useEffect(() => {
     const fetchBusinesses = async () => {
@@ -160,19 +158,22 @@ export default function Businesses() {
       }
 
       try {
-        const res = await fetch(`${baseUrl}/admin/businesses?page=${page}&limit=${limit}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-        });
+        const res = await fetch(
+          `${baseUrl}/admin/businesses?page=${page}&limit=${limit}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         console.log("databus", data);
 
         setBusinesses(Array.isArray(data.data) ? data.data : data.data || []);
-        const total = data.meta.total  ?? 0;
+        const total = data.meta.total ?? 0;
         setTotalPages(Math.ceil(total / limit));
       } catch (err) {
         console.error("Error fetching businesses:", err);
@@ -190,14 +191,11 @@ export default function Businesses() {
       .includes(searchTerm.toLowerCase())
   );
 
-
   // Adjust current page if needed after data updates.
 
   useEffect(() => {
     setPage(1);
   }, [searchTerm]);
-
-  
 
   const handleView = (business) => {
     setSelectedBusiness(business);
@@ -212,6 +210,16 @@ export default function Businesses() {
       [name]: value,
     }));
   };
+
+  const handlebusinessTypeChange = (e) => {
+    const businessType = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      businessType,
+      category: "",
+    }));
+  };
+
 
   // Handle file input change (for images)
   const handleImagesChange = (e) => {
@@ -230,11 +238,13 @@ export default function Businesses() {
   // Submit form to create a new business
   const handleCreateBusiness = async (e) => {
     e.preventDefault();
+    setIsSaving(true);
     const dataToSend = new FormData();
     dataToSend.append("name", formData.name);
 
     dataToSend.append("category", formData.category);
     dataToSend.append("address", formData.address);
+    dataToSend.append("businessType", formData.businessType);
     dataToSend.append("phone_number1", formData.phone_number1);
     dataToSend.append("start", formData.start);
     dataToSend.append("end", formData.end);
@@ -272,6 +282,8 @@ export default function Businesses() {
       });
     } catch (error) {
       console.error(error);
+    }finally {
+      setIsSaving(false);
     }
   };
 
@@ -283,7 +295,7 @@ export default function Businesses() {
     return parts[parts.length - 1];
   };
 
-  // 1️⃣ Add the export handler:
+  //  Add the export handler:
   const handleExport = async () => {
     try {
       const res = await fetch(`${baseUrl}/admin/exportBusinesses`, {
@@ -364,10 +376,12 @@ export default function Businesses() {
                   const raw = selectedBusiness?.proof;
                   const name = getFileName(raw);
                   console.log("proofUrl:", raw, "→ filename:", name);
-                  
+
                   return (
                     <tr key={business.id} className="text-center">
-                      <td className="border p-2">{(page - 1) * limit + index + 1}</td>
+                      <td className="border p-2">
+                        {(page - 1) * limit + index + 1}
+                      </td>
                       <td className="border p-2 capitalize">{business.name}</td>
                       <td className="border p-2">{business.category}</td>
                       <td className="border p-2">
@@ -421,14 +435,14 @@ export default function Businesses() {
       <div className="block md:hidden">
         {filtered.length > 0 ? (
           filtered.map((business, index) => {
-            
             return (
               <div
                 key={business.id}
                 className="border border-gray-300 rounded p-4 mb-4"
               >
                 <div className="mb-2">
-                  <span className="font-medium">S/N:</span> {(page - 1) * limit + index + 1}
+                  <span className="font-medium">S/N:</span>{" "}
+                  {(page - 1) * limit + index + 1}
                 </div>
                 <div className="mb-2">
                   <span className="font-medium capitalize">Name:</span>{" "}
@@ -491,7 +505,7 @@ export default function Businesses() {
           Previous
         </button>
         <span>
-         <strong>{page}</strong>/<strong>{totalPages}</strong>
+          <strong>{page}</strong>/<strong>{totalPages}</strong>
         </span>
         <button
           onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
@@ -501,7 +515,6 @@ export default function Businesses() {
           Next
         </button>
       </div>
-
 
       {/* Modal for Viewing Business Details (Scrollable) */}
       {isViewModalOpen && selectedBusiness && (
@@ -616,28 +629,65 @@ export default function Businesses() {
                 />
               </div>
 
-              <div>
-                <label htmlFor="category" className="font-semibold">
-                  Category:
+              {/* Category */}
+              <fieldset className="flex gap-6">
+                <legend className="font-semibold">Plan Type:</legend>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="businessType"
+                    value="standard"
+                    checked={formData.businessType === "standard"}
+                    onChange={handlebusinessTypeChange}
+                  />
+                  <span>Standard </span>
                 </label>
-                <select
-                  name="category"
-                  id="category"
-                  className="p-2 border rounded-md w-full"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="" disabled>
-                    Select Category
-                  </option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="businessType"
+                    value="premium"
+                    checked={formData.businessType === "premium"}
+                    onChange={handlebusinessTypeChange}
+                  />
+                  <span>Premium </span>
+                </label>
+              </fieldset>
+
+              {/* Sub-Category */}
+              <label htmlFor="category" className="font-semibold">
+                {formData.businessType === "standard"
+                  ? "Standard Categories"
+                  : "Premium Categories"}
+                :
+              </label>
+              <select
+                id="category"
+                name="category"
+                className="p-2 border rounded-md w-full"
+                value={formData.category}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="" disabled>
+                  Select{" "}
+                  {formData.businessType === "standard"
+                    ? "Standard"
+                    : "Premium"}{" "}
+                  Category
+                </option>
+                {formData.businessType === "standard"
+                  ? standardCategories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))
+                  : premiumCategories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+              </select>
 
               <div>
                 <label className="block font-medium">Phone Number</label>
@@ -766,7 +816,12 @@ export default function Businesses() {
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded"
                 >
-                  Create Business
+                   {isSaving
+              ? "Processing..."
+              : <>
+                  
+                  <span>Create a Business</span>
+                </>}
                 </button>
               </div>
             </form>

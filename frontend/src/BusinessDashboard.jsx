@@ -31,7 +31,7 @@ export default function BusinessDashboard() {
 
   // Parse query string
   const authToken = localStorage.getItem("userToken");
-
+  const [isSaving, setIsSaving] = useState(false);
   const decodedToken = jwtDecode(authToken);
   const userId = decodedToken.id;
 
@@ -247,6 +247,7 @@ export default function BusinessDashboard() {
   };
 
   const handleSave = async () => {
+    setIsSaving(true);
     if (!formData) {
       enqueueSnackbar("No data to save", { variant: "error" });
       return;
@@ -353,6 +354,8 @@ export default function BusinessDashboard() {
       enqueueSnackbar(`${error} There was an error updating your profile.`, {
         variant: "error",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -541,6 +544,7 @@ export default function BusinessDashboard() {
             showPassword={showPassword}
             setShowPassword={setShowPassword}
             handleSave={handleSave}
+            isSaving={isSaving}
           />
         )}
         {activeSection === "reviews" && (

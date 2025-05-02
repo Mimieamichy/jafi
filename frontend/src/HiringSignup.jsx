@@ -50,6 +50,7 @@ export default function HiringSignup() {
     description: "",
     customCategory: "",
   });
+  const [isSaving, setIsSaving] = useState(false);
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
@@ -111,6 +112,7 @@ export default function HiringSignup() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSaving(true);
 
     if (!isValidPhoneNumber(fullPhoneNumber)) {
       enqueueSnackbar("Invalid phone number!", { variant: "warning" });
@@ -161,11 +163,14 @@ export default function HiringSignup() {
       localStorage.setItem("serviceId", serviceId);
     } catch (error) {
       console.error("Error submitting form:", error);
+    }finally {
+      setIsSaving(false);
     }
   };
 
   // Handle OTP verification
   const handleVerifyOtp = async () => {
+    setIsSaving(true);
     if (otp.length !== 6) {
       enqueueSnackbar("Invalid OTP. Please enter a valid 6-digit code.", {
         variant: "warning",
@@ -202,6 +207,8 @@ export default function HiringSignup() {
       enqueueSnackbar("Something went wrong. Please try again.", {
         variant: "error",
       });
+    }finally {
+      setIsSaving(false);
     }
   };
 
@@ -353,7 +360,13 @@ export default function HiringSignup() {
             type="submit"
             className="w-full bg-blue-600 text-white p-2 rounded-lg"
           >
-            Proceed to Payment
+            {isSaving ? (
+              "Processing..."
+            ) : (
+              <>
+                <span>Verify Phone Number</span>
+              </>
+            )}
           </button>
         </form>
       ) : (
@@ -370,7 +383,13 @@ export default function HiringSignup() {
             onClick={handleVerifyOtp}
             className="mt-3 bg-blue-600 text-white py-2 w-full rounded-lg"
           >
-            Verify OTP
+            {isSaving ? (
+              "Processing..."
+            ) : (
+              <>
+                <span>Verify OTP</span>
+              </>
+            )}
           </button>
         </div>
       )}
