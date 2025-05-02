@@ -19,7 +19,7 @@ exports.userLogin = async (email, password) => {
   }
 
   const token = jwt.sign({ id: user.id, role: user.role, name: user.name }, process.env.JWT_SECRET, { expiresIn: "3d" });
-  return {message: "Login successful", token };
+  return { message: "Login successful", token };
 };
 
 exports.userForgotPassword = async (email) => {
@@ -64,7 +64,7 @@ exports.verifyResetToken = async (token) => {
     throw new Error("Invalid or expired token");
   }
 
-  return {message: "Token is valid", email: decoded.email };
+  return { message: "Token is valid", email: decoded.email };
 };
 
 exports.userResetPassword = async (token, newPassword) => {
@@ -82,7 +82,7 @@ exports.userResetPassword = async (token, newPassword) => {
 exports.getUserById = async (id) => {
   const user = await User.findByPk(id);
   if (!user) throw new Error("User not found");
-  return {message: "User found", user };
+  return { message: "User found", user };
 };
 
 exports.getAllUsers = async () => {
@@ -91,7 +91,7 @@ exports.getAllUsers = async () => {
     order: [["createdAt", "DESC"]],
   });
 
-  return {message: "Users found", users }; 
+  return { message: "Users found", users };
 };
 
 
@@ -126,7 +126,7 @@ exports.getUserRole = async (email) => {
   if (!user) throw new Error("User not found");
 
   const role = user.role;
-  return {message: "User role found", role};
+  return { message: "User role found", role };
 };
 
 exports.getAllListings = async (searchTerm, offset, limit, page) => {
@@ -138,20 +138,26 @@ exports.getAllListings = async (searchTerm, offset, limit, page) => {
         { category: { [Op.like]: `%${searchTerm}%` } },
         { address: { [Op.like]: `%${searchTerm}%` } },
       ],
-      status: "verified",
     };
   }
 
   // Fetch full result sets to allow for accurate sorting and slicing
   const serviceData = await Service.findAndCountAll({
-    where: searchFilter,
+    where: {
+      ...searchFilter,
+      status: "verified"
+    },
     order: [["createdAt", "DESC"]],
   });
 
   const businessData = await Business.findAndCountAll({
-    where: searchFilter,
+    where: {
+      ...searchFilter,
+      status: "verified"
+    },
     attributes: { exclude: ["proof"] },
     order: [["createdAt", "DESC"]],
+
   });
 
   const combined = [
@@ -213,7 +219,7 @@ exports.replyToReview = async (reviewId, userId, comment) => {
     }
   );
 
-  return {message: "Reply added successfully", reply };
+  return { message: "Reply added successfully", reply };
 };
 
 

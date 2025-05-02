@@ -23,6 +23,7 @@ exports.registerBusiness = async (req, res) => {
       }
     }
 
+    cache.flushAll();
     const response = await BusinessService.registerBusiness(businessData);
     res.status(201).json(response);
   } catch (error) {

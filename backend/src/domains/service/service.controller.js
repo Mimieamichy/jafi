@@ -22,6 +22,7 @@ exports.registerService = async (req, res) => {
       images,
       description
     );
+    cache.flushAll();
     res.status(201).json(response);
   } catch (error) {
     console.log(error);

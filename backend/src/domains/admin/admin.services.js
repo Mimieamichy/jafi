@@ -10,8 +10,8 @@ const Claim = require("../claim/claim.model");
 const { generatePassword } = require("../../utils/generatePassword")
 const { sendMail } = require("../../utils/sendEmail");
 const { Op } = require('sequelize');
-const OTP = require("../otp/otp.model");
 const { exportTableData } = require("../../utils/exports");
+const Payment = require("../payments/payments.model");
 
 
 
@@ -58,7 +58,7 @@ exports.getAllUsers = async (role, offset, limit, page) => {
     // If a specific role is provided, filter by that role
     const whereClause = role ? { role } : {};
 
-    const {count, rows: allUsers} = await User.findAndCountAll({
+    const { count, rows: allUsers } = await User.findAndCountAll({
         where: whereClause,
         order: [["createdAt", "DESC"]],
         attributes: ["id", "name", "email", "role", "createdAt"],
@@ -91,8 +91,8 @@ exports.getAllUsers = async (role, offset, limit, page) => {
         return userData;
     }));
     const users = processedUsers;
-    return { 
-        data: users, meta: { page, limit, total: count}
+    return {
+        data: users, meta: { page, limit, total: count }
     };
 };
 
@@ -122,15 +122,15 @@ exports.transferBusiness = async (userId, email) => {
     const ownerId = newOwner.id
     if (!newOwner) throw new Error("New owner email not found.");
 
-        // Transfer ownership of businesses
+    // Transfer ownership of businesses
     await Business.update(
         { userId: ownerId },
         { where: { userId } }
     );
-        // await Service.destroy({ where: { userId: ownerId } });
-        // await OTP.destroy({ where: { userId: ownerId } });
-        // await Review.destroy({ where: { userId: ownerId } });
-        await user.destroy();
+    // await Service.destroy({ where: { userId: ownerId } });
+    // await OTP.destroy({ where: { userId: ownerId } });
+    // await Review.destroy({ where: { userId: ownerId } });
+    await user.destroy();
 
     return { message: "Business ownership transferred successfully" };
 
@@ -161,10 +161,18 @@ exports.getAdminCount = async () => {
 
 //Business management
 exports.getAllBusinesses = async (offset, limit, page) => {
-    const {count, rows} = await Business.findAndCountAll({
+    const { count, rows } = await Business.findAndCountAll({
         include: {
             model: User,
             attributes: ["id", "name", "email", "role"],
+            model: Payment,
+            as: "bus_entity",
+            required: true,
+            where: {
+                entity_type: "business",
+                status: "successful",
+            },
+
         },
         order: [["createdAt", "DESC"]],
         offset,
@@ -175,8 +183,8 @@ exports.getAllBusinesses = async (offset, limit, page) => {
         throw new Error("No businesses found");
     }
 
-    return { 
-        data: rows, meta: { page, limit, total: count}
+    return {
+        data: rows, meta: { page, limit, total: count }
     };
 };
 
@@ -185,18 +193,14 @@ exports.approveBusiness = async (businessId) => {
     if (!business) throw new Error("Business not found");
 
     // Approve the business and assign the user ID
-    business.status = "verified"
-    await business.save();
+    await Business.update({ status: "verified" }, { where: { id: businessId } });
     const { plainPassword, hashedPassword } = await generatePassword()
 
-
-    console.log(plainPassword, hashedPassword)
 
     await User.update(
         { password: hashedPassword },
         { where: { id: business.userId } }
     );
-
 
 
     // Send an email notification to the business owner
@@ -310,7 +314,7 @@ exports.addBusiness = async (businessData, userId) => {
 };
 
 exports.getMyBusiness = async (userId, offset, limit, page) => {
-    const {count, rows} = await Business.findAndCountAll({
+    const { count, rows } = await Business.findAndCountAll({
         where: { userId },
         include: [
             {
@@ -323,8 +327,8 @@ exports.getMyBusiness = async (userId, offset, limit, page) => {
         limit
     });
 
-    return { 
-        data: rows, meta: { page, limit, total: count}
+    return {
+        data: rows, meta: { page, limit, total: count }
     };
 };
 
@@ -372,87 +376,87 @@ exports.getStandardPrice = async () => {
 exports.addCategory = async (categoryName, type) => {
     // Ensure the type is either 'standard' or 'premium'
     if (type !== "standard" && type !== "premium") {
-      throw new Error("Invalid category type. Type must be 'standard' or 'premium'.");
+        throw new Error("Invalid category type. Type must be 'standard' or 'premium'.");
     }
-  
+
     // Find the admin setting entry for categories
     const category = await AdminSettings.findOne({ where: { key: "categories" } });
 
-  
+
     // If no entry exists, create a new one with empty arrays for standard and premium
     if (!category) {
-      const newCategories = {
-        standard: type === "standard" ? [categoryName] : [],
-        premium: type === "premium" ? [categoryName] : []
-      };
-  
-    
-      await AdminSettings.create({
-        key: "categories",
-        value: JSON.stringify(newCategories),
-      });
-    } else { 
+        const newCategories = {
+            standard: type === "standard" ? [categoryName] : [],
+            premium: type === "premium" ? [categoryName] : []
+        };
+
+
+        await AdminSettings.create({
+            key: "categories",
+            value: JSON.stringify(newCategories),
+        });
+    } else {
         // Parse the existing categories
-       const existingCategories = JSON.parse(category.value);
+        const existingCategories = JSON.parse(category.value);
         // If entry exists,check if value exists
         const categoryList = existingCategories[type];
         const lowerCasedList = categoryList.map(c => c.toLowerCase());
-            if (lowerCasedList.includes(categoryName.toLowerCase())) {
-                return {message:`Category '${categoryName}' already exists in ${type}`}
-            }
+        if (lowerCasedList.includes(categoryName.toLowerCase())) {
+            return { message: `Category '${categoryName}' already exists in ${type}` }
+        }
 
-  
-      // Add the new category to the appropriate section based on type
-      if (type === "standard") {
-        existingCategories.standard.push(categoryName);
-      } else if (type === "premium") {
-        existingCategories.premium.push(categoryName);
-      }
-  
-      // Update the value in the database with the updated categories
-      await category.update({ value: JSON.stringify(existingCategories) });
+
+        // Add the new category to the appropriate section based on type
+        if (type === "standard") {
+            existingCategories.standard.push(categoryName);
+        } else if (type === "premium") {
+            existingCategories.premium.push(categoryName);
+        }
+
+        // Update the value in the database with the updated categories
+        await category.update({ value: JSON.stringify(existingCategories) });
     }
-  
+
     return { message: `${categoryName} added to ${type} categories successfully` };
 };
-  
+
 exports.deleteCategory = async (categoryName, type) => {
     // Ensure the type is either 'standard' or 'premium'
     if (type !== "standard" && type !== "premium") {
-      throw new Error("Invalid category type. Type must be 'standard' or 'premium'.");
+        throw new Error("Invalid category type. Type must be 'standard' or 'premium'.");
     }
-  
+
     // Find the admin setting entry for categories
     const category = await AdminSettings.findOne({ where: { key: "categories" } });
-  
+
     // If no entry exists, return an error message
     if (!category) {
-      throw new Error("No categories found to delete.");
+        throw new Error("No categories found to delete.");
     }
-  
+
     // Parse the existing categories
     const existingCategories = JSON.parse(category.value);
-  
+
     // Check if the category exists in the correct array based on type
     if (type === "standard") {
-      // Remove the category from the 'standard' array
-      const index = existingCategories.standard.indexOf(categoryName);
-      if (index === -1) {
-        throw new Error(`${categoryName} not found in standard categories.`);
-      }
-      existingCategories.standard.splice(index, 1);
+        // Remove the category from the 'standard' array
+        const index = existingCategories.standard.indexOf(categoryName);
+        if (index === -1) {
+            throw new Error(`${categoryName} not found in standard categories.`);
+        }
+        existingCategories.standard.splice(index, 1);
     } else if (type === "premium") {
-      // Remove the category from the 'premium' array
-      const index = existingCategories.premium.indexOf(categoryName);
-      if (index === -1) {
-        throw new Error(`${categoryName} not found in premium categories.`);
-      }
-      existingCategories.premium.splice(index, 1);
+        // Remove the category from the 'premium' array
+        const index = existingCategories.premium.indexOf(categoryName);
+        if (index === -1) {
+            throw new Error(`${categoryName} not found in premium categories.`);
+        }
+        existingCategories.premium.splice(index, 1);
     }
-  
+
     // Update the value in the database with the updated categories
     await category.update({ value: JSON.stringify(existingCategories) });
-  
+
     return { message: `${categoryName} has been deleted from ${type} categories.` };
 };
 
@@ -464,7 +468,7 @@ exports.getStandardCategories = async () => {
 
     // Filter the categories for 'standard' type
     const standardCategories = theCategories.standard || [];
-    
+
     if (standardCategories.length === 0) {
         throw new Error("No standard categories found");
     }
@@ -493,18 +497,30 @@ exports.getPremiumCategories = async () => {
 
 //Service management
 exports.getAllServices = async (offset, limit, page) => {
-    const {count , rows} = await Service.findAndCountAll(
-        {
-            order: [["createdAt", "DESC"]],
-            offset,
-            limit
-        }
-    );
+    const { count, rows } = await Service.findAndCountAll({
+        include: [
+            {
+                model: Payment,
+                as: "ser_entity",
+                required: true,
+                where: {
+                    entity_type: "service",
+                    status: "successful",
+                },
+            },
+        ],
+        order: [["createdAt", "DESC"]],
+        offset,
+        limit,
+    });
+
     if (count === 0) throw new Error("No services found");
-    return { 
-        data: rows, meta: { page, limit, total: count}
+
+    return {
+        data: rows.map((item) => item.toJSON()),
+        meta: { page, limit, total: count },
     };
-}
+};
 
 exports.getAService = async (serviceId) => {
     const service = await Service.findByPk(serviceId);
@@ -523,8 +539,10 @@ exports.approveAService = async (serviceId) => {
         { where: { id: service.userId } }
     );
 
-    service.status = "verified";
-    await service.save();
+    await Service.update(
+        { status: "verified" },
+        { where: { id: serviceId } }
+    );
 
     // Send an email notification to the service owner
     const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
@@ -699,36 +717,36 @@ exports.approveClaim = async (claimId) => {
 //Review management
 
 exports.getAllReviews = async () => {
-  const reviews = await Review.findAll({
-    include: [
-      {
-        model: User,
-        attributes: ["id", "name", "email", "role"],
-      },
-    ],
-    order: [["createdAt", "DESC"]],
-  });
+    const reviews = await Review.findAll({
+        include: [
+            {
+                model: User,
+                attributes: ["id", "name", "email", "role"],
+            },
+        ],
+        order: [["createdAt", "DESC"]],
+    });
 
-  if (!reviews) throw new Error("Reviews not found");
+    if (!reviews) throw new Error("Reviews not found");
 
-  return { reviews};
+    return { reviews };
 };
 
 
 exports.getAllReviewers = async (offset, limit, page) => {
-  const { count, rows: users } = await User.findAndCountAll({
-    where: { role: "reviewer" },
-    order: [["createdAt", "DESC"]],
-    attributes: ["id", "name", "email", "role"],
-    offset,
-    limit,
-  }
-);
-  if (!users) throw new Error("No users found");
-  return {
-    data: users,
-    meta: { page, limit, total: count },
-  };
+    const { count, rows: users } = await User.findAndCountAll({
+        where: { role: "reviewer" },
+        order: [["createdAt", "DESC"]],
+        attributes: ["id", "name", "email", "role"],
+        offset,
+        limit,
+    }
+    );
+    if (!users) throw new Error("No users found");
+    return {
+        data: users,
+        meta: { page, limit, total: count },
+    };
 };
 
 exports.deleteReviews = async (id) => {
@@ -756,28 +774,28 @@ exports.deleteReviewer = async (id) => {
 exports.exportUsers = async (res) => {
     await exportTableData(User, 'users', res);
 };
-  
+
 // 2. Export Businesses
 exports.exportBusinesses = async (res) => {
     await exportTableData(Business, 'businesses', res);
 };
-  
+
 // 3. Export Reviewers
 exports.exportReviewers = async (res) => {
     await exportTableData(Review, 'reviewers', res);
 };
-  
+
 // 4. Export Services
 exports.exportServices = async (res) => {
     await exportTableData(Service, 'services', res);
 };
-  
-  // 5. Export Transactions
+
+// 5. Export Transactions
 exports.exportTransactions = async (res) => {
     await exportTableData(Transaction, 'transactions', res);
 };
 
-  
+
 
 //Transaction management{check in payments service}
 

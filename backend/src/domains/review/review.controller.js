@@ -56,6 +56,7 @@ exports.createReview = async (req, res) => {
         const user_name = req.user.name;
         const images = req.files["reviewImages"] ? req.files["reviewImages"].map((file) => file.path) : [];
         const response = await ReviewService.createReview(userId, entityId, rating, comment, user_name, images);
+        cache.flushAll();
         return res.status(201).json(response);
     } catch (error) {
         console.log(error)
