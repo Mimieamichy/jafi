@@ -226,12 +226,7 @@ export default function Navbar() {
           ) : null}
 
           {userRole ? (
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-400 transition"
-            >
-              Logout
-            </button>
+            ""
           ) : (
             <button
               onClick={() => setShowSignupModal(true)}
@@ -350,15 +345,7 @@ export default function Navbar() {
           ) : null}
 
           {userRole ? (
-            <button
-              onClick={() => {
-                handleLogout();
-                setIsOpen(false);
-              }}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
-            >
-              Logout
-            </button>
+            ""
           ) : (
             <button
               onClick={() => {
