@@ -12,6 +12,10 @@ businessId: {
     type: DataTypes.INTEGER,
     allowNull: false,
 },
+businessType: {
+    type: DataTypes.ENUM("standard", "premium"),
+    allowNull: false,
+},
 email: {
     type: DataTypes.STRING,
     allowNull: false,

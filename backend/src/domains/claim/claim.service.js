@@ -24,7 +24,8 @@ exports.createClaim = async (businessId, email, phone, proof) => {
 
   const name = business.name;
   const role = "business";
-  const claim = await Claim.create({ businessId, email, phone, proof });
+  const businessType = business.businessType;
+  const claim = await Claim.create({ businessId, email, phone, proof, businessType });
   await User.create({ email, name, role });
   return { message: "Claim submitted", claim };
 };
@@ -69,7 +70,6 @@ exports.payForClaim = async (businessId, claimId, amount, transaction) => {
     transaction,
   });
 
-  console.log(claim)
 
   if (!claim || !claim.Business) {
     throw new Error("Claim not found or does not have an associated business.");
