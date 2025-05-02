@@ -111,6 +111,12 @@ export default function HiringSignup() {
 
   // Handle form submission
   const handleSubmit = async (e) => {
+    if (formData.workSamples.length < 3) {
+      enqueueSnackbar("Please select at least two images.", {
+        variant: "warning",
+      });
+      return;
+    }
     e.preventDefault();
     setIsSaving(true);
 
@@ -163,7 +169,7 @@ export default function HiringSignup() {
       localStorage.setItem("serviceId", serviceId);
     } catch (error) {
       console.error("Error submitting form:", error);
-    }finally {
+    } finally {
       setIsSaving(false);
     }
   };
@@ -207,7 +213,7 @@ export default function HiringSignup() {
       enqueueSnackbar("Something went wrong. Please try again.", {
         variant: "error",
       });
-    }finally {
+    } finally {
       setIsSaving(false);
     }
   };
