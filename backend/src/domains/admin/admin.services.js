@@ -127,9 +127,9 @@ exports.transferBusiness = async (userId, email) => {
         { userId: ownerId },
         { where: { userId } }
     );
-        await Service.destroy({ where: { userId: ownerId } });
-        await OTP.destroy({ where: { userId: ownerId } });
-        await Review.destroy({ where: { userId: ownerId } });
+        // await Service.destroy({ where: { userId: ownerId } });
+        // await OTP.destroy({ where: { userId: ownerId } });
+        // await Review.destroy({ where: { userId: ownerId } });
         await user.destroy();
 
     return { message: "Business ownership transferred successfully" };
@@ -142,9 +142,9 @@ exports.deleteUser = async (id) => {
     if (!user) throw new Error("User not found");
 
     await Business.destroy({ where: { userId: id } });
-    await Service.destroy({ where: { userId: id } });
-    await OTP.destroy({ where: { userId: id } });
-    await Review.destroy({ where: { userId: id } });
+    // await Service.destroy({ where: { userId: id } });
+    // await OTP.destroy({ where: { userId: id } });
+    // await Review.destroy({ where: { userId: id } });
     await user.destroy()
 
 

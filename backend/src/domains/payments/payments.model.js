@@ -45,7 +45,7 @@ const Payment = sequelize.define(
 );
 
 // Standard associations – note the constraints: false to disable foreign key enforcement
-Payment.belongsTo(User, { foreignKey: "userId", as: "user" });
+Payment.belongsTo(User, { foreignKey: "userId", as: "user", onDelete: "CASCADE" });
 Payment.belongsTo(Service, { foreignKey: "entity_id", as: "ser_entity", constraints: false });
 Payment.belongsTo(Business, { foreignKey: "entity_id", as: "bus_entity", constraints: false });
 
