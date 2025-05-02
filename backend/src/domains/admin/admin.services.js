@@ -158,6 +158,7 @@ exports.getAllBusinesses = async (offset, limit, page) => {
         include: [
           {
             model: User,
+            as: "user",
             attributes: ["id", "name", "email", "role"],
           },
           {
@@ -257,6 +258,7 @@ exports.getABusiness = async (id) => {
         include: [
             {
                 model: User,
+                as: 'user',
                 attributes: ['id', 'name', 'email', 'role'],
             },
             {
@@ -313,6 +315,7 @@ exports.getMyBusiness = async (userId, offset, limit, page) => {
         include: [
             {
                 model: User,
+                as: 'user',
                 attributes: ["id", "name", "email"],
             },
         ],
@@ -712,6 +715,7 @@ exports.getAllReviews = async () => {
         include: [
             {
                 model: User,
+                as: 'user',
                 attributes: ["id", "name", "email", "role"],
             },
         ],
