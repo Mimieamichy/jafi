@@ -22,7 +22,9 @@ export default function HiringPayment() {
       try {
         const r = await fetch(`${baseUrl}/admin/servicePrice`);
         const data = await r.json(); // expect { price: 150 }
-        console.log("Service price →", data);
+        console.log("Service price →", data.price);
+        console.log("Service price →", data.price);
+        console.log("Service price →", data.price.value);
         setPrice(Number(data.price));
       } catch (e) {
         console.error(e);
