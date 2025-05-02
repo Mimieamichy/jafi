@@ -110,12 +110,12 @@ export default function HiringDashboard() {
         console.log("Service data:", data);
 
         if (data) {
-          setFormData(data.user);
-          setWorkSampleImages(data.user.images || []);
-          setServiceId(data.user.uniqueId);
-          setId(data.user.id);
-          if (data.user.images && data.user.images.length > 0) {
-            setProfileImage(data.user.images[0]);
+          setFormData(data);
+          setWorkSampleImages(data.images || []);
+          setServiceId(data.uniqueId);
+          setId(data.id);
+          if (data.images && data.images.length > 0) {
+            setProfileImage(data.images[0]);
           }
         }
       })
