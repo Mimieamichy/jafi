@@ -23,7 +23,7 @@ export default function HiringPayment() {
         const r = await fetch(`${baseUrl}/admin/servicePrice`);
         const data = await r.json(); // expect { price: 150 }
         console.log("Service price →", data);
-        setPrice(Number(data.servicePrice.value));
+        setPrice(data.servicePrice);
       } catch (e) {
         console.error(e);
         enqueueSnackbar("Couldn’t fetch price", { variant: "error" });
@@ -46,7 +46,7 @@ export default function HiringPayment() {
       const r = await fetch(`${baseUrl}/service/pay/${serviceIdNum}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: price }),
+        body: JSON.stringify({ amount: price.value }),
       });
       const res = await r.json();
       const paystackUrl = res?.data?.paymentDetails?.data?.authorization_url;
@@ -74,7 +74,7 @@ export default function HiringPayment() {
           <p className="text-gray-600">Loading price…</p>
         ) : (
           <>
-            <p className="text-lg font-bold">${price}</p>
+            <p className="text-lg font-bold">${price.value}</p>
             <button
               onClick={payNow}
               disabled={price == null}
