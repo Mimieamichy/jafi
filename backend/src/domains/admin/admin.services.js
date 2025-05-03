@@ -152,38 +152,49 @@ exports.getAdminCount = async () => {
 
 
 
-//Business management
 exports.getAllBusinesses = async (offset, limit, page) => {
-    const { count, rows } = await Business.findAndCountAll({
-        include: [
-          {
-            model: User,
-            as: "user",
-            attributes: ["id", "name", "email", "role"],
-          },
-          {
-            model: Payment,
-            as: 'payments',
-            attributes: ["status"],
-            where: { status: "successful" },
-            required: true, 
-          },
-        ],
-        order: [["createdAt", "DESC"]],
-        offset,
-        limit,
-      });
-      
+  const { count, rows } = await Business.findAndCountAll({
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["id", "name", "email", "role"],
+      },
+      {
+        model: Payment,
+        as: "payments",
+        attributes: ["status", "payment_reference"],
+        required: false, 
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+    offset,
+    limit,
+  });
 
-    if (count === 0) {
-        return { message: "No businesses found", data: null,
-            meta: { page, limit, total: count }};
-    }
+  // Now filter in JS:
+  const filteredRows = rows.filter(business => {
+    const payments = business.payments || [];
+    return (
+      payments.some(p => p.status === "successful" && p.payment_reference) ||
+      payments.length === 0
+    );
+  });
 
+  if (filteredRows.length === 0) {
     return {
-        data: rows, meta: { page, limit, total: count }
+      message: "No businesses found",
+      data: null,
+      meta: { page, limit, total: filteredRows.length },
     };
+  }
+
+  return {
+    data: filteredRows,
+    meta: { page, limit, total: count },
+  };
 };
+
 
 exports.approveBusiness = async (businessId) => {
     const business = await Business.findByPk(businessId);
