@@ -1,4 +1,4 @@
-const {Payment, User} = require('../../models/index')
+const { Payment, User } = require('../../models/index')
 const https = require('https')
 
 
@@ -8,7 +8,7 @@ exports.createPayment = async (userId, entityId, entityType, amount) => {
   if (!['business', 'service', 'claim'].includes(entityType)) {
     throw new Error("Invalid entity type. Must be 'business' or 'service' or 'claim'");
   }
-  
+
   const payment_reference = `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
 
@@ -42,7 +42,7 @@ exports.makePayment = async (transactionId) => {
     throw new Error('transaction not found');
   }
 
-  
+
   // Access the transaction data
   const email = transaction.user.dataValues.email;
   const amount = parseFloat(transaction.dataValues.amount) * 100; // Convert to kobo
@@ -99,7 +99,7 @@ exports.makePayment = async (transactionId) => {
 
 exports.verifyPayment = async (reference) => {
   try {
-    const transaction = await Payments.findOne({ where: {payment_reference: reference} }); 
+    const transaction = await Payments.findOne({ where: { payment_reference: reference } });
     return new Promise((resolve, reject) => {
       const options = {
         hostname: 'api.paystack.co',
@@ -128,7 +128,7 @@ exports.verifyPayment = async (reference) => {
               transaction.status = "failed";
             }
 
-            await transaction.save(); 
+            await transaction.save();
 
             if (response.status && response.data.status === 'success') {
               resolve(response.data);
@@ -167,7 +167,10 @@ exports.viewPayments = async (offset, limit, page) => {
   });
 
   if (!payments) {
-    throw new Error("No transactions found");
+    return {
+      message: "No transactions found", data: null,
+      meta: { page, limit, total: count },
+    }
   }
   return {
     data: payments,

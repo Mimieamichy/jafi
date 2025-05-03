@@ -65,7 +65,7 @@ exports.getAClaim = async (claimId) => {
 exports.payForClaim = async (businessId, claimId, amount, transaction) => {
   const claim = await Claim.findOne({
     where: { businessId: businessId, id: claimId },
-    include: [{ model: Business, attributes: ["userId", "email", "name"] }],
+    include: [{ model: Business, as: 'business', attributes: ["userId", "email", "name"] }],
     transaction,
   });
 
