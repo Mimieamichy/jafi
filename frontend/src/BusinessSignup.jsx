@@ -503,12 +503,12 @@ export default function BusinessSignup() {
           </option>
           {formData.businessType === "standard"
             ? standardCategories.map((cat) => (
-                <option key={cat} value={cat}>
+                <option key={cat} value={cat} className="capitalize">
                   {cat}
                 </option>
               ))
             : premiumCategories.map((cat) => (
-                <option key={cat} value={cat}>
+                <option key={cat} value={cat} className="capitalize">
                   {cat}
                 </option>
               ))}
