@@ -99,7 +99,7 @@ exports.makePayment = async (transactionId) => {
 
 exports.verifyPayment = async (reference) => {
   try {
-    const transaction = await Payments.findOne({ where: { payment_reference: reference } });
+    const transaction = await Payment.findOne({ where: { payment_reference: reference } });
     return new Promise((resolve, reject) => {
       const options = {
         hostname: 'api.paystack.co',

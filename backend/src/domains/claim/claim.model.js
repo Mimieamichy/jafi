@@ -33,7 +33,7 @@ Claim.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    transactionId: {
+    payment_reference: {
       type: DataTypes.STRING,
       allowNull: true,
     },
