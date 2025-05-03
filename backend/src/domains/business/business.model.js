@@ -167,6 +167,12 @@ Business.associate = (models) => {
     as: "payments",
   });
 
+  Business.hasOne(models.Claim, {
+    foreignKey: "businessId",
+    as: "claim",
+  });
+  
+
   // Reviews can be attached similarly if needed
   Business.hasMany(models.Review, {
     foreignKey: "entity_id",

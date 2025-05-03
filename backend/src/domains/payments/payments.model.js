@@ -61,6 +61,7 @@ Payment.associate = (models) => {
     constraints: false,
     scope: { entity_type: "business" },
   });
+  
 };
 
 module.exports = Payment;

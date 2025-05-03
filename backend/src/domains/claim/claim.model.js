@@ -57,6 +57,12 @@ Claim.associate = (models) => {
     as: "business",
     onDelete: "CASCADE",
   });
+  Claim.belongsTo(models.Payment, {
+    foreignKey: "payment_reference", 
+    targetKey: "payment_reference", 
+    as: "payment",
+  });
+  
 };
 
 module.exports = Claim;
