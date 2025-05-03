@@ -158,12 +158,7 @@ export default function BusinessSignup() {
       });
       return;
     }
-    if (formData.images.length + files.length < 3) {
-      enqueueSnackbar("Upload a minimum of 3 images!", {
-        variant: "error",
-      });
-      return;
-    }
+    
 
     // Validate file type and size, then store file objects directly
     const validFiles = files.filter((file) => {
@@ -264,6 +259,12 @@ export default function BusinessSignup() {
   };
 
   const handleSubmit = async (e) => {
+    if (formData.images.length  < 3) {
+      enqueueSnackbar("Upload a minimum of 3 images!", {
+        variant: "error",
+      });
+      return;
+    }
     e.preventDefault();
     setIsSaving(true);
     // build FormData payload
