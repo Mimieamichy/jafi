@@ -291,7 +291,7 @@ export default function HiringSignup() {
           </label>
 
           <label className="block">
-            <span>Upload up to 5 images of jobs you've done:</span>
+            <span>Upload a min of three images:</span>
             <input
               type="file"
               accept="image/*"
