@@ -162,13 +162,12 @@ export default function BusinessSignup() {
     // Validate file type and size, then store file objects directly
     const validFiles = files.filter((file) => {
       if (!file.type.startsWith("image/")) {
-        alert("Only image files are allowed!");
+        enqueueSnackbar("Only image files are allowed!", {
+          variant: "error",
+        });
         return false;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Image must be less than 5MB!");
-        return false;
-      }
+
       return true;
     });
 
@@ -259,9 +258,10 @@ export default function BusinessSignup() {
   };
 
   const handleSubmit = async (e) => {
-
     if (formData.images.length < 3) {
-      enqueueSnackbar("Please select at least three images.", { variant: "warning" });
+      enqueueSnackbar("Please select at least three images.", {
+        variant: "warning",
+      });
       return;
     }
     e.preventDefault();
