@@ -80,6 +80,12 @@ export default function HiringSignup() {
       });
       return;
     }
+    if (formData.workSamples.length < 3) {
+      enqueueSnackbar("Please select at least three images.", {
+        variant: "warning",
+      });
+      return;
+    }
 
     const validFiles = files.filter((file) => {
       if (!file.type.startsWith("image/")) {
@@ -88,11 +94,7 @@ export default function HiringSignup() {
         });
         return false;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        enqueueSnackbar("Image must be less than 5MB!", { variant: "warning" });
-        return false;
-      }
-      return true;
+    
     });
 
     setFormData((prev) => ({
@@ -111,12 +113,7 @@ export default function HiringSignup() {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    if (formData.workSamples.length < 3) {
-      enqueueSnackbar("Please select at least three images.", {
-        variant: "warning",
-      });
-      return;
-    }
+   
     e.preventDefault();
     setIsSaving(true);
 

@@ -158,6 +158,12 @@ export default function BusinessSignup() {
       });
       return;
     }
+    if (formData.images.length < 3) {
+      enqueueSnackbar("Please select at least three images.", {
+        variant: "warning",
+      });
+      return;
+    }
 
     // Validate file type and size, then store file objects directly
     const validFiles = files.filter((file) => {
@@ -258,12 +264,7 @@ export default function BusinessSignup() {
   };
 
   const handleSubmit = async (e) => {
-    if (formData.images.length < 3) {
-      enqueueSnackbar("Please select at least three images.", {
-        variant: "warning",
-      });
-      return;
-    }
+    
     e.preventDefault();
     setIsSaving(true);
     // build FormData payload
@@ -584,6 +585,7 @@ export default function BusinessSignup() {
         {/* Image Upload */}
         <label htmlFor="images" className="font-semibold">
           Upload Images:
+          (min of 3)
         </label>
         <input
           type="file"
