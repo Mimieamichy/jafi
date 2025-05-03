@@ -163,6 +163,7 @@ exports.getAllBusinesses = async (offset, limit, page) => {
           },
           {
             model: Payment,
+            as: 'payments',
             attributes: ["status"],
             where: { status: "successful" },
             required: true, 
@@ -175,7 +176,8 @@ exports.getAllBusinesses = async (offset, limit, page) => {
       
 
     if (count === 0) {
-        throw new Error("No businesses found");
+        return { message: "No businesses found", data: null,
+            meta: { page, limit, total: count }};
     }
 
     return {
@@ -498,6 +500,7 @@ exports.getAllServices = async (offset, limit, page) => {
         include: [
             {
                 model: Payment,
+                as: 'payments',
                 attributes: ["status"],
                 where: { status: "successful" },
                 required: true, 
@@ -508,7 +511,8 @@ exports.getAllServices = async (offset, limit, page) => {
         limit,
     });
 
-    if (count === 0) throw new Error("No services found");
+    if (count === 0) return { message: "No services found", data: null,
+        meta: { page, limit, total: count }};
 
     return {
         data: rows.map((item) => item.toJSON()),
