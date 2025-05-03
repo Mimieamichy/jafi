@@ -115,6 +115,7 @@ exports.payForService = async (req, res) => {
     return res.status(200).json({ success: true, data: response });
   } catch (error) {
     await transaction.rollback();
+    console.log(error)
     res.status(error.status || 500).json({ message: error.message });
   }
 };

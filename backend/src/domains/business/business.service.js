@@ -117,11 +117,13 @@ exports.payForBusiness = async (businessId, amount, transaction) => {
     transaction,
   });
 
-  if (!business || !business.User) {
+  const businessUser = business.user.dataValues
+  if (!business || !businessUser) {
     throw new Error("Business not found or does not have an associated user.");
   }
 
-  const userId = business.User.id;
+
+  const userId = businessUser.id;
   const entity_type = "business";
 
   // Create payment

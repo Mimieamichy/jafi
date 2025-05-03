@@ -69,12 +69,13 @@ exports.payForClaim = async (businessId, claimId, amount, transaction) => {
     transaction,
   });
 
+  const claimUser = claim.user.dataValues
 
-  if (!claim || !claim.Business) {
+  if (!claim || !claimUser) {
     throw new Error("Claim not found or does not have an associated business.");
   }
 
-  const userId = claim.Business.userId;
+  const userId = claimUser.userId;
   const entity_type = "claim";
 
   // Create payment

@@ -128,11 +128,14 @@ exports.payForService = async (serviceId, amount, transaction) => {
         transaction
     });
 
-    if (!service || !service.User) {
+    
+    const serviceUser = service.user.dataValues
+
+    if (!service || !serviceUser) {
         throw new Error("Service not found or does not have an associated user.");
     }
 
-    const userId = service.User.id
+    const userId = serviceUser.id
     const entity_type = 'service';
 
     // Create payment
