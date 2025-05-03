@@ -158,9 +158,9 @@ export default function BusinessSignup() {
       });
       return;
     }
-    if (formData.images.length < 3) {
-      enqueueSnackbar("Please select at least three images.", {
-        variant: "warning",
+    if (formData.images.length + files.length < 3) {
+      enqueueSnackbar("Upload a minimum of 3 images!", {
+        variant: "error",
       });
       return;
     }
@@ -264,7 +264,6 @@ export default function BusinessSignup() {
   };
 
   const handleSubmit = async (e) => {
-    
     e.preventDefault();
     setIsSaving(true);
     // build FormData payload
@@ -584,8 +583,7 @@ export default function BusinessSignup() {
 
         {/* Image Upload */}
         <label htmlFor="images" className="font-semibold">
-          Upload Images:
-          (min of 3)
+          Upload Images: (min of 3)
         </label>
         <input
           type="file"
