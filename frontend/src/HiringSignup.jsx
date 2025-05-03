@@ -80,8 +80,8 @@ export default function HiringSignup() {
       });
       return;
     }
-    if (formData.workSamples.length < 3) {
-      enqueueSnackbar("Please select at least three images.", {
+    if (formData.workSamples.length + files.length < 3) {
+      enqueueSnackbar("Upload a minimum of 3 images!", {
         variant: "warning",
       });
       return;
@@ -94,7 +94,8 @@ export default function HiringSignup() {
         });
         return false;
       }
-    
+     
+      return true;
     });
 
     setFormData((prev) => ({
@@ -291,7 +292,7 @@ export default function HiringSignup() {
           </label>
 
           <label className="block">
-            <span>Upload a min of three images:</span>
+            <span>Upload up to 5 images of jobs you've done:</span>
             <input
               type="file"
               accept="image/*"

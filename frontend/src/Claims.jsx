@@ -61,9 +61,6 @@ export default function Claims() {
     }
   };
 
-  
-
-
   /* ---------------- pagination ---------------- */
   const itemsPerPage = 20;
   const totalPages = Math.ceil(claims.length / itemsPerPage);
@@ -72,7 +69,6 @@ export default function Claims() {
     currentPage * itemsPerPage
   );
 
-
   const getFileName = (proofUrl) => {
     if (!proofUrl) return "";
     // convert backslashes to forward slashes:
@@ -80,7 +76,6 @@ export default function Claims() {
     const parts = normalized.split("/");
     return parts[parts.length - 1];
   };
-  
 
   /* ---------------- render ---------------- */
   return (
@@ -92,7 +87,7 @@ export default function Claims() {
         <table className="w-full border-collapse">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-2 border">S/N</th>              
+              <th className="p-2 border">S/N</th>
               <th className="p-2 border">Business Name</th>
               <th className="p-2 border">Email</th>
               <th className="p-2 border">Transaction Id</th>
@@ -112,15 +107,13 @@ export default function Claims() {
                 const sn = (currentPage - 1) * itemsPerPage + idx + 1;
                 return (
                   <tr key={c.id} className="border-t text-center">
-                    <td className="p-2 border">{sn}</td>         
-                    <td className="p-2 border">{c.bussinessName}</td>
+                    <td className="p-2 border">{sn}</td>
+                    <td className="p-2 border">{c.businessName}</td>
                     <td className="p-2 border">{c.email}</td>
                     <td className="p-2 border">{c.transactionId}</td>
                     <td className="p-2 border">
                       <a
-                        href={`${baseUrl}/download/${getFileName(
-                          c.proof
-                        )}`}
+                        href={`${baseUrl}/download/${getFileName(c.proof)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         download
@@ -165,7 +158,13 @@ export default function Claims() {
                   <strong>S/N:</strong> {sn}
                 </div>
                 <div>
+                  <strong>Business Name:</strong> {c.businessName}
+                </div>
+                <div>
                   <strong>Email:</strong> {c.email}
+                </div>
+                <div>
+                  <strong>Transaction Id:</strong> {c.transactionId}
                 </div>
                 <div>
                   <strong>Phone:</strong> {c.phone}
