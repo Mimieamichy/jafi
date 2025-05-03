@@ -80,12 +80,7 @@ export default function HiringSignup() {
       });
       return;
     }
-    if (formData.workSamples.length + files.length < 3) {
-      enqueueSnackbar("Upload a minimum of 3 images!", {
-        variant: "warning",
-      });
-      return;
-    }
+    
 
     const validFiles = files.filter((file) => {
       if (!file.type.startsWith("image/")) {
