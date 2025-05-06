@@ -80,12 +80,7 @@ export default function HiringSignup() {
       });
       return;
     }
-    if (formData.workSamples.length + files.length < 3) {
-      enqueueSnackbar("Upload a minimum of 3 images!", {
-        variant: "warning",
-      });
-      return;
-    }
+    
 
     const validFiles = files.filter((file) => {
       if (!file.type.startsWith("image/")) {
@@ -94,7 +89,7 @@ export default function HiringSignup() {
         });
         return false;
       }
-     
+
       return true;
     });
 
@@ -114,7 +109,13 @@ export default function HiringSignup() {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-   
+    if (formData.workSamples.length < 3) {
+      enqueueSnackbar("Upload a minimum of 3 images!", {
+        variant: "warning",
+      });
+      return;
+    }
+
     e.preventDefault();
     setIsSaving(true);
 
@@ -292,7 +293,7 @@ export default function HiringSignup() {
           </label>
 
           <label className="block">
-            <span>Upload up to 5 images of jobs you've done:</span>
+            <span>Upload a minimum of 3 images:</span>
             <input
               type="file"
               accept="image/*"
