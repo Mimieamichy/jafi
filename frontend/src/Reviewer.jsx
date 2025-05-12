@@ -9,7 +9,7 @@ export default function ReviewersDashboard() {
   const [reviews, setReviews] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const reviewsPerPage = 3;
-  const token =  localStorage.getItem("userToken") 
+  const token = localStorage.getItem("userToken");
 
   const fetchReviews = useCallback(async () => {
     if (!token) return;
@@ -83,8 +83,6 @@ export default function ReviewersDashboard() {
     }
   };
 
-  
-
   // Pagination
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
   const paginatedReviews = reviews.slice(
@@ -137,19 +135,33 @@ function ReviewCard({ review, onEdit, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedComment, setEditedComment] = useState(review.comment);
 
-  // Calculate if review is still within 3 hours
-  const isEditable = (() => {
-    if (!review.createdAt) return false;
-    const reviewTime = new Date(review.createdAt).getTime();
-    const now = Date.now();
-    const diffInHours = (now - reviewTime) / (1000 * 60 * 60); // ms to hours
-    return diffInHours <= 5;
-  })();
+  // 1️⃣ Compute initial editability & remaining time
+  const createdAtMs = new Date(review.createdAt).getTime();
+  const elapsedMs = Date.now() - createdAtMs;
+  const threeHoursMs = 3 * 60 * 60 * 1000;
+  const initialEditable = elapsedMs <= threeHoursMs;
+  const remainingMs = Math.max(threeHoursMs - elapsedMs, 0);
+
+  // 2️⃣ Make isEditable dynamic
+  const [isEditable, setIsEditable] = useState(initialEditable);
+
+  useEffect(() => {
+    if (!initialEditable) return;
+    // Schedule turn-off when 3h since creation passes
+    const timer = setTimeout(() => {
+      setIsEditable(false);
+      setIsEditing(false); // also exit edit-mode if active
+    }, remainingMs);
+
+    return () => clearTimeout(timer);
+  }, [initialEditable, remainingMs]);
 
   return (
-    <div className="bg-white p-4 rounded shadow">
+    <div className="bg-white p-4 rounded shadow relative">
       <h3 className="text-xl font-bold capitalize">{review.listingName}</h3>
-      <p className="text-sm text-gray-500 mb-1 capitalize">{review.user_name}</p>
+      <p className="text-sm text-gray-500 mb-1 capitalize">
+        {review.user_name}
+      </p>
 
       {isEditing ? (
         <textarea
@@ -161,7 +173,7 @@ function ReviewCard({ review, onEdit, onDelete }) {
         <p className="text-gray-800 mt-2">{review.comment}</p>
       )}
 
-      {/* Only show buttons if within 3 hours */}
+      {/* Only show edit/delete while within 3 hours */}
       {isEditable && (
         <div className="flex justify-between items-center mt-3">
           {isEditing ? (
@@ -170,18 +182,24 @@ function ReviewCard({ review, onEdit, onDelete }) {
                 onEdit(review.id, editedComment);
                 setIsEditing(false);
               }}
-              className="text-green-600"
+              className="text-green-600 flex items-center"
             >
               <FontAwesomeIcon icon={faSave} className="mr-1" />
               Save
             </button>
           ) : (
-            <button onClick={() => setIsEditing(true)} className="text-blue-600">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-blue-600 flex items-center"
+            >
               <FontAwesomeIcon icon={faEdit} className="mr-1" />
               Edit
             </button>
           )}
-          <button onClick={() => onDelete(review.id)} className="text-red-600">
+          <button
+            onClick={() => onDelete(review.id)}
+            className="text-red-600 flex items-center"
+          >
             <FontAwesomeIcon icon={faTrash} className="mr-1" />
             Delete
           </button>

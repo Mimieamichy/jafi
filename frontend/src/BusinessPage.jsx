@@ -250,7 +250,7 @@ export default function BusinessPage() {
       });
       localStorage.removeItem("reviewerToken");
       localStorage.removeItem("reviewer");
-      navigate("/sign-in", { replace: true });
+      navigate("/signin", { replace: true });
       return;
     }
     try {
@@ -448,7 +448,7 @@ export default function BusinessPage() {
               <div className="flex items-center gap-4">
                 <button
                   onClick={() =>
-                    authToken ? setShowReviewForm(true) : navigate("/sign-in")
+                    authToken ? setShowReviewForm(true) : navigate("/signin")
                   }
                   className="px-4 py-2 bg-blue-600 md:text-base text-sm text-white rounded hover:bg-blue-700"
                 >
