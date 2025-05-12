@@ -1,5 +1,5 @@
 const express = require("express");
-const { login, forgotPassword, verifyResetToken, resetPassword, getAllUsers, getUserById, updateUser, getAllListings, getUserRole, replyToReview } = require("../user/user.controller");
+const { login, forgotPassword, verifyResetToken, resetPassword, getAllUsers, getUserById, updateUser, getAllListings, getUserRole, replyToReview, getFilteredListings } = require("../user/user.controller");
 const {authenticate} = require("../../application/middlewares/authenticate");
 const { authorize } = require("../../application/middlewares/authorize");
 const router = express.Router();
@@ -8,13 +8,17 @@ const router = express.Router();
 router.post("/login", login);
 router.post("/forget-password", forgotPassword);
 router.get("/reset-password/:token", verifyResetToken);
-router.post("/reset-password", resetPassword);
+router.get("/filtered-listings", getFilteredListings);
 router.get("/listings", getAllListings);
+router.post("/reset-password", resetPassword);
 router.get("/role/:id", getUserRole);
+
+
 
 // Public routes with parameters - place after specific routes
 router.get("/", getAllUsers);
 router.get("/:id", getUserById);
+
 
 
 

@@ -1,14 +1,14 @@
 const PaymentService = require("../payments/payments.service");
 const { generatePassword } = require("../../utils/generatePassword")
 const bcrypt = require("bcryptjs")
-const {Op} = require('sequelize')
-const {Business, User} = require('../../models/index')
+const { Op, fn, col } = require("sequelize");
+const { Business, User, Review } = require('../../models/index')
 
 exports.registerBusiness = async (businessData) => {
   const existingUser = await User.findOne({
     where: { email: businessData.email },
   });
-    
+
   // No user – enforce unique business email
   const existingBusiness = await Business.findOne({
     where: { email: businessData.email },
@@ -184,28 +184,76 @@ exports.deleteBusiness = async (businessId, userId) => {
 };
 
 
-exports.getBusinessByCategory = async (category, offset, limit, page) => {
-  const {count, rows: businesses} = await Business.findAndCountAll({
+
+
+exports.getBusinessByCategory = async (category, offset, limit, page, filter) => {
+  // 1. Fetch ALL matching businesses (we'll sort & paginate in JS)
+  const businesses = await Business.findAll({
     where: {
-      category: {
-        [Op.like]: `%${category}%`,
-      },
+      category: { [Op.like]: `%${category}%` },
       status: "verified",
     },
-    order: [["createdAt", "DESC"]],
-    attributes: {
-      include: ["id", "name", "address", "category", "average_rating"],
-    },
-    offset,
-    limit
+    attributes: [
+      "id",
+      "name",
+      "address",
+      "category",
+      "average_rating",
+      "createdAt",
+    ],
+    raw: true,
   });
 
-  if (!businesses || businesses.length === 0) {
-    return {message: "No businesses found for this category"};
+  if (!businesses.length) {
+    return { message: "No businesses found for this category" };
   }
 
+  // 2. Total count before pagination
+  const total = businesses.length;
+
+  // 3. Get review counts for these businesses
+  const listingIds = businesses.map((b) => `bus_${b.id}`);
+  const counts = await Review.findAll({
+    where: { listingId: { [Op.in]: listingIds } },
+    attributes: [
+      "listingId",
+      [fn("COUNT", col("id")), "reviewCount"],
+    ],
+    group: ["listingId"],
+    raw: true,
+  });
+  const countMap = counts.reduce((m, r) => {
+    m[r.listingId] = parseInt(r.reviewCount, 10);
+    return m;
+  }, {});
+
+  // 4. Annotate & normalize fields
+  const annotated = businesses.map((b) => ({
+    ...b,
+    average_rating: parseFloat(b.average_rating || 0),
+    reviewCount: countMap[`bus_${b.id}`] || 0,
+  }));
+
+  // 5. Sort according to filter
+  annotated.sort((a, b) => {
+    switch (filter) {
+      case "highestRated":
+        return b.average_rating - a.average_rating;
+      case "highestReviewed":
+        return b.reviewCount - a.reviewCount;
+      case "oldest":
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      case "mostRecent":
+      default:
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+  });
+
+  // 6. Paginate in-memory
+  const data = annotated.slice(offset, offset + limit);
+
   return {
-    data: businesses,
-    meta: { page, limit, total: count },
+    data,
+    meta: { page, limit, total },
   };
-}
+};

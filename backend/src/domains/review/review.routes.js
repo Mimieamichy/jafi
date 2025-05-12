@@ -1,6 +1,6 @@
 const express = require("express");
 const passport = require("passport");
-const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, searchReviews, getAReviewwithReplies, getAllReviewsWithReplies, acknowledgeReview, getAllReviewsByuserId} = require("../review/review.controller");
+const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, getAReviewwithReplies, getAllReviewsWithReplies, acknowledgeReview, getAllReviewsByuserId} = require("../review/review.controller");
 const { cloudUpload } = require("../../application/middlewares/cloudinary"); 
 const router = express.Router();
 
@@ -21,12 +21,12 @@ router.delete("/:id", passport.authenticate("jwt", { session: false }), deleteRe
 // Public Routes
 router.get("/:userId", getAllReviewsByuserId)
 router.get("/entity/:entityId", getReviewsForListings);
-router.get("/search", searchReviews); //removed this and merge to get All
 router.get("/:id", getReviewById);
 router.get("/replies/:reviewId", getAReviewwithReplies);
 router.get("/reply", getAllReviewsWithReplies);
 router.put('/acknowledge/:listingId', passport.authenticate("jwt", { session: false }), acknowledgeReview)
 router.get("/", getAllReviews);
+
 
 
 

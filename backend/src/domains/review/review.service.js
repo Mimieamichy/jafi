@@ -169,83 +169,111 @@ exports.deleteReview = async (reviewId, userId) => {
   return { message: "Review deleted successfully" };
 };
 
-exports.getAllReviews = async (offset, limit, page) => {
-  const {count, rows: allReviews} = await Review.findAndCountAll({
-    include: [
-      {
-        model: User,
-        attributes: ["id", "email", "name", "role"],
-        as: 'user'
-      },
+exports.getReviews = async (page , limit , searchQuery, sort) => {
+  // 1. calc pagination
+  const offset = (page - 1) * limit;
+
+  // 2. if searchQuery, find matching service & business IDs
+  let serviceIds = [], businessIds = [];
+  if (searchQuery) {
+    const [svcs, businesses] = await Promise.all([
+      Service.findAll({
+        where: {
+          [Op.or]: [
+            { name:     { [Op.like]: `%${searchQuery}%` } },
+            { category: { [Op.like]: `%${searchQuery}%` } },
+          ],
+        },
+        attributes: ["uniqueId"],
+        raw: true,
+      }),
+      Business.findAll({
+        where: {
+          [Op.or]: [
+            { name:     { [Op.like]: `%${searchQuery}%` } },
+            { category: { [Op.like]: `%${searchQuery}%` } },
+          ],
+        },
+        attributes: ["uniqueId"],
+        raw: true,
+      }),
+    ]);
+    serviceIds   = svcs.map(s => s.uniqueId);
+    businessIds  = businesses.map(b => b.uniqueId);
+  }
+
+  // 3. build review filter
+  const where = {};
+  if (searchQuery) {
+    where[Op.or] = [
+      { listingType: "service",  listingId: { [Op.in]: serviceIds  } },
+      { listingType: "business", listingId: { [Op.in]: businessIds } },
+    ];
+  }
+
+  // 4. fetch all matching reviews + user
+  const reviewsRaw = await Review.findAll({
+    where,
+    include: [{
+      model: User,
+      as: "user",
+      attributes: ["id", "email", "name", "role"]
+    }],
+    attributes: [
+      "id","userId","listingId","listingType",
+      "comment","images","star_rating","createdAt","reply"
     ],
-    order: [["createdAt", "DESC"]],
-    offset,
-    limit
+    raw: false, // so we can use .toJSON() later
   });
 
-  // Manually attach the correct listing (either Business or Service)
-  const reviews = await Promise.all(
-    allReviews.map(async (review) => {
-      if (review.listingType === "business") {
-        review.dataValues.listing = await Business.findOne({
-          where: { uniqueId: review.listingId },
-        });
-      } else if (review.listingType === "service") {
-        review.dataValues.listing = await Service.findOne({
-          where: { uniqueId: review.listingId },
-        });
+  if (!reviewsRaw.length) {
+    return { data: [], meta: { page, limit, total: 0 } };
+  }
+
+  // 5. annotate each with imageCount, wordCount
+  const annotated = await Promise.all(
+    reviewsRaw.map(async (rev) => {
+      const r = rev.toJSON();
+      r.imageCount = Array.isArray(r.images) ? r.images.length : 0;
+      r.wordCount  = (r.comment.trim().split(/\s+/) || []).length;
+
+      // attach listing object
+      if (r.listingType === "service") {
+        r.listing = await Service.findOne({ where: { uniqueId: r.listingId } });
+      } else {
+        r.listing = await Business.findOne({ where: { uniqueId: r.listingId } });
       }
-      return review;
+
+      return r;
     })
   );
-  return {
-    data: reviews.map(item => item.toJSON()),
-    meta: { page, limit, total: count },
-};
-};
 
-exports.searchReviews = async (searchQuery) => {
-    let serviceIds = [];
-    let businessIds = [];
-
-    if (searchQuery) {
-        const serviceResults = await Service.findAll({
-            where: {
-                [Op.or]: [
-                    { name: { [Op.like]: `%${searchQuery}%` } },
-                    { category: { [Op.like]: `%${searchQuery}%` } },
-                ],
-            },
-            attributes: ['id'],
-        });
-
-        const businessResults = await Business.findAll({
-            where: {
-                [Op.or]: [
-                    { name: { [Op.like]: `%${searchQuery}%` } },
-                    { category: { [Op.like]: `%${searchQuery}%` } },
-                ],
-            },
-            attributes: ['id'],
-        });
-
-        serviceIds = serviceResults.map(s => s.id);
-        businessIds = businessResults.map(b => b.id);
+  // 6. sort in-memory
+  annotated.sort((a, b) => {
+    switch (sort) {
+      case "relevant":
+        if (b.imageCount !== a.imageCount) return b.imageCount - a.imageCount;
+        return b.wordCount  - a.wordCount;
+      case "highest":
+        return b.star_rating - a.star_rating;
+      case "lowest":
+        return a.star_rating - b.star_rating;
+      case "newest":
+      default:
+        return new Date(b.createdAt) - new Date(a.createdAt);
     }
+  });
 
-    const reviews = await Review.findAll({
-        where: {
-            [Op.or]: [
-                { listingType: 'service', listingId: { [Op.in]: serviceIds } },
-                { listingType: 'business', listingId: { [Op.in]: businessIds } },
-            ],
-        },
-        order: [['createdAt', 'DESC']],
-    });
+  // 7. paginate
+  const total = annotated.length;
+  const data  = annotated.slice(offset, offset + limit);
 
-    return {message: "All reviews fetched successfully", reviews };
+  return {
+    data,
+    meta: { page, limit, total },
+  };
 };
-
+ 
 exports.getReviewById = async (reviewId) => {
   const review = await Review.findByPk(reviewId);
   if (!review) throw new Error("Review not found");
@@ -352,3 +380,71 @@ exports.getAllReviewsByuserId = async (userId, offset, limit, page) => {
     meta: { page, limit, total: count },
 };
 }
+
+
+exports.getReviewsByListing = async (listingId, listingType, offset , limit , filter) => {
+  // 1. Pull all reviews for that listing
+  const reviews = await Review.findAll({
+    where: {
+      listingId,
+      listingType,
+    },
+    attributes: [
+      "id",
+      "userId",
+      "user_name",
+      "comment",
+      "images",
+      "star_rating",
+      "createdAt",
+      "reply",
+    ],
+    raw: true,
+  });
+
+  if (!reviews.length) {
+    return { message: "No reviews found" };
+  }
+
+  // 2. Annotate each with imageCount and wordCount
+  const annotated = reviews.map((r) => {
+    const imageCount = Array.isArray(r.images) ? r.images.length : 0;
+    const wordCount = r.comment.trim().split(/\s+/).length;
+    return { ...r, imageCount, wordCount };
+  });
+
+  // 3. Sort in-memory
+  annotated.filter((a, b) => {
+    switch (filter) {
+      case "relevant":
+        // primary: more images, secondary: longer comment
+        if (b.imageCount !== a.imageCount) {
+          return b.imageCount - a.imageCount;
+        }
+        return b.wordCount - a.wordCount;
+
+      case "highest":
+        return b.star_rating - a.star_rating;
+
+      case "lowest":
+        return a.star_rating - b.star_rating;
+
+      case "newest":
+      default:
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+  });
+
+  // 4. Paginate
+  const paged = annotated.slice(offset, offset + limit);
+
+  return {
+    data: paged,
+    meta: {
+      total: annotated.length,
+      page: Math.floor(offset / limit) + 1,
+      limit,
+    },
+  };
+};
+

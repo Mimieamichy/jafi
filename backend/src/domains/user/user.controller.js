@@ -1,5 +1,6 @@
 const UserService = require("../user/user.service");
-const cache = require('../../utils/cache')
+const cache = require('../../utils/cache');
+const { filter } = require("compression");
 
 
 
@@ -109,6 +110,32 @@ exports.getAllListings = async (req, res) => {
     res.status(error.status || 500).json({ message: error.message });
   }
 };
+
+
+exports.getFilteredListings = async (req, res) => {
+  try {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const filter = req.query.filter || ""
+  
+
+    //Caching
+    const cacheKey = `filteredListings:page=${page}-limit=${limit}-filter=${filter}`;
+    const cached = cache.get(cacheKey);
+
+    if (cached) {
+      console.log(`✅ Cache HIT for key: ${cacheKey}`);
+      return res.status(200).json(cached);
+    }
+    const response = await UserService.getFilteredListings(offset, limit, page, filter);
+    cache.set(cacheKey, response);
+    return res.status(200).json(response);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
+}
+
 
 exports.getUserRole = async (req, res) => {
   try {

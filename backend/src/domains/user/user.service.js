@@ -1,9 +1,10 @@
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { Op } = require("sequelize");
+const { Op, fn, col} = require("sequelize");
 const { sendMail } = require("../../utils/sendEmail");
 const {Review, Service, Business, User} = require('../../models/index')
+
 
 exports.userLogin = async (email, password) => {
   const user = await User.findOne({ where: { email } });
@@ -91,7 +92,6 @@ exports.getAllUsers = async () => {
   return { message: "Users found", users };
 };
 
-
 exports.updateUser = async (id, data) => {
   // Hash password if it's included
   if (data.password) {
@@ -116,7 +116,6 @@ exports.updateUser = async (id, data) => {
     user: updatedUser,
   };
 };
-
 
 exports.getUserRole = async (email) => {
   const user = await User.findOne({ where: { email } });
@@ -180,6 +179,94 @@ exports.getAllListings = async (searchTerm, offset, limit, page) => {
   };
 };
 
+
+exports.getFilteredListings = async (offset, limit, page, filter) => {
+  // 1. Build the search clause
+  const baseWhere = {
+    status: "verified",
+  };
+
+  // 2. Fetch all matching services & businesses (with counts for meta)
+  const [serviceData, businessData] = await Promise.all([
+    Service.findAndCountAll({
+      where: baseWhere,
+      order: [["createdAt", "DESC"]],
+      raw: true,
+    }),
+    Business.findAndCountAll({
+      where: baseWhere,
+      attributes: { exclude: ["proof"] },
+      order: [["createdAt", "DESC"]],
+      raw: true,
+    }),
+  ]);
+
+  // 3. Pull review counts for all listings in one go
+  const allIds = [
+    ...serviceData.rows.map((s) => `ser_${s.id}`),
+    ...businessData.rows.map((b) => `bus_${b.id}`),
+  ];
+  const counts = await Review.findAll({
+    where: { listingId: { [Op.in]: allIds } },
+    attributes: [
+      "listingId",
+      [fn("COUNT", col("id")), "reviewCount"]
+    ],
+    group: ["listingId"],
+    raw: true,
+  });
+  const countMap = counts.reduce((m, r) => {
+    m[r.listingId] = parseInt(r.reviewCount, 10);
+    return m;
+  }, {});
+
+  // 4. Combine both sets and annotate
+  const combined = [
+    ...serviceData.rows.map((s) => ({
+      type: "service",
+      ...s,
+      average_rating: parseFloat(s.average_rating || 0),
+      reviewCount: countMap[`ser_${s.id}`] || 0,
+    })),
+    ...businessData.rows.map((b) => ({
+      type: "business",
+      ...b,
+      average_rating: parseFloat(b.average_rating || 0),
+      reviewCount: countMap[`bus_${b.id}`] || 0,
+    })),
+  ];
+
+  if (!combined.length) {
+    return { message: "No listings found" };
+  }
+
+  // 5. Sort according to filter
+  combined.sort((a, b) => {
+    switch (filter) {
+      case "highestRated":
+        return b.average_rating - a.average_rating;
+      case "highestReviewed":
+        return b.reviewCount - a.reviewCount;
+      case "oldest":
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      case "mostRecent":
+      default:
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+  });
+
+  // 6. Paginate in-memory
+  const paginated = combined.slice(offset, offset + limit);
+
+  return {
+    data: paginated,
+    meta: {
+      page,
+      limit,
+      total: serviceData.count + businessData.count,
+    },
+  };
+};
 
 exports.replyToReview = async (reviewId, userId, comment) => {
   const originalReview = await Review.findByPk(reviewId);
