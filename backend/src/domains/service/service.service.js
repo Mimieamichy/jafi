@@ -67,26 +67,78 @@ exports.getAService = async (serviceId) => {
     return service;
 };
 
-exports.getAllServices = async (offset, limit, page) => {
-    const { count, rows: services } = await Service.findAndCountAll({
-      include: {
-        model: User,
-        as: "user",
-        attributes: ["id", "name", "email", "role"],
-      },
-      where: { status: "verified" },
-      order: [["createdAt", "DESC"]],
-      offset,
-      limit,
-    });
-    if (!services || services.length === 0) {
-        throw new Error("No services found");
-    }
+exports.getAllServices = async (offset, limit, page, filter) => {
+    const raw = await Service.findAll({
+    where: { status: "verified" },
+    include: {
+      model: User,
+      as: "user",
+      attributes: ["id", "name", "email", "role"],
+    },
+    attributes: [
+      "id",
+      "name",
+      "description",
+      "category",
+      "average_rating",
+      "createdAt",
+    ],
+    limit,
+    offset,
+    raw: true,
+  });
 
-    return {
-        data: services.map(item => item.toJSON()),
-        meta: { page, limit, total: count },
-    };
+  if (!raw.length) {
+    throw new Error("No services found");
+  }
+
+  const total = raw.length;
+
+  // 2. Get review counts for all services in one go
+  const listingIds = raw.map((s) => `ser_${s.id}`);
+  const counts = await Review.findAll({
+    where: { listingId: { [Op.in]: listingIds } },
+    attributes: [
+      "listingId",
+      [fn("COUNT", col("id")), "reviewCount"],
+    ],
+    group: ["listingId"],
+    raw: true,
+  });
+  const countMap = counts.reduce((map, { listingId, reviewCount }) => {
+    map[listingId] = parseInt(reviewCount, 10);
+    return map;
+  }, {});
+
+  // 3. Annotate each service
+  const annotated = raw.map((s) => ({
+    ...s,
+    average_rating: parseFloat(s.average_rating || 0),
+    reviewCount: countMap[`ser_${s.id}`] || 0,
+  }));
+
+  // 4. Sort in-memory
+  annotated.sort((a, b) => {
+    switch (filter) {
+      case "highestRated":
+        return b.average_rating - a.average_rating;
+      case "highestReviewed":
+        return b.reviewCount - a.reviewCount;
+      case "oldest":
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      case "mostRecent":
+      default:
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+  });
+
+  // 5. Paginate
+  const data = annotated.slice(offset, offset + limit);
+
+  return {
+    data,
+    meta: { page, limit, total },
+  };
 };
 
 exports.updateService = async (serviceId, userId, serviceData, password, email) => {

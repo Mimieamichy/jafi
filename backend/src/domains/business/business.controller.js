@@ -1,6 +1,7 @@
 const BusinessService = require("./business.service");
 const sequelize = require("../../config/database");
-const cache = require("../../utils/cache")
+const cache = require("../../utils/cache");
+const { filter } = require("compression");
 
 
 exports.registerBusiness = async (req, res) => {
@@ -48,16 +49,17 @@ exports.getAllBusinesses = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
+    const filter = req.query.filter || "";
 
     //Cache the response for 1 hour
-    const cacheKey = `allBusiness:page=${page}-limit=${limit}`;
+    const cacheKey = `allBusiness:page=${page}-limit=${limit}-filter=${filter}`;
     const cached = cache.get(cacheKey);
 
     if (cached) {
       console.log(`✅ Cache HIT for key: ${cacheKey}`);
       return res.status(200).json(cached);
     }
-    const response = await BusinessService.getAllBusinesses(offset, limit, page);
+    const response = await BusinessService.getAllBusinesses(offset, limit, page, filter);
     cache.set(cacheKey, response);
     res.status(200).json(response);
   } catch (error) {

@@ -125,7 +125,8 @@ exports.getUserRole = async (email) => {
   return { message: "User role found", role };
 };
 
-exports.getAllListings = async (searchTerm, offset, limit, page) => {
+exports.getAllListings = async (searchTerm, offset, limit, page, filter) => {
+  // 1. Build the search clause
   let searchFilter = {};
   if (searchTerm) {
     searchFilter = {
@@ -136,53 +137,8 @@ exports.getAllListings = async (searchTerm, offset, limit, page) => {
       ],
     };
   }
-
-  // Fetch full result sets to allow for accurate sorting and slicing
-  const serviceData = await Service.findAndCountAll({
-    where: {
-      ...searchFilter,
-      status: "verified"
-    },
-    order: [["createdAt", "DESC"]],
-  });
-
-  const businessData = await Business.findAndCountAll({
-    where: {
-      ...searchFilter,
-      status: "verified"
-    },
-    attributes: { exclude: ["proof"] },
-    order: [["createdAt", "DESC"]],
-
-  });
-
-  const combined = [
-    ...serviceData.rows.map((service) => ({ type: "service", ...service.toJSON() })),
-    ...businessData.rows.map((business) => ({ type: "business", ...business.toJSON() })),
-  ];
-
-  if (!combined.length) {
-    return { message: "No listings found" };
-  }
-
-  const sortedListings = combined.sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-  );
-
-  // Apply pagination AFTER combining and sorting
-  const paginatedListings = sortedListings.slice(offset, offset + limit);
-  const total = serviceData.count + businessData.count;
-
-  return {
-    data: paginatedListings,
-    meta: { page, limit, total },
-  };
-};
-
-
-exports.getFilteredListings = async (offset, limit, page, filter) => {
-  // 1. Build the search clause
   const baseWhere = {
+    ...searchFilter,
     status: "verified",
   };
 
@@ -191,6 +147,7 @@ exports.getFilteredListings = async (offset, limit, page, filter) => {
     Service.findAndCountAll({
       where: baseWhere,
       order: [["createdAt", "DESC"]],
+      limit,
       raw: true,
     }),
     Business.findAndCountAll({

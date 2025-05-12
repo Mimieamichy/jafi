@@ -1,7 +1,8 @@
 const ReviewService = require("../review/review.service");
 const passport = require("passport");
 require("../../config/google");
-const cache = require("../../utils/cache")
+const cache = require("../../utils/cache");
+const { off } = require("../../app");
 
 
 
@@ -16,6 +17,20 @@ exports.googleAuth = async (req, res, next) => {
     })(req, res, next)
 };
 
+exports.facebookAuth = async (req, res, next) => {
+  // 1. Capture where to send the user after login
+  const redirect = req.query.redirect || "/";
+  const state    = Buffer.from(JSON.stringify({ redirect })).toString("base64");
+
+  // 2. Kick off Facebook OAuth
+  passport.authenticate("facebook", {
+    scope: ["email", "public_profile"],
+    session: false,
+    state,
+  })(req, res, next);
+};
+
+
 exports.googleAuthCallback = async (req, res, next) => {
     passport.authenticate("google", { session: false, failureRedirect: '/' }, async (err, user, info) => {
         if (err || !user) {
@@ -25,7 +40,7 @@ exports.googleAuthCallback = async (req, res, next) => {
 
         try {
             // Generate JWT token for the user
-            const response = await ReviewService.registerReviewerWithGoogle(user);
+            const response = await ReviewService.registerReviewerWithOAuth(user, 'google');
 
             // Parse the state parameter to get the redirect URL
             let redirectState = {};
@@ -47,6 +62,47 @@ exports.googleAuthCallback = async (req, res, next) => {
             res.status(error.status || 500).json({ message: error.message });
         }
     })(req, res, next);
+};
+
+exports.facebookAuthCallback = async (req, res, next) => {
+  passport.authenticate(
+    "facebook",
+    { session: false, failureRedirect: "/" },
+    async (err, user, info) => {
+      if (err || !user) {
+        console.error("Facebook authentication error:", err);
+        return res.status(401).json({ message: "Authentication failed" });
+      }
+
+      try {
+        // Register (or login) via your service and get a JWT
+        const response = await ReviewService.registerReviewerWithOAuth(user, 'facebook');
+
+        // Decode optional state param for redirect info
+        let redirectState = {};
+        try {
+          if (req.query.state) {
+            redirectState = JSON.parse(
+              Buffer.from(req.query.state, "base64").toString()
+            );
+          }
+        } catch (e) {
+          console.error("Failed to parse state:", e);
+        }
+
+        const redirectPath = redirectState.redirect || "/";
+        const url = `${process.env.FRONTEND_URL}${redirectPath}?token=${response.token}`;
+        console.log("Redirecting to:", url);
+
+        return res.redirect(url);
+      } catch (error) {
+        console.error("Error in Facebook callback:", error);
+        return res
+          .status(error.status || 500)
+          .json({ message: error.message });
+      }
+    }
+  )(req, res, next);
 };
 
 exports.createReview = async (req, res) => {
@@ -99,7 +155,8 @@ exports.getAllReviews = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const filter = req.query.filter || "";
-         const {search} = req.query;
+        const offset = (page - 1) * limit;
+        const {search} = req.query;
 
         //Cache the response for 20mins
         const cacheKey = `reviews:page=${page}-limit=${limit}-filter=${filter}-search=${search}`;
@@ -109,7 +166,7 @@ exports.getAllReviews = async (req, res) => {
             console.log(`✅ Cache HIT for key: ${cacheKey}`);
             return res.status(200).json(cached);
         }
-        const response = await ReviewService.getReviews(page, limit, search, filter);
+        const response = await ReviewService.getReviews(page, limit, offset, search, filter);
         cache.set(cacheKey, response);
         return res.status(200).json(response);
     } catch (error) {
@@ -142,7 +199,12 @@ exports.getReviewsForListings = async (req, res) => {
 exports.getReviewsByUser = async (req, res) => {
     try {
         const userId = req.user.id;
-        const response = await ReviewService.getReviewsByUser(userId);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const filter = req.query.filter || "";
+        const offset = (page - 1) * limit;
+
+        const response = await ReviewService.getReviewsByUser(userId, filter, limit , offset, page);
         res.status(200).json(response);
     } catch (error) {
         console.log(error);

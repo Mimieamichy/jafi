@@ -1,6 +1,7 @@
 const ServiceService = require("./service.service");
 const sequelize = require("../../config/database");
-const cache = require('../../utils/cache')
+const cache = require('../../utils/cache');
+const { filter } = require("compression");
 
 
 
@@ -55,16 +56,17 @@ exports.getAllServices = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
+    const filter = req.query.filter || "";
 
     //Caching
-    const cacheKey = `services:page=${page}-limit=${limit}`;
+    const cacheKey = `services:page=${page}-limit=${limit}-filter=${filter}`;
     const cached = cache.get(cacheKey);
 
     if (cached) {
       console.log(`✅ Cache HIT for key: ${cacheKey}`);
       return res.status(200).json(cached);
     }
-    const response = await ServiceService.getAllServices(offset, limit, page);
+    const response = await ServiceService.getAllServices(offset, limit, page, filter);
     cache.set(cacheKey, response);
     res.status(200).json(response);
   } catch (error) {

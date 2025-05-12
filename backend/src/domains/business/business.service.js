@@ -55,28 +55,78 @@ exports.getABusiness = async (businessId) => {
   return business;
 };
 
-exports.getAllBusinesses = async (offset, limit, page) => {
-  const { count, rows: businesses } = await Business.findAndCountAll({
+exports.getAllBusinesses = async (offset, limit, page, filter) => {
+  // 1. Fetch all verified businesses (with their owner user)
+  const raw = await Business.findAll({
+    where: { status: "verified" },
     include: {
       model: User,
       as: "user",
       attributes: ["id", "name", "email", "role"],
     },
-    where: {
-      status: "verified",
-    },
-    order: [["createdAt", "DESC"]],
-    offset,
+    attributes: [
+      "id",
+      "name",
+      "address",
+      "category",
+      "average_rating",
+      "createdAt",
+    ],
+    raw: true,
     limit,
+    offset
   });
 
-  if (!businesses || businesses.length === 0) {
+  if (!raw.length) {
     throw new Error("No businesses found");
   }
 
+  const total = raw.length;
+
+  // 2. Get review counts for all businesses in one go
+  const listingIds = raw.map((b) => `bus_${b.id}`);
+  const counts = await Review.findAll({
+    where: { listingId: { [Op.in]: listingIds } },
+    attributes: [
+      "listingId",
+      [fn("COUNT", col("id")), "reviewCount"],
+    ],
+    group: ["listingId"],
+    raw: true,
+  });
+  const countMap = counts.reduce((map, { listingId, reviewCount }) => {
+    map[listingId] = parseInt(reviewCount, 10);
+    return map;
+  }, {});
+
+  // 3. Annotate each business
+  const annotated = raw.map((b) => ({
+    ...b,
+    average_rating: parseFloat(b.average_rating || 0),
+    reviewCount: countMap[`bus_${b.id}`] || 0,
+  }));
+
+  // 4. Sort in-memory
+  annotated.sort((a, b) => {
+    switch (filter) {
+      case "highestRated":
+        return b.average_rating - a.average_rating;
+      case "highestReviewed":
+        return b.reviewCount - a.reviewCount;
+      case "oldest":
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      case "mostRecent":
+      default:
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+  });
+
+  // 5. Paginate
+  const data = annotated.slice(offset, offset + limit);
+
   return {
-    data: businesses.map(item => item.toJSON()),
-    meta: { page, limit, total: count },
+    data,
+    meta: { page, limit, total },
   };
 };
 
@@ -159,7 +209,6 @@ exports.getBusinessByUserId = async (userId) => {
   return business;
 };
 
-
 exports.deleteBusiness = async (businessId, userId) => {
   if (userId === undefined || userId !== req.user.id) {
     throw new Error("Unauthorized to access this business");
@@ -183,9 +232,6 @@ exports.deleteBusiness = async (businessId, userId) => {
   return { message: "Business deleted successfully" };
 };
 
-
-
-
 exports.getBusinessByCategory = async (category, offset, limit, page, filter) => {
   // 1. Fetch ALL matching businesses (we'll sort & paginate in JS)
   const businesses = await Business.findAll({
@@ -198,6 +244,7 @@ exports.getBusinessByCategory = async (category, offset, limit, page, filter) =>
       "name",
       "address",
       "category",
+      "images",
       "average_rating",
       "createdAt",
     ],

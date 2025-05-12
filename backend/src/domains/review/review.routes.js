@@ -1,12 +1,14 @@
 const express = require("express");
 const passport = require("passport");
-const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, getAReviewwithReplies, getAllReviewsWithReplies, acknowledgeReview, getAllReviewsByuserId} = require("../review/review.controller");
+const {googleAuth, googleAuthCallback, createReview, updateReview, deleteReview, getAllReviews, getReviewById, getReviewsForListings,  getReviewsByUser, getAReviewwithReplies, getAllReviewsWithReplies, acknowledgeReview, getAllReviewsByuserId, facebookAuth, facebookAuthCallback} = require("../review/review.controller");
 const { cloudUpload } = require("../../application/middlewares/cloudinary"); 
 const router = express.Router();
 
 // Google Authentication Routes
-router.get("/google", googleAuth); //signup api
+router.get("/google", googleAuth); 
+router.get("/facebook", facebookAuth);
 router.get("/google-callback", googleAuthCallback);
+router.get("/facebook-callback", facebookAuthCallback)
 
 
 

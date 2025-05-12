@@ -4,58 +4,71 @@ const { Op } = require("sequelize");
 const {Review, User, Service , Business} = require('../../models/index')
 
 
+exports.registerReviewerWithOAuth = async (oauthUser, provider) => {
+  // 1. Normalize fields across providers
+  let email, name, profilePic;
+  switch (provider) {
+    case "google":
+    case "facebook":
+      // Both Google and Facebook supply these
+      email      = oauthUser.email;
+      name       = oauthUser.displayName || oauthUser.name;
+      profilePic = oauthUser.picture || oauthUser.photos?.[0]?.value || null;
+      break;
 
+    case "apple":
+      // Apple may supply name in separate fields
+      email      = oauthUser.email;
+      name       = oauthUser.name || `${oauthUser.firstName || ""} ${oauthUser.lastName || ""}`.trim();
+      profilePic = null; // Apple doesn’t give a picture URL
+      break;
 
-exports.registerReviewerWithGoogle = async (googleUser) => {
-  const { email, displayName, picture } = googleUser;
-  const profilePic = picture || null;
-
-
-  // Check if user exists
-  const existingUser = await User.findOne({ where: { email } });
-
-  if (existingUser) {
-
-    const token = jwt.sign(
-      {
-        id: existingUser.id,
-        email: existingUser.email,
-        name: existingUser.name,
-        role: existingUser.role,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "3d" }
-    );
-    
-    await User.update(
-      { profilePic },
-      { where: { email } }
-    )
-
-    return { message: "Login successful", token };
+    default:
+      throw new Error(`Unsupported OAuth provider: ${provider}`);
   }
 
-  // Register new user
-  const newUser = await User.create({
-    email,
-    password: "", // No password since it's Google login
-    role: "reviewer",
-    name: displayName,
-    profilePic
-  });
+  // 2. Lookup existing user by email
+  let user = await User.findOne({ where: { email } });
 
+  if (user) {
+    // Update profilePic if changed
+    if (profilePic && user.profilePic !== profilePic) {
+      await User.update({ profilePic }, { where: { id: user.id } });
+      user.profilePic = profilePic;
+    }
+
+  } else {
+    // 3. Create a new "reviewer" user
+    user = await User.create({
+      email,
+      password: "",       // no local password for OAuth users
+      role: "reviewer",
+      name,
+      profilePic,
+    });
+  }
+
+  // 4. Sign a JWT
   const token = jwt.sign(
     {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
-      role: newUser.role,
+      id:    user.id,
+      email: user.email,
+      name:  user.name,
+      role:  user.role,
+      // optionally: provider,
     },
     process.env.JWT_SECRET,
     { expiresIn: "3d" }
   );
-  return { message: "Reviewer registered successfully", token };
+
+  return {
+    message: user._options.isNewRecord
+      ? "Reviewer registered successfully"
+      : "Login successful",
+    token,
+  };
 };
+
 
 exports.createReview = async (userId, entityId, rating, comment, user_name, images) => {
   const user = await User.findByPk(userId);
@@ -169,9 +182,7 @@ exports.deleteReview = async (reviewId, userId) => {
   return { message: "Review deleted successfully" };
 };
 
-exports.getReviews = async (page , limit , searchQuery, sort) => {
-  // 1. calc pagination
-  const offset = (page - 1) * limit;
+exports.getReviews = async (page , limit , offset, searchQuery, sort) => {
 
   // 2. if searchQuery, find matching service & business IDs
   let serviceIds = [], businessIds = [];
@@ -185,6 +196,8 @@ exports.getReviews = async (page , limit , searchQuery, sort) => {
           ],
         },
         attributes: ["uniqueId"],
+        offset,
+        limit,
         raw: true,
       }),
       Business.findAll({
@@ -195,6 +208,8 @@ exports.getReviews = async (page , limit , searchQuery, sort) => {
           ],
         },
         attributes: ["uniqueId"],
+        offset,
+        limit,
         raw: true,
       }),
     ]);
@@ -217,7 +232,9 @@ exports.getReviews = async (page , limit , searchQuery, sort) => {
     include: [{
       model: User,
       as: "user",
-      attributes: ["id", "email", "name", "role"]
+      attributes: ["id", "email", "name", "role"],
+      offset,
+      limit,
     }],
     attributes: [
       "id","userId","listingId","listingType",
@@ -295,12 +312,58 @@ exports.getReviewsForListings = async (listingId) => {
   return {message: "Reviews fetched successfully", reviews };
 };
 
-exports.getReviewsByUser = async (userId) => {
-  const reviews = await Review.findAll({ where: { userId } });
-  if (!reviews || reviews.length === 0) {
-    return {mesage: "No reviews found for this user"};
+exports.getReviewsByUser = async (userId, sort, limit, offset, page ) => {
+  // 1. Fetch all reviews for this user
+  const reviewsRaw = await Review.findAll({
+    where: { userId },
+    attributes: [
+      "id",
+      "listingId",
+      "listingType",
+      "comment",
+      "images",
+      "star_rating",
+      "createdAt",
+      "reply",
+    ],
+    raw: true,
+  });
+
+  if (!reviewsRaw.length) {
+    return { message: "No reviews found for this user", data: [], meta: { page, limit, total: 0 } };
   }
-  return {message: "User reviews fetched successfully", reviews };
+
+  // 2. Annotate each review
+  const annotated = reviewsRaw.map((r) => {
+    const imageCount = Array.isArray(r.images) ? r.images.length : 0;
+    const wordCount = r.comment.trim().split(/\s+/).length;
+    return { ...r, imageCount, wordCount };
+  });
+
+  // 3. Sort
+  annotated.sort((a, b) => {
+    switch (sort) {
+      case "relevant":
+        if (b.imageCount !== a.imageCount) return b.imageCount - a.imageCount;
+        return b.wordCount - a.wordCount;
+      case "highest":
+        return b.star_rating - a.star_rating;
+      case "lowest":
+        return a.star_rating - b.star_rating;
+      case "newest":
+      default:
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+  });
+
+  // 4. Paginate
+  const total = annotated.length;
+  const data = annotated.slice(offset, offset + limit);
+
+  return {
+    data,
+    meta: { page, limit, total },
+  };
 };
 
 exports.getAReviewwithReplies = async (reviewId) => {

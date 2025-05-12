@@ -87,32 +87,8 @@ exports.updateUser = async (req, res) => {
   }
 }
 
+
 exports.getAllListings = async (req, res) => {
-  try {
-    const search = req.query.searchTerm || "";
-    const offset = parseInt(req.query.offset) || 0;
-    const limit = parseInt(req.query.limit) || 10;
-    const page = parseInt(req.query.page) || 1;
-
-    //Caching
-    const cacheKey = `allListings:search=${search}-page=${page}-limit=${limit}`;
-    const cached = cache.get(cacheKey);
-
-    if (cached) {
-      console.log(`✅ Cache HIT for key: ${cacheKey}`);
-      return res.status(200).json(cached);
-    }
-    const response = await UserService.getAllListings(search, offset, limit, page);
-    cache.set(cacheKey, response);
-    return res.status(200).json(response);
-  } catch (error) {
-    console.error(error);
-    res.status(error.status || 500).json({ message: error.message });
-  }
-};
-
-
-exports.getFilteredListings = async (req, res) => {
   try {
     const offset = parseInt(req.query.offset) || 0;
     const limit = parseInt(req.query.limit) || 10;
@@ -128,7 +104,7 @@ exports.getFilteredListings = async (req, res) => {
       console.log(`✅ Cache HIT for key: ${cacheKey}`);
       return res.status(200).json(cached);
     }
-    const response = await UserService.getFilteredListings(offset, limit, page, filter);
+    const response = await UserService.getAllListings(offset, limit, page, filter);
     cache.set(cacheKey, response);
     return res.status(200).json(response);
   } catch (error) {
