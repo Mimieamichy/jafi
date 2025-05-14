@@ -2,7 +2,7 @@ import { useState,useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { faGoogle } from "@fortawesome/free-brands-svg-icons";
+import { faGoogle,faFacebookF,   } from "@fortawesome/free-brands-svg-icons";
 import { useSnackbar } from "notistack";
 import { jwtDecode } from "jwt-decode";
 
@@ -125,6 +125,19 @@ export default function SignIn() {
     )}`;
   };
 
+  const handleFacebookLogin = () => {
+    const params = new URLSearchParams(location.search);
+    const redirectPath = params.get("redirect") || "/";
+    window.location.href = `${baseUrl}/review/facebook?redirect=${encodeURIComponent(redirectPath)}`;
+  };
+  
+  // const handleAppleLogin = () => {
+  //   const params = new URLSearchParams(location.search);
+  //   const redirectPath = params.get("redirect") || "/";
+  //   window.location.href = `${baseUrl}/review/apple?redirect=${encodeURIComponent(redirectPath)}`;
+  // };
+  
+
   return (
     <div className="max-w-md mx-auto my-5 p-6 bg-gray-900 text-white shadow-md rounded-lg">
       <h2 className="text-3xl font-bold mb-4 text-center">Sign In</h2>
@@ -193,15 +206,33 @@ export default function SignIn() {
       </div>
 
       {/* Sign In with Google */}
-      <div className="mt-4 text-center">
-        <button
-          onClick={handleGoogleLogin}
-          className="w-full bg-gray-800 text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-700"
-        >
-          <FontAwesomeIcon icon={faGoogle} />
-          <span>with Google</span>
-        </button>
-      </div>
+      {/* Sign In with Google, Facebook, Apple */}
+<div className="mt-4 text-center space-y-3">
+  <button
+    onClick={handleGoogleLogin}
+    className="w-full bg-gray-800 text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-700"
+  >
+    <FontAwesomeIcon icon={faGoogle} />
+    <span>with Google</span>
+  </button>
+
+  <button
+    onClick={handleFacebookLogin}
+    className="w-full bg-blue-800 text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-blue-700"
+  >
+    <FontAwesomeIcon icon={faFacebookF} />
+    <span>with Facebook</span>
+  </button>
+
+  {/* <button
+    onClick={handleAppleLogin}
+    className="w-full bg-black text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-900"
+  >
+    <FontAwesomeIcon icon={faApple} />
+    <span>with Apple</span>
+  </button> */}
+</div>
+
     </div>
   );
 }

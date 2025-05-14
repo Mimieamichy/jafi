@@ -11,11 +11,7 @@ const HiringSignup = lazy(() => import("./HiringSignup"));
 const BusinessSignup = lazy(() => import("./BusinessSignup"));
 const PaginatedReviews = lazy(() => import("./ReviewsPage"));
 const Footer = lazy(() => import("./pages/Footer"));
-const ReviewsProvider = lazy(() =>
-  import("./context/reviewContext").then((module) => ({
-    default: module.ReviewsProvider,
-  }))
-);
+
 const SignupModal = lazy(() => import("./SignupModal"));
 const SignIn = lazy(() => import("./SignInPage"));
 
@@ -49,7 +45,7 @@ export default function App() {
       <Suspense fallback={<BlueSpiralLoader />}>
         <div className="flex flex-col min-h-screen">
           <Navbar />
-          <ReviewsProvider>
+          
             {/* Main content should grow to push the footer down */}
             <div className="flex-grow pt-9 mt-10">
               <Routes>
@@ -83,7 +79,7 @@ export default function App() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
-          </ReviewsProvider>
+          
           <Footer />
         </div>
       </Suspense>

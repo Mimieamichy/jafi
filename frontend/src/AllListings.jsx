@@ -27,7 +27,7 @@ export default function AllListings() {
     const fetchListings = async () => {
       try {
         const response = await fetch(
-          `${baseUrl}/user/listings?page=${page}&limit=${limit}&searchTerm=${searchQuery}&filter=${sortOption}`
+          `${baseUrl}/user/listings?searchTerm=${searchQuery}&page=${page}&limit=${limit}&filter=${sortOption}`
         );
         const data = await response.json();
         console.log("Fetched listings:", data);

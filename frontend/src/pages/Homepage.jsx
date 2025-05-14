@@ -5,7 +5,7 @@ import About from "./About";
 import HeroSection from "./Hero";
 import CustomerReviews from "./Reviews";
 import Services from "./Service";
-import { ReviewsProvider } from "../context/reviewContext";
+
 import RecentListings from "../RecentListing";
 
 export default function Homepage() {
@@ -24,11 +24,11 @@ export default function Homepage() {
       <div>
         <HeroSection />
       </div>
-      <ReviewsProvider> 
+      
       <div>
         <CustomerReviews />
       </div>
-      </ReviewsProvider>
+     
       <div>
         <RecentListings />
       </div>

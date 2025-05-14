@@ -19,7 +19,7 @@ export default function Settings() {
   const [form, setForm] = useState({ name: "", email: "", role: "admin" });
   const [newPw, setNewPw] = useState("");
   const [showNew, setShowNew] = useState(false);
-  const [newCatType, setNewCatType] = useState("standard");
+  const [newCatType, setNewCatType] = useState("exclusive");
   const [newCatName, setNewCatName] = useState("");
   const [price, setPrice] = useState({ business: "", service: "" });
 
@@ -97,7 +97,7 @@ export default function Settings() {
       });
 
       if (!res.ok) throw new Error(await res.text());
-      enqueueSnackbar(`${newCatType === "standard" ? "Standard" : "Premium"} category added!`, { variant: "success" });
+      enqueueSnackbar(`${newCatType === "exclusive" ? "Exlusive" : "Premium"} category added!`, { variant: "success" });
       setNewCatName("");
     } catch (err) {
       enqueueSnackbar(err.message || "Error adding category", { variant: "error" });
@@ -107,7 +107,7 @@ export default function Settings() {
   const pushPrice = async (field) => {
     if (!price[field]) return enqueueSnackbar("Enter a price first", { variant: "warning" });
     const map = {
-      standard: "standardPrice",
+      exclusive: "standardPrice",
       premuim: "premiumPrice",
       service: "updateServicePrice",
     };
@@ -207,9 +207,9 @@ export default function Settings() {
           <label className="flex items-center space-x-2">
             <input
               type="radio"
-              value="standard"
-              checked={newCatType === "standard"}
-              onChange={() => setNewCatType("standard")}
+              value="exclusive"
+              checked={newCatType === "exclusive"}
+              onChange={() => setNewCatType("exclusive")}
             />
             <span>Standard</span>
           </label>
@@ -245,7 +245,7 @@ export default function Settings() {
       <section className="space-y-2">
         <h3 className="font-semibold text-lg">Update Pricing</h3>
 
-        {["standard", "premuim", "service"].map((field) => (
+        {["exclusive", "premuim", "service"].map((field) => (
           <div key={field} className="flex flex-col sm:flex-row sm:items-center gap-2">
             <label className="capitalize font-medium sm:w-32">{field}</label>
             <input

@@ -28,7 +28,7 @@ export default function BusinessSignup() {
     city: "",
     state: "",
     day: [],
-    businessType: "standard",
+    businessType: "exclusive",
     description: "",
     images: [],
     logo: null,
@@ -456,12 +456,12 @@ export default function BusinessSignup() {
             <input
               type="radio"
               name="businessType"
-              value="standard"
-              checked={formData.businessType === "standard"}
+              value="exclusive"
+              checked={formData.businessType === "exclusive"}
               onChange={handlebusinessTypeChange}
             />
             <span>
-              Standard{" "}
+              Exclusive{" "}
               {standardPrice != null
                 ? `— $${standardPrice.value}`
                 : "(loading…)"}
@@ -484,8 +484,8 @@ export default function BusinessSignup() {
 
         {/* Sub-Category */}
         <label htmlFor="category" className="font-semibold">
-          {formData.businessType === "standard"
-            ? "Standard Categories"
+          {formData.businessType === "exclusive"
+            ? "Exclusive Categories"
             : "Premium Categories"}
           :
         </label>
@@ -499,10 +499,10 @@ export default function BusinessSignup() {
         >
           <option value="" disabled>
             Select{" "}
-            {formData.businessType === "standard" ? "Standard" : "Premium"}{" "}
+            {formData.businessType === "exclusive" ? "Exclusive" : "Premium"}{" "}
             Category
           </option>
-          {formData.businessType === "standard"
+          {formData.businessType === "exclusive"
             ? standardCategories.map((cat) => (
                 <option key={cat} value={cat} className="capitalize">
                   {cat}
