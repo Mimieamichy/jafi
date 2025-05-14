@@ -1,3 +1,5 @@
+
+
 // src/components/ReviewerPersonalPage.jsx
 import React, { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
@@ -22,6 +24,7 @@ export default function ReviewerPersonalPage() {
   const [page, setPage] = useState(1);
   const [limit] = useState(ITEMS_PER_PAGE);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortOption, setSortOption] = useState(""); 
 
   const [reviewer, setReviewer] = useState({
     name: "",
@@ -35,7 +38,7 @@ export default function ReviewerPersonalPage() {
     async function fetchReviews() {
       try {
         const res = await fetch(
-          `${baseUrl}/review/${userId}?page=${page}&limit=${limit}`
+          `${baseUrl}/review/${userId}?page=${page}&limit=${limit}&filter=${sortOption}`
         );
         const data = await res.json();
         console.log("Raw response:", data);
@@ -68,7 +71,7 @@ export default function ReviewerPersonalPage() {
       }
     }
     fetchReviews();
-  }, [enqueueSnackbar, userId, page, limit]);
+  }, [enqueueSnackbar, userId, page, limit, sortOption]);
 
   const paginatedUsers = reviews;
 
@@ -102,6 +105,27 @@ export default function ReviewerPersonalPage() {
           <h1 className="text-3xl font-semibold">{reviewer.name}</h1>
           {reviewer.email && <p className="text-gray-600">{reviewer.email}</p>}
           <p className="text-gray-600 mt-2">Total Reviews: {reviews.length}</p>
+        </div>
+      </div>
+
+      <div className="relative inline-block m-10 w-48">
+        <select
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value)}
+          className="w-full appearance-none px-3 py-2 border border-gray-300 rounded-md text-sm pr-8"
+        >
+          <option  value="">
+            Sort By
+          </option>
+          <option value="newest">Recently Rated</option>
+          <option value="highest">Highest Rated</option>
+          <option value="lowest">Least Rated</option>
+          <option value="relevant">Most Relevant</option>
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center px-2 text-gray-500">
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+            <path d="M7 7l3-3 3 3H7zm0 6h6l-3 3-3-3z" />
+          </svg>
         </div>
       </div>
 

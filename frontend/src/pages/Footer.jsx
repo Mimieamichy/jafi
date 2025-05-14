@@ -36,7 +36,7 @@ export default function Footer() {
       
         {/* logo */}
         <a href="/" className="shrink-0">
-          <img src="../jafia.jpg" alt="JAFI logo" className="h-16 w-auto" />
+          <img src="../logo.png" alt="JAFI logo" className="h-16 w-auto" />
         </a>
 
         {/* contact */}
@@ -109,14 +109,7 @@ export default function Footer() {
           >
             <FontAwesomeIcon icon={faFacebookF} />
           </a>
-          <a
-            href="https://www.tiktok.com/@jafi.ai?_t=ZM-8vThF855inF&_r=1"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-pink-500"
-          >
-            <FontAwesomeIcon icon={faTiktok} />
-          </a>
+          
           <a
             href="https://www.instagram.com/jafi.ai?igsh=MTRvNHFvcGl0YXdmcg==&utm_source=qr"
             target="_blank"
@@ -132,6 +125,14 @@ export default function Footer() {
             className="hover:text-blue-500"
           >
             <FontAwesomeIcon icon={faXTwitter} />
+          </a>
+          <a
+            href="https://www.tiktok.com/@jafi.ai?_t=ZM-8vThF855inF&_r=1"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-pink-500"
+          >
+            <FontAwesomeIcon icon={faTiktok} />
           </a>
         </div>
 

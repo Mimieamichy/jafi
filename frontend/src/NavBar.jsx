@@ -17,7 +17,7 @@ export default function Navbar() {
     "Church",
     "Nightlife & Entertainment",
     "Airplane",
-    "Beauty and Salon",
+    "Beauty & Salon",
     "Communication",
     "Hospital",
     "Restaurant",

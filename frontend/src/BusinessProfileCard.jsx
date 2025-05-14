@@ -21,12 +21,13 @@ export default function BusinessProfileCard() {
   const [page, setPage] = useState(1);
   const [limit] = useState(ITEMS_PER_PAGE);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortOption, setSortOption] = useState("");
 
   useEffect(() => {
     const fetchBusiness = async () => {
       try {
         const res = await fetch(
-          `${baseUrl}/business/?page=${page}&limit=${limit}`
+          `${baseUrl}/business/?page=${page}&limit=${limit}&filter=${sortOption}`
         );
         const data = await res.json();
         console.log("Fetched data:", data);
@@ -44,7 +45,7 @@ export default function BusinessProfileCard() {
     };
 
     fetchBusiness();
-  }, [page, limit]);
+  }, [page, limit, sortOption]);
 
   const filteredUsers = categoryFilter
     ? users.filter((user) => user.category === categoryFilter)
@@ -76,14 +77,16 @@ export default function BusinessProfileCard() {
           <p className="text-center text-gray-500"></p>
         )}
         {users.length > 0 ? (
-          <div className="flex justify-start ml-6 my-4 relative w-fit">
+          <div className="flex flex-wrap items-center gap-4 ml-6 my-4">
+          {/* Category Filter */}
+          <div className="relative w-48">
             <select
               value={categoryFilter}
               onChange={(e) => {
                 setCategoryFilter(e.target.value);
                 setPage(1);
               }}
-              className="p-2 border rounded appearance-none pr-8"
+              className="w-full p-2 border rounded appearance-none pr-8"
             >
               <option value="">All Categories</option>
               {categories.map((cat, idx) => (
@@ -97,6 +100,28 @@ export default function BusinessProfileCard() {
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none"
             />
           </div>
+        
+          {/* Sort Filter */}
+          <div className="relative w-48">
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="w-full appearance-none px-3 py-2 border border-gray-300 rounded pr-8 text-sm"
+            >
+              <option value="">Sort By</option>
+              <option value="mostRecent">Recent</option>
+              <option value="oldest">Oldest</option>
+              <option value="highestRated">Highest Rated</option>
+              <option value="highestReviewed">Most Reviewed</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center px-2 text-gray-500">
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                <path d="M7 7l3-3 3 3H7zm0 6h6l-3 3-3-3z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
         ) : (
           <p className="text-center text-gray-500"></p>
         )}

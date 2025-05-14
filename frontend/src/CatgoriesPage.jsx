@@ -21,6 +21,7 @@ export default function CategoryPage() {
   const [page, setPage] = useState(1);
   const [limit] = useState(categoryPerPage);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortOption, setSortOption] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function CategoryPage() {
         const res = await fetch(
           `${baseUrl}/business/category/${encodeURIComponent(
             category
-          )}?page=${page}&limit=${limit}`
+          )}?page=${page}&limit=${limit}&filter=${sortOption}`
         );
         if (!res.ok) {
           throw new Error("Failed to fetch businesses");
@@ -50,7 +51,7 @@ export default function CategoryPage() {
       }
     }
     fetchBusinesses();
-  }, [category, page, limit]);
+  }, [category, page, limit, sortOption]);
 
   const currentListings = businesses;
 
@@ -118,6 +119,24 @@ export default function CategoryPage() {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
+      <div className="relative inline-block m-10 w-48">
+        <select
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value)}
+          className="w-full appearance-none px-3 py-2 border border-gray-300 rounded-md text-sm pr-8"
+        >
+          <option value="">Sort By</option>
+          <option value="mostRecent">Recent</option>
+          <option value="oldest">Oldest</option>
+          <option value="highestRated">Highest Rated</option>         
+          <option value="highestReviewed">Most Reviewed</option>
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center px-2 text-gray-500">
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+            <path d="M7 7l3-3 3 3H7zm0 6h6l-3 3-3-3z" />
+          </svg>
+        </div>
+      </div>
       <h2 className="text-4xl font-bold mb-4 mt-5 text-center">
         {category} Businesses
       </h2>
@@ -131,7 +150,7 @@ export default function CategoryPage() {
             >
               {/* if backend already sends full url use it; otherwise prefix */}
               <img
-                src={biz.images[0] || "/default-image.jpg"}
+                src={biz.images?.[0] || "/default-image.jpg"}
                 alt={biz.name}
                 className="w-full h-40 object-cover rounded-md"
               />

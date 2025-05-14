@@ -130,7 +130,7 @@ export default function HireProfileDetails() {
       });
       localStorage.removeItem("reviewerToken");
       localStorage.removeItem("reviewer");
-      navigate("/sign-in", { replace: true });
+      navigate("/signin", { replace: true });
       return;
     }
     try {
@@ -302,7 +302,7 @@ export default function HireProfileDetails() {
             </button>
             <button
               onClick={() =>
-                authToken ? setShowReviewForm(true) : navigate("/sign-in")
+                authToken ? setShowReviewForm(true) : navigate("/signin")
               }
               className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md shadow hover:bg-blue-700 transition"
             >

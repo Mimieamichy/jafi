@@ -119,6 +119,7 @@ export default function PaginatedReviews() {
   const [page, setPage] = useState(1);
   const [limit] = useState(REVIEWS_PER_PAGE);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortOption, setSortOption] = useState(""); // recent | highest | lowest
 
   const handleReviewCardClick = (id, listingType) => {
     // Navigate to the appropriate route based on listingType (either service or business)
@@ -133,7 +134,7 @@ export default function PaginatedReviews() {
     const fetchReviews = async () => {
       try {
         const res = await fetch(
-          `${baseUrl}/review/?page=${page}&limit=${limit}`
+          `${baseUrl}/review/?page=${page}&limit=${limit}&filter=${sortOption}`
         );
         const data = await res.json();
         console.log("Fetched reviews:", data);
@@ -146,7 +147,7 @@ export default function PaginatedReviews() {
       }
     };
     fetchReviews();
-  }, [limit, page]);
+  }, [limit, page, sortOption]);
 
   const openReplyModal = (replyText) => {
     setSelectedReply(replyText);
@@ -186,8 +187,30 @@ export default function PaginatedReviews() {
 
   return (
     <section className="bg-gray-100 py-16 px-6 md:px-12 lg:px-24">
+      <div className="relative inline-block w-48">
+        <select
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value)}
+          className="w-full appearance-none px-3 py-2 border border-gray-300 rounded-md text-sm pr-8"
+        >
+          <option  value="">
+            Sort By
+          </option>
+          <option value="newest">Recently Rated</option>
+          <option value="highest">Highest Rated</option>
+          <option value="lowest">Least Rated</option>
+          <option value="relevant">Most Relevant</option>
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center px-2 text-gray-500">
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+            <path d="M7 7l3-3 3 3H7zm0 6h6l-3 3-3-3z" />
+          </svg>
+        </div>
+      </div>
+
       <div className="max-w-5xl mx-auto text-center">
         <h2 className="text-4xl font-bold text-gray-900 mb-6">All Reviews</h2>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
           {currentReviews.map((review) => (
             <ReviewCard

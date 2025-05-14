@@ -20,22 +20,22 @@ export default function AllListings() {
   const [limit] = useState(REVIEWS_PER_PAGE);
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState("");
+  const [sortOption, setSortOption] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchListings = async () => {
       try {
         const response = await fetch(
-          `${baseUrl}/user/listings?page=${page}&limit=${limit}&searchTerm=${searchQuery}`
+          `${baseUrl}/user/listings?page=${page}&limit=${limit}&searchTerm=${searchQuery}&filter=${sortOption}`
         );
         const data = await response.json();
         console.log("Fetched listings:", data);
 
         if (response.ok) {
           setListings(data.data);
-         
-            setError(data.message || "No listings found");
-          
+
+          setError(data.message || "No listings found");
 
           const total = data.meta.total ?? 0;
           setTotalPages(Math.ceil(total / limit));
@@ -51,7 +51,7 @@ export default function AllListings() {
     };
 
     fetchListings();
-  }, [page, limit, searchQuery]);
+  }, [page, limit, searchQuery, sortOption]);
 
   // Pagination Logic
 
@@ -74,89 +74,118 @@ export default function AllListings() {
 
   return (
     <div className="p-6">
-      {/* Search Bar */}
-      <div className="relative w-72 mb-5">
-        {" "}
-        {/* Reduced width of search bar */}
-        <input
-          type="text"
-          placeholder="Search by name or category"
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setPage(1); // Reset page to 1 on search
-          }}
-          // Reset page to 1 on search
-          className="p-2 pl-10 w-full border border-gray-300 rounded-lg" // Adjust padding and width
-        />
-        <FontAwesomeIcon
-          icon={faSearch}
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" // Positioned inside the input
-        />
+      <h2 className="text-4xl font-bold text-gray-900 mt-7 m-3 text-center">
+        All Listings
+      </h2>
+      {/* Search + Sort Container */}
+      <div className="flex flex-wrap items-center mt-10 gap-4 mb-5">
+        {/* Search Bar */}
+        <div className="relative w-72">
+          <input
+            type="text"
+            placeholder="Search by name or category"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg"
+          />
+          <FontAwesomeIcon
+            icon={faSearch}
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+          />
+        </div>
+
+        {/* Sort Dropdown */}
+        <div className="relative w-48">
+          <select
+            value={sortOption}
+            onChange={(e) => {
+              setSortOption(e.target.value);
+              setPage(1);
+            }}
+            className="w-full appearance-none px-3 py-2 border border-gray-300 rounded-lg pr-8 text-sm"
+          >
+            <option value="">Sort By</option>
+            <option value="mostRecent">Recent</option>
+            <option value="oldest">Oldest</option>
+            <option value="highestRated">Highest Rated</option>
+            <option value="highestReviewed">Most Reviewed</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center px-2 text-gray-500">
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+              <path d="M7 7l3-3 3 3H7zm0 6h6l-3 3-3-3z" />
+            </svg>
+          </div>
+        </div>
       </div>
 
-     
       {/* Displaying the Listings */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-       {listings ? (listings.map((listing) => (
-          <div
-            key={listing.id}
-            className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:scale-105 transform transition-all"
-            onClick={() => handleListingClick(listing.id, listing.type)} // Handle navigation based on role
-          >
-            <img
-              src={
-                listing.images && listing.images.length > 0
-                  ? listing.images[0]
-                  : "/placeholder.jpg"
-              }
-              alt={listing.name}
-              className="w-full h-48 object-cover rounded-md"
-            />
+        {listings ? (
+          listings.map((listing) => (
+            <div
+              key={listing.id}
+              className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:scale-105 transform transition-all"
+              onClick={() => handleListingClick(listing.id, listing.type)} // Handle navigation based on role
+            >
+              <img
+                src={
+                  listing.images && listing.images.length > 0
+                    ? listing.images[0]
+                    : "/placeholder.jpg"
+                }
+                alt={listing.name}
+                className="w-full h-48 object-cover rounded-md"
+              />
 
-            <div className="mt-4">
-              <h3 className="text-xl font-semibold capitalize">
-                {listing.name}
-              </h3>
-              <p className="text-gray-600">
-                <FontAwesomeIcon
-                  icon={faBriefcase}
-                  className="mr-2 text-green-500"
-                />
-                {listing.category}
-              </p>
-              <div className="mt-2">
-                <p className="text-sm text-gray-500">
+              <div className="mt-4">
+                <h3 className="text-xl font-semibold capitalize">
+                  {listing.name}
+                </h3>
+                <p className="text-gray-600">
                   <FontAwesomeIcon
-                    icon={faPhone}
-                    className="mr-2 text-blue-500"
-                  />{" "}
-                  {listing.phone_number || listing.phone_number1}
+                    icon={faBriefcase}
+                    className="mr-2 text-green-500"
+                  />
+                  {listing.category}
                 </p>
-                <p className="text-sm text-gray-500">
-                  <FontAwesomeIcon
-                    icon={faMapMarkerAlt}
-                    className="mr-2 text-red-500"
-                  />{" "}
-                  {listing.address}
-                </p>
-                <p className="text-sm text-gray-500">
-                  <FontAwesomeIcon
-                    icon={faHouse}
-                    className="mr-2 text-yellow-400"
-                  />{" "}
-                  {listing.type}
-                </p>
-              </div>
-              {listing.claimed && (
-                <div className="absolute bottom-0 right-0 m-2 bg-blue-600 text-white text-xs px-3 py-1 rounded-tl-full rounded-br-full">
-                  Claimed
+                <div className="mt-2">
+                  <p className="text-sm text-gray-500">
+                    <FontAwesomeIcon
+                      icon={faPhone}
+                      className="mr-2 text-blue-500"
+                    />{" "}
+                    {listing.phone_number || listing.phone_number1}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <FontAwesomeIcon
+                      icon={faMapMarkerAlt}
+                      className="mr-2 text-red-500"
+                    />{" "}
+                    {listing.address}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <FontAwesomeIcon
+                      icon={faHouse}
+                      className="mr-2 text-yellow-400"
+                    />{" "}
+                    {listing.type}
+                  </p>
                 </div>
-              )}
+                {listing.claimed && (
+                  <div className="absolute bottom-0 right-0 m-2 bg-blue-600 text-white text-xs px-3 py-1 rounded-tl-full rounded-br-full">
+                    Claimed
+                  </div>
+                )}
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+            {error}
           </div>
-        ))) : (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
         )}
       </div>
 
