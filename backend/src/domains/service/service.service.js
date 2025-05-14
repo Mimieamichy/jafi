@@ -2,7 +2,8 @@ const OTPService = require("../otp/otp.service");
 const PaymentService = require("../payments/payments.service");
 const { generatePassword } = require("../../utils/generatePassword")
 const bcrypt = require('bcryptjs')
-const {Service, User} = require('../../models/index')
+const {Service, User, Review} = require('../../models/index')
+const {Op, fn, col} = require('sequelize')
 
 
 
@@ -80,6 +81,8 @@ exports.getAllServices = async (offset, limit, page, filter) => {
       "name",
       "description",
       "category",
+      "images",
+      "phone_number",
       "average_rating",
       "createdAt",
     ],

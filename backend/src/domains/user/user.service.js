@@ -127,43 +127,51 @@ exports.getUserRole = async (email) => {
 
 exports.getAllListings = async (searchTerm, offset, limit, page, filter) => {
   // 1. Build the search clause
-  let searchFilter = {};
-  if (searchTerm) {
-    searchFilter = {
+  const baseWhere = {
+    status: "verified",
+    ...(searchTerm && {
       [Op.or]: [
         { name: { [Op.like]: `%${searchTerm}%` } },
         { category: { [Op.like]: `%${searchTerm}%` } },
         { address: { [Op.like]: `%${searchTerm}%` } },
-      ],
-    };
-  }
-  const baseWhere = {
-    ...searchFilter,
-    status: "verified",
+      ]
+    })
   };
 
-  // 2. Fetch all matching services & businesses (with counts for meta)
-  const [serviceData, businessData] = await Promise.all([
-    Service.findAndCountAll({
+  // 2. Fetch services and businesses with individual pagination
+  const [services, businesses] = await Promise.all([
+    Service.findAll({
       where: baseWhere,
       order: [["createdAt", "DESC"]],
-      limit,
       raw: true,
     }),
-    Business.findAndCountAll({
+    Business.findAll({
       where: baseWhere,
       attributes: { exclude: ["proof"] },
       order: [["createdAt", "DESC"]],
       raw: true,
-    }),
+    })
   ]);
 
-  // 3. Pull review counts for all listings in one go
-  const allIds = [
-    ...serviceData.rows.map((s) => `ser_${s.id}`),
-    ...businessData.rows.map((b) => `bus_${b.id}`),
+  // 3. Get total counts for pagination metadata
+  const [serviceCount, businessCount] = await Promise.all([
+    Service.count({ where: baseWhere }),
+    Business.count({ where: baseWhere })
+  ]);
+
+  // 4. Combine results
+  const combined = [
+    ...services.map(s => ({ type: "service", ...s })),
+    ...businesses.map(b => ({ type: "business", ...b }))
   ];
-  const counts = await Review.findAll({
+
+  // 5. Get review counts
+  const allIds = [
+    ...services.map(s => `ser_${s.id}`),
+    ...businesses.map(b => `bus_${b.id}`)
+  ];
+  
+  const reviewCounts = await Review.findAll({
     where: { listingId: { [Op.in]: allIds } },
     attributes: [
       "listingId",
@@ -172,33 +180,21 @@ exports.getAllListings = async (searchTerm, offset, limit, page, filter) => {
     group: ["listingId"],
     raw: true,
   });
-  const countMap = counts.reduce((m, r) => {
-    m[r.listingId] = parseInt(r.reviewCount, 10);
-    return m;
+
+  const countMap = reviewCounts.reduce((acc, curr) => {
+    acc[curr.listingId] = curr.reviewCount;
+    return acc;
   }, {});
 
-  // 4. Combine both sets and annotate
-  const combined = [
-    ...serviceData.rows.map((s) => ({
-      type: "service",
-      ...s,
-      average_rating: parseFloat(s.average_rating || 0),
-      reviewCount: countMap[`ser_${s.id}`] || 0,
-    })),
-    ...businessData.rows.map((b) => ({
-      type: "business",
-      ...b,
-      average_rating: parseFloat(b.average_rating || 0),
-      reviewCount: countMap[`bus_${b.id}`] || 0,
-    })),
-  ];
+  // 6. Annotate with review counts and ratings
+  const annotated = combined.map(item => ({
+    ...item,
+    reviewCount: countMap[`${item.type.slice(0, 3)}_${item.id}`] || 0,
+    average_rating: parseFloat(item.average_rating || 0)
+  }));
 
-  if (!combined.length) {
-    return { message: "No listings found" };
-  }
-
-  // 5. Sort according to filter
-  combined.sort((a, b) => {
+  // 7. Apply sorting
+  annotated.sort((a, b) => {
     switch (filter) {
       case "highestRated":
         return b.average_rating - a.average_rating;
@@ -212,18 +208,15 @@ exports.getAllListings = async (searchTerm, offset, limit, page, filter) => {
     }
   });
 
-  // 6. Paginate in-memory
-  const paginated = combined.slice(offset, offset + limit);
-
+  // 7. Apply pagination
+  const total = serviceCount + businessCount
+  const data = annotated.slice(offset, offset + limit);
   return {
-    data: paginated,
-    meta: {
-      page,
-      limit,
-      total: serviceData.count + businessData.count,
-    },
+    data,
+    meta: { page, limit, total },
   };
 };
+
 
 exports.replyToReview = async (reviewId, userId, comment) => {
   const originalReview = await Review.findByPk(reviewId);

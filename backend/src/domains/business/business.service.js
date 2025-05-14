@@ -64,17 +64,7 @@ exports.getAllBusinesses = async (offset, limit, page, filter) => {
       as: "user",
       attributes: ["id", "name", "email", "role"],
     },
-    attributes: [
-      "id",
-      "name",
-      "address",
-      "category",
-      "average_rating",
-      "createdAt",
-    ],
     raw: true,
-    limit,
-    offset
   });
 
   if (!raw.length) {

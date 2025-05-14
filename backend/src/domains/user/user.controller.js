@@ -94,20 +94,22 @@ exports.getAllListings = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
     const filter = req.query.filter || ""
+    const search = req.query.search || "";
   
 
     //Caching
-    const cacheKey = `filteredListings:page=${page}-limit=${limit}-filter=${filter}`;
+    const cacheKey = `listings:page=${page}-limit=${limit}-filter=${filter}-search=${search}`;
     const cached = cache.get(cacheKey);
 
     if (cached) {
       console.log(`✅ Cache HIT for key: ${cacheKey}`);
       return res.status(200).json(cached);
     }
-    const response = await UserService.getAllListings(offset, limit, page, filter);
+    const response = await UserService.getAllListings(search, offset, limit, page, filter);
     cache.set(cacheKey, response);
     return res.status(200).json(response);
   } catch (error) {
+    console.log(error)
     res.status(error.status || 500).json({ message: error.message });
   }
 }

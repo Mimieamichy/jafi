@@ -1,8 +1,9 @@
 const ReviewService = require("../review/review.service");
 const passport = require("passport");
 require("../../config/google");
+require("../../config/facebook")
 const cache = require("../../utils/cache");
-const { off } = require("../../app");
+
 
 
 

@@ -182,95 +182,86 @@ exports.deleteReview = async (reviewId, userId) => {
   return { message: "Review deleted successfully" };
 };
 
-exports.getReviews = async (page , limit , offset, searchQuery, sort) => {
-
-  // 2. if searchQuery, find matching service & business IDs
+exports.getReviews = async (page, limit, offset, searchQuery, sort) => {
+  // 2. If searchQuery, find matching service & business IDs
   let serviceIds = [], businessIds = [];
   if (searchQuery) {
     const [svcs, businesses] = await Promise.all([
       Service.findAll({
         where: {
           [Op.or]: [
-            { name:     { [Op.like]: `%${searchQuery}%` } },
+            { name: { [Op.like]: `%${searchQuery}%` } },
             { category: { [Op.like]: `%${searchQuery}%` } },
           ],
         },
         attributes: ["uniqueId"],
-        offset,
-        limit,
         raw: true,
       }),
       Business.findAll({
         where: {
           [Op.or]: [
-            { name:     { [Op.like]: `%${searchQuery}%` } },
+            { name: { [Op.like]: `%${searchQuery}%` } },
             { category: { [Op.like]: `%${searchQuery}%` } },
           ],
         },
         attributes: ["uniqueId"],
-        offset,
-        limit,
         raw: true,
       }),
     ]);
-    serviceIds   = svcs.map(s => s.uniqueId);
-    businessIds  = businesses.map(b => b.uniqueId);
+    serviceIds = svcs.map(s => s.uniqueId);
+    businessIds = businesses.map(b => b.uniqueId);
   }
 
-  // 3. build review filter
+  // 3. Build review filter
   const where = {};
   if (searchQuery) {
     where[Op.or] = [
-      { listingType: "service",  listingId: { [Op.in]: serviceIds  } },
+      { listingType: "service", listingId: { [Op.in]: serviceIds } },
       { listingType: "business", listingId: { [Op.in]: businessIds } },
     ];
   }
 
-  // 4. fetch all matching reviews + user
+  // 4. Fetch matching reviews with user data
   const reviewsRaw = await Review.findAll({
     where,
     include: [{
       model: User,
       as: "user",
       attributes: ["id", "email", "name", "role"],
-      offset,
-      limit,
     }],
     attributes: [
-      "id","userId","listingId","listingType",
-      "comment","images","star_rating","createdAt","reply"
+      "id", "userId", "listingId", "listingType",
+      "comment", "images", "star_rating", "createdAt", "reply"
     ],
-    raw: false, // so we can use .toJSON() later
+    raw: false,
   });
 
   if (!reviewsRaw.length) {
     return { data: [], meta: { page, limit, total: 0 } };
   }
 
-  // 5. annotate each with imageCount, wordCount
+  // 5. Annotate each review with additional data
   const annotated = await Promise.all(
     reviewsRaw.map(async (rev) => {
       const r = rev.toJSON();
       r.imageCount = Array.isArray(r.images) ? r.images.length : 0;
-      r.wordCount  = (r.comment.trim().split(/\s+/) || []).length;
+      r.wordCount = (r.comment.trim().split(/\s+/) || []).length;
 
-      // attach listing object
-      if (r.listingType === "service") {
-        r.listing = await Service.findOne({ where: { uniqueId: r.listingId } });
-      } else {
-        r.listing = await Business.findOne({ where: { uniqueId: r.listingId } });
-      }
+      // Attach listing object
+      r.listing = r.listingType === "service"
+        ? await Service.findOne({ where: { uniqueId: r.listingId } })
+        : await Business.findOne({ where: { uniqueId: r.listingId } });
 
       return r;
     })
   );
 
-  // 6. sort in-memory
+  // 6. Sort in-memory based on sort parameter
   annotated.sort((a, b) => {
     switch (sort) {
       case "relevant":
         if (b.imageCount !== a.imageCount) return b.imageCount - a.imageCount;
-        return b.wordCount  - a.wordCount;
+        return b.wordCount - a.wordCount;
       case "highest":
         return b.star_rating - a.star_rating;
       case "lowest":
@@ -281,9 +272,9 @@ exports.getReviews = async (page , limit , offset, searchQuery, sort) => {
     }
   });
 
-  // 7. paginate
+  // 7. Apply pagination
   const total = annotated.length;
-  const data  = annotated.slice(offset, offset + limit);
+  const data = annotated.slice(offset, offset + limit);
 
   return {
     data,
