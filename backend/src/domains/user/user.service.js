@@ -125,18 +125,18 @@ exports.getUserRole = async (email) => {
   return { message: "User role found", role };
 };
 
-exports.getAllListings = async (searchTerm, offset, limit, page, filter) => {
-  // 1. Build the search clause
-  const baseWhere = {
-    status: "verified",
-    ...(searchTerm && {
-      [Op.or]: [
-        { name: { [Op.like]: `%${searchTerm}%` } },
-        { category: { [Op.like]: `%${searchTerm}%` } },
-        { address: { [Op.like]: `%${searchTerm}%` } },
-      ]
-    })
-  };
+exports.getAllListings = async (searchTerm, offset, page, limit, filter) => {
+    // 1. Build the search clause (unchanged)
+    const baseWhere = {
+        status: "verified",
+        ...(searchTerm && {
+            [Op.or]: [
+                { name: { [Op.like]: `%${searchTerm}%` } },
+                { category: { [Op.like]: `%${searchTerm}%` } },
+                { address: { [Op.like]: `%${searchTerm}%` } },
+            ]
+        })
+    };
 
   // 2. Fetch services and businesses with individual pagination
   const [services, businesses] = await Promise.all([
@@ -208,6 +208,7 @@ exports.getAllListings = async (searchTerm, offset, limit, page, filter) => {
     }
   });
 
+  console.log(annotated.length, offset, limit)
   // 7. Apply pagination
   const total = serviceCount + businessCount
   const data = annotated.slice(offset, offset + limit);

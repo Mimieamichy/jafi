@@ -252,17 +252,17 @@ exports.updateBusinessPremium = async (price) => {
     return { message: "Business Premium price updated successfully" };
 }
 
-exports.updateBusinessStandard = async (price) => {
-    const setting = await AdminSettings.findOne({ where: { key: "standard_price" } });
+exports.updateBusinessExclusive = async (price) => {
+    const setting = await AdminSettings.findOne({ where: { key: "exclusive_price" } });
 
     if (!setting) {
         // If the setting does not exist, create it
-        await AdminSettings.create({ key: "standard_price", value: price });
+        await AdminSettings.create({ key: "exclusive_price", value: price });
     } else {
         // Update the existing setting
         await setting.update({ value: price });
     }
-    return { message: "Business Standard price updated successfully" };
+    return { message: "Business Exclusive price updated successfully" };
 }
 
 exports.getABusiness = async (id) => {
@@ -376,27 +376,27 @@ exports.getPremiumPrice = async () => {
     return price;
 };
 
-exports.getStandardPrice = async () => {
-    const price = await AdminSettings.findOne({ where: { key: 'standard_price' }, attributes: ["value"] });
+exports.getExclusivePrice = async () => {
+    const price = await AdminSettings.findOne({ where: { key: 'exclusive_price' }, attributes: ["value"] });
     if (!price) throw new Error("Price not found");
 
     return price;
 };
 
 exports.addCategory = async (categoryName, type) => {
-    // Ensure the type is either 'standard' or 'premium'
-    if (type !== "standard" && type !== "premium") {
-        throw new Error("Invalid category type. Type must be 'standard' or 'premium'.");
+    // Ensure the type is either 'exclusive' or 'premium'
+    if (type !== "exclusive" && type !== "premium") {
+        throw new Error("Invalid category type. Type must be 'exclusive' or 'premium'.");
     }
 
     // Find the admin setting entry for categories
     const category = await AdminSettings.findOne({ where: { key: "categories" } });
 
 
-    // If no entry exists, create a new one with empty arrays for standard and premium
+    // If no entry exists, create a new one with empty arrays for exclusive and premium
     if (!category) {
         const newCategories = {
-            standard: type === "standard" ? [categoryName] : [],
+            exclusive: type === "exclusive" ? [categoryName] : [],
             premium: type === "premium" ? [categoryName] : []
         };
 
@@ -417,8 +417,8 @@ exports.addCategory = async (categoryName, type) => {
 
 
         // Add the new category to the appropriate section based on type
-        if (type === "standard") {
-            existingCategories.standard.push(categoryName);
+        if (type === "exclusive") {
+            existingCategories.exclusive.push(categoryName);
         } else if (type === "premium") {
             existingCategories.premium.push(categoryName);
         }
@@ -431,9 +431,9 @@ exports.addCategory = async (categoryName, type) => {
 };
 
 exports.deleteCategory = async (categoryName, type) => {
-    // Ensure the type is either 'standard' or 'premium'
-    if (type !== "standard" && type !== "premium") {
-        throw new Error("Invalid category type. Type must be 'standard' or 'premium'.");
+    // Ensure the type is either 'exclusive' or 'premium'
+    if (type !== "exclusive" && type !== "premium") {
+        throw new Error("Invalid category type. Type must be 'exclusive' or 'premium'.");
     }
 
     // Find the admin setting entry for categories
@@ -448,13 +448,13 @@ exports.deleteCategory = async (categoryName, type) => {
     const existingCategories = JSON.parse(category.value);
 
     // Check if the category exists in the correct array based on type
-    if (type === "standard") {
-        // Remove the category from the 'standard' array
-        const index = existingCategories.standard.indexOf(categoryName);
+    if (type === "exclusive") {
+        // Remove the category from the 'exclusive' array
+        const index = existingCategories.exclusive.indexOf(categoryName);
         if (index === -1) {
-            throw new Error(`${categoryName} not found in standard categories.`);
+            throw new Error(`${categoryName} not found in exclusive categories.`);
         }
-        existingCategories.standard.splice(index, 1);
+        existingCategories.exclusive.splice(index, 1);
     } else if (type === "premium") {
         // Remove the category from the 'premium' array
         const index = existingCategories.premium.indexOf(categoryName);
@@ -470,20 +470,20 @@ exports.deleteCategory = async (categoryName, type) => {
     return { message: `${categoryName} has been deleted from ${type} categories.` };
 };
 
-exports.getStandardCategories = async () => {
+exports.getExclusiveCategories = async () => {
     const allCategories = await AdminSettings.findOne({ where: { key: "categories" } });
     if (!allCategories) throw new Error("No categories found");
 
     const theCategories = JSON.parse(allCategories.dataValues.value);
 
-    // Filter the categories for 'standard' type
-    const standardCategories = theCategories.standard || [];
+    // Filter the categories for 'exclusive' type
+    const exclusiveCategories = theCategories.exclusive || [];
 
-    if (standardCategories.length === 0) {
-        throw new Error("No standard categories found");
+    if (exclusiveCategories.length === 0) {
+        throw new Error("No exclusive categories found");
     }
 
-    return { message: "Standard categories retrieved successfully", categories: standardCategories };
+    return { message: "Exclusive categories retrieved successfully", categories: exclusiveCategories };
 };
 
 exports.getPremiumCategories = async () => {

@@ -1,7 +1,5 @@
 const UserService = require("../user/user.service");
 const cache = require('../../utils/cache');
-const { filter } = require("compression");
-
 
 
 exports.login = async (req, res) => {
@@ -90,12 +88,11 @@ exports.updateUser = async (req, res) => {
 
 exports.getAllListings = async (req, res) => {
   try {
-    const offset = parseInt(req.query.offset) || 0;
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
     const filter = req.query.filter || ""
     const search = req.query.search || "";
-  
+    const offset = (page - 1) * limit;  
 
     //Caching
     const cacheKey = `listings:page=${page}-limit=${limit}-filter=${filter}-search=${search}`;
@@ -105,7 +102,7 @@ exports.getAllListings = async (req, res) => {
       console.log(`✅ Cache HIT for key: ${cacheKey}`);
       return res.status(200).json(cached);
     }
-    const response = await UserService.getAllListings(search, offset, limit, page, filter);
+    const response = await UserService.getAllListings(search, offset, page, limit, filter);
     cache.set(cacheKey, response);
     return res.status(200).json(response);
   } catch (error) {

@@ -1,4 +1,5 @@
 const AdminService = require("./admin.services");
+const cache = require('../../utils/cache')
 
 //users management
 exports.getAllUsers = async (req, res) => {
