@@ -126,7 +126,7 @@ export default function AllListings() {
         {listings ? (
           listings.map((listing) => (
             <div
-              key={listing.id}
+              key={listing.uniqueId}
               className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:scale-105 transform transition-all"
               onClick={() => handleListingClick(listing.id, listing.type)} // Handle navigation based on role
             >
