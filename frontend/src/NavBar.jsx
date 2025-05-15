@@ -106,6 +106,7 @@ export default function Navbar() {
     navigate("/signin");
     setIsOpen(false);
   };
+  const roles = ["admin", "superadmin", "business", "service"];
 
   const dashboardPath =
     {
@@ -184,7 +185,7 @@ export default function Navbar() {
           >
             Services
           </Link>
-          {userRole && (
+          {userRole === roles && (
             <Link
               to={dashboardPath}
               onClick={handleNavClick}
