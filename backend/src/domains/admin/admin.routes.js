@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 
-const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPremium, updateBusinessStandard, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getPremiumPrice, getStandardPrice, getServicePrice, getAdminCount, addCategory, deleteCategory, getPremiumCategories, getStandardCategories, transferBusiness, exportUsers, exportBusinesses, exportServices, exportReviewers, exportTransactions} = require('./admin.controller')
+const {getABusiness, getAService, getAllBusinesses, getAllReviews, getAllServices, getAllUsers, getClaim, createAdmin, approveBusiness, approveClaim, approveService, updateAdminPassword, updateBusinessPremium, updateBusinessEnterprise, updateServicePrice, getAllReviewers, deleteBusiness, deleteReview, deleteService, deleteUser, addBusiness, deleteReviewer, getMyBusiness, getAllClaims, updateMyBusiness, getPremiumPrice, getEnterprisePrice, getServicePrice, getAdminCount, addCategory, deleteCategory, getPremiumCategories, getEnterpriseCategories, transferBusiness, exportUsers, exportBusinesses, exportServices, exportReviewers, exportTransactions} = require('./admin.controller')
 
 
 const { cloudUpload } = require("../../application/middlewares/cloudinary");
 
 
 router.get('/premiumPrice', getPremiumPrice)
-router.get('/standardPrice', getStandardPrice)
+router.get('/enterprisePrice', getEnterprisePrice)
 router.get("/servicePrice", getServicePrice);
 router.get("/premiumCategories", getPremiumCategories);
-router.get("/standardCategories", getStandardCategories);
+router.get("/enterpriseCategories", getEnterpriseCategories);
 
 
 
@@ -43,7 +43,7 @@ router.post('/createAdmin', createAdmin);
 router.post('/approveBusiness/:id', approveBusiness);
 router.post("/approveClaim/:id", approveClaim);
 router.post("/approveService/:id", approveService);
-router.put('/standardPrice', updateBusinessStandard);
+router.put('/enterprisePrice', updateBusinessEnterprise);
 router.put('/premiumPrice', updateBusinessPremium);
 router.put("/updateServicePrice", updateServicePrice);
 router.delete('/deleteBusiness/:id', deleteBusiness);

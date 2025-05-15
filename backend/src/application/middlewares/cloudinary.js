@@ -8,6 +8,7 @@ const cloudUpload = multer({ storage: mixedStorage }).fields([
   { name: "workSamples", maxCount: 10 },
   { name: "reviewImages",maxCount: 10 },
   { name: "pob",         maxCount: 1  },
+  { name: "profilePic",  maxCount: 1  },
 ]);
 
 module.exports = { cloudUpload };

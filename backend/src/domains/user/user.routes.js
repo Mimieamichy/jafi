@@ -3,6 +3,7 @@ const { login, forgotPassword, verifyResetToken, resetPassword, getAllUsers, get
 const {authenticate} = require("../../application/middlewares/authenticate");
 const { authorize } = require("../../application/middlewares/authorize");
 const router = express.Router();
+const { cloudUpload } = require("../../application/middlewares/cloudinary");
 
 // Public routes - specific routes first
 router.post("/login", login);
@@ -25,7 +26,7 @@ router.get("/:id", getUserById);
 router.use(authenticate, authorize(["user", "admin", "business", "service"]));
 router.post("/reply/:reviewId", replyToReview);
 
-router.use(authenticate, authorize(["user", "admin"]));
-router.put("/:id", updateUser);
+router.use(authenticate, authorize(["reviewer", "admin"]));
+router.put("/:id", cloudUpload, updateUser);
 
 module.exports = router;

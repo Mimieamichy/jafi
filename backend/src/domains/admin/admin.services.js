@@ -190,9 +190,9 @@ exports.getAllBusinesses = async (offset, limit, page) => {
   }
 
   return {
-    data: filteredRows,
-    meta: { page, limit, total: count },
-  };
+  data: filteredRows.map(biz => biz.get({ plain: true })),
+  meta: { page, limit, total: count },
+};
 };
 
 
@@ -252,17 +252,17 @@ exports.updateBusinessPremium = async (price) => {
     return { message: "Business Premium price updated successfully" };
 }
 
-exports.updateBusinessExclusive = async (price) => {
-    const setting = await AdminSettings.findOne({ where: { key: "exclusive_price" } });
+exports.updateBusinessEnterprise = async (price) => {
+    const setting = await AdminSettings.findOne({ where: { key: "enterprise_price" } });
 
     if (!setting) {
         // If the setting does not exist, create it
-        await AdminSettings.create({ key: "exclusive_price", value: price });
+        await AdminSettings.create({ key: "enterprise_price", value: price });
     } else {
         // Update the existing setting
         await setting.update({ value: price });
     }
-    return { message: "Business Exclusive price updated successfully" };
+    return { message: "Business Enterprise price updated successfully" };
 }
 
 exports.getABusiness = async (id) => {
@@ -376,27 +376,27 @@ exports.getPremiumPrice = async () => {
     return price;
 };
 
-exports.getExclusivePrice = async () => {
-    const price = await AdminSettings.findOne({ where: { key: 'exclusive_price' }, attributes: ["value"] });
+exports.getEnterprisePrice = async () => {
+    const price = await AdminSettings.findOne({ where: { key: 'enterprise_price' }, attributes: ["value"] });
     if (!price) throw new Error("Price not found");
 
     return price;
 };
 
 exports.addCategory = async (categoryName, type) => {
-    // Ensure the type is either 'exclusive' or 'premium'
-    if (type !== "exclusive" && type !== "premium") {
-        throw new Error("Invalid category type. Type must be 'exclusive' or 'premium'.");
+    // Ensure the type is either 'enterprise' or 'premium'
+    if (type !== "enterprise" && type !== "premium") {
+        throw new Error("Invalid category type. Type must be 'enterprise' or 'premium'.");
     }
 
     // Find the admin setting entry for categories
     const category = await AdminSettings.findOne({ where: { key: "categories" } });
 
 
-    // If no entry exists, create a new one with empty arrays for exclusive and premium
+    // If no entry exists, create a new one with empty arrays for enterprise and premium
     if (!category) {
         const newCategories = {
-            exclusive: type === "exclusive" ? [categoryName] : [],
+            enterprise: type === "enterprise" ? [categoryName] : [],
             premium: type === "premium" ? [categoryName] : []
         };
 
@@ -417,8 +417,8 @@ exports.addCategory = async (categoryName, type) => {
 
 
         // Add the new category to the appropriate section based on type
-        if (type === "exclusive") {
-            existingCategories.exclusive.push(categoryName);
+        if (type === "enterprise") {
+            existingCategories.enterprise.push(categoryName);
         } else if (type === "premium") {
             existingCategories.premium.push(categoryName);
         }
@@ -431,9 +431,9 @@ exports.addCategory = async (categoryName, type) => {
 };
 
 exports.deleteCategory = async (categoryName, type) => {
-    // Ensure the type is either 'exclusive' or 'premium'
-    if (type !== "exclusive" && type !== "premium") {
-        throw new Error("Invalid category type. Type must be 'exclusive' or 'premium'.");
+    // Ensure the type is either 'enterprise' or 'premium'
+    if (type !== "enterprise" && type !== "premium") {
+        throw new Error("Invalid category type. Type must be 'enterprise' or 'premium'.");
     }
 
     // Find the admin setting entry for categories
@@ -448,13 +448,13 @@ exports.deleteCategory = async (categoryName, type) => {
     const existingCategories = JSON.parse(category.value);
 
     // Check if the category exists in the correct array based on type
-    if (type === "exclusive") {
-        // Remove the category from the 'exclusive' array
-        const index = existingCategories.exclusive.indexOf(categoryName);
+    if (type === "enterprise") {
+        // Remove the category from the 'enterprise' array
+        const index = existingCategories.enterprise.indexOf(categoryName);
         if (index === -1) {
-            throw new Error(`${categoryName} not found in exclusive categories.`);
+            throw new Error(`${categoryName} not found in enterprise categories.`);
         }
-        existingCategories.exclusive.splice(index, 1);
+        existingCategories.enterprise.splice(index, 1);
     } else if (type === "premium") {
         // Remove the category from the 'premium' array
         const index = existingCategories.premium.indexOf(categoryName);
@@ -470,20 +470,20 @@ exports.deleteCategory = async (categoryName, type) => {
     return { message: `${categoryName} has been deleted from ${type} categories.` };
 };
 
-exports.getExclusiveCategories = async () => {
+exports.getEnterpriseCategories = async () => {
     const allCategories = await AdminSettings.findOne({ where: { key: "categories" } });
     if (!allCategories) throw new Error("No categories found");
 
     const theCategories = JSON.parse(allCategories.dataValues.value);
 
-    // Filter the categories for 'exclusive' type
-    const exclusiveCategories = theCategories.exclusive || [];
+    // Filter the categories for 'enterprise' type
+    const enterpriseCategories = theCategories.enterprise || [];
 
-    if (exclusiveCategories.length === 0) {
-        throw new Error("No exclusive categories found");
+    if (enterpriseCategories.length === 0) {
+        throw new Error("No enterprise categories found");
     }
 
-    return { message: "Exclusive categories retrieved successfully", categories: exclusiveCategories };
+    return { message: "Enterprise categories retrieved successfully", categories: enterpriseCategories };
 };
 
 exports.getPremiumCategories = async () => {
@@ -739,7 +739,9 @@ exports.getAllReviews = async () => {
 
     if (!reviews) throw new Error("Reviews not found");
 
-    return { reviews };
+    return {
+  data: reviews.map(r => r.get({ plain: true }))
+};
 };
 
 

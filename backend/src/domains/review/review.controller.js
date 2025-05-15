@@ -31,7 +31,6 @@ exports.facebookAuth = async (req, res, next) => {
   })(req, res, next);
 };
 
-
 exports.googleAuthCallback = async (req, res, next) => {
     passport.authenticate("google", { session: false, failureRedirect: '/' }, async (err, user, info) => {
         if (err || !user) {
@@ -75,6 +74,9 @@ exports.facebookAuthCallback = async (req, res, next) => {
         return res.status(401).json({ message: "Authentication failed" });
       }
 
+
+      console.log(user)
+
       try {
         // Register (or login) via your service and get a JWT
         const response = await ReviewService.registerReviewerWithOAuth(user, 'facebook');
@@ -105,6 +107,21 @@ exports.facebookAuthCallback = async (req, res, next) => {
     }
   )(req, res, next);
 };
+
+exports.registerReviewer = async (req, res) => {
+    try {
+        const name = req.body.name
+        const email = req.body.email
+        const response = await ReviewService.registerReviewer(email, name);
+        cache.flushAll();
+        return res.status(201).json(response);
+    }
+    catch (error) {
+        console.log(error)
+        res.status(error.status || 500).json({ message: error.message });
+    }
+};
+
 
 exports.createReview = async (req, res) => {
     try {

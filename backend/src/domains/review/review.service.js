@@ -2,6 +2,8 @@ const jwt = require("jsonwebtoken");
 const sequelize = require("../../config/database");
 const { Op } = require("sequelize");
 const {Review, User, Service , Business} = require('../../models/index')
+const { generatePassword } = require("../../utils/generatePassword")
+const { sendMail } = require("../../utils/sendEmail");
 
 
 exports.registerReviewerWithOAuth = async (oauthUser, provider) => {
@@ -69,7 +71,57 @@ exports.registerReviewerWithOAuth = async (oauthUser, provider) => {
   };
 };
 
+exports.registerReviewer = async (email, name) => {
+  const existingUser = await User.findOne({
+      where: { email },
+    });
+  
+    // No user – enforce unique business email
+    const existingReviewer = await Review.findOne({
+      where: { userId: existingUser.id },
+    });
+  
+    if (existingUser || existingReviewer) {
+      throw new Error("User already exists with this email");
+    }
+  
+    const { plainPassword, hashedPassword } = await generatePassword();
+  
+    const newUser = await User.create({
+      email: email,
+      password: hashedPassword,
+      role: "reviewer",
+      name: name,
+    });
 
+
+    // Send an email notification to the service owner
+        const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://res.cloudinary.com/dvmfubqhp/image/upload/v1744291750/jafi_logo_2_png_ktsfqn.png" alt="JAFIAI Logo" style="max-width: 150px;">
+        </div>
+        <h2 style="color: #333; text-align: center;">Service Approved - Login Details</h2>
+        <p style="font-size: 16px; color: #555; text-align: center;">
+            Your service has been successfully approved. You can log in with the details below.
+        </p>
+        <div style="text-align: center; margin: 20px 0;">
+            <p style="font-size: 16px; color: #555;">Your password is: <strong>${plainPassword}</strong></p>
+            <a href="${process.env.FRONTEND_URL}/signin" 
+               style="display: inline-block; padding: 12px 20px; background-color: #5271FF; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
+               Login Now
+            </a>
+        </div>
+        <p style="font-size: 14px; color: #777777; text-align: center;">
+            If you did not request this, please contact support.
+        </p>
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+        <p style="font-size: 14px; color: #777; text-align: center;">
+            &copy; 2025 JAFIAI. All rights reserved.
+        </p>
+    </div>`
+        await sendMail(email, "JAFI AI Service Approved", mailContent);
+        return { message: "Reviewer registered successfully", newUser };
+}
 exports.createReview = async (userId, entityId, rating, comment, user_name, images) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
@@ -411,7 +463,6 @@ exports.acknowledgeReview = async (listingId) => {
     return { message: 'Marked as read' };
 };
 
-
 exports.getAllReviewsByuserId = async (userId, offset, limit, page) => {
   const {count, rows: reviews} = await Review.findAndCountAll({
     where: { userId },
@@ -434,7 +485,6 @@ exports.getAllReviewsByuserId = async (userId, offset, limit, page) => {
     meta: { page, limit, total: count },
 };
 }
-
 
 exports.getReviewsByListing = async (listingId, listingType, offset , limit , filter) => {
   // 1. Pull all reviews for that listing

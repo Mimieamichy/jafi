@@ -92,16 +92,17 @@ exports.getAllUsers = async () => {
   return { message: "Users found", users };
 };
 
-exports.updateUser = async (id, data) => {
+exports.updateUser = async (id, password, profilePic) => {
   // Hash password if it's included
   if (data.password) {
-    data.password = await bcrypt.hash(data.password, 10);
+    data.password = await bcrypt.hash(password, 10);
   }
 
-  const [updatedCount] = await User.update(data, {
-    where: { id },
-  });
-
+  const [updatedCount] = await User.update(
+  { password, profilePic },
+  { where: { id } }
+  );
+  
   if (updatedCount === 0) {
     throw new Error("User not found or no changes applied");
   }
@@ -208,7 +209,6 @@ exports.getAllListings = async (searchTerm, offset, page, limit, filter) => {
     }
   });
 
-  console.log(annotated.length, offset, limit)
   // 7. Apply pagination
   const total = serviceCount + businessCount
   const data = annotated.slice(offset, offset + limit);

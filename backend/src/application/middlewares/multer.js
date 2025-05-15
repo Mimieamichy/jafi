@@ -30,6 +30,8 @@ const cloudStorage = new CloudinaryStorage({
         folder = "jafiImages/services"; break;
       case "reviewImages":
         folder = "jafiImages/reviews"; break;
+      case "profilePic":
+        folder = "jafiImages/profilePic"; break;
       default:
         folder = "jafiImages/other";
     }

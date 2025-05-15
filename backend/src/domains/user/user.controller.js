@@ -76,8 +76,12 @@ exports.getAllUsers = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const data = req.body;
-    const response = await UserService.updateUser(id, data);
+    const password = req.body.password;
+    let profilePic = null;
+    if (req.files?.profilePic) {
+      profilePic = req.files.profilePic[0]?.path;
+    }
+    const response = await UserService.updateUser(id, password, profilePic);
 
     res.status(200).json(response);
   } catch (error) {
