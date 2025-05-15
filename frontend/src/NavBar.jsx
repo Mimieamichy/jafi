@@ -310,7 +310,7 @@ export default function Navbar() {
           >
             Services
           </Link>
-          {userRole && (
+          {userRole === roles && (
             <Link
               to={dashboardPath}
               onClick={handleNavClick}
