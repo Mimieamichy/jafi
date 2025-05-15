@@ -32,54 +32,117 @@ const Overview = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const commonHeaders = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${authToken}`,
+  };
+
+  const fetchReviewCount = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/admin/reviews`, {
+        headers: commonHeaders,
+      });
+      const data = await res.json();
+      
+      setTotalReviews(data.data.length);
+      console.log("Review count:", data);
+    } catch (err) {
+      console.error("Failed to fetch review count", err);
+    }
+  };
+
+
+  const fetchUsersCount = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/admin/users`, {
+        headers: commonHeaders,
+      });
+      const data = await res.json();
+       
+      setTotalUsers(data.meta.total);
+      console.log("users count:", data);
+    } catch (err) {
+      console.error("Failed to fetch review count", err);
+    }
+  };
+
+
+  const fetchReviewersCount = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/admin/reviewers`, {
+        headers: commonHeaders,
+      });
+      const data = await res.json();
+      
+      setTotalReviewers(data.meta.total);
+      console.log("Reviewers count:", data);
+    } catch (err) {
+      console.error("Failed to fetch review count", err);
+    }
+  };
+
+
+  const fetchBusinessCount = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/admin/businesses`, {
+        headers: commonHeaders,
+      });
+      const data = await res.json();
+      
+      setTotalBusinesses(data.meta.total);
+      console.log("business count:", data);
+    } catch (err) {
+      console.error("Failed to fetch review count", err);
+    }
+  };
+
+
+  const fetchServiceCount = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/admin/services`, {
+        headers: commonHeaders,
+      });
+      const data = await res.json();
+      
+      setTotalServices(data.meta.total);
+      console.log("service count:", data);
+    } catch (err) {
+      console.error("Failed to fetch review count", err);
+    }
+  };
+
+
+  const fetchClaimCount = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/admin/claims`, {
+        headers: commonHeaders,
+      });
+      const data = await res.json();
+      
+      setNewClaims(data.length);
+      console.log("claim count:", data);
+    } catch (err) {
+      console.error("Failed to fetch review count", err);
+    }
+  };
+  
   useEffect(() => {
-    if (!authToken) return;
+  const fetchAll = async () => {
+    await Promise.all([
+      fetchReviewCount(),
+      fetchUsersCount(),
+      fetchReviewersCount(),
+      fetchBusinessCount(),
+      fetchServiceCount(),
+      fetchClaimCount(),
+    ]);
+  };
 
-    const commonHeaders = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken}`,
-    };
+  fetchAll();
+}, []); // ← no fetch functions here
 
-    const fetchCount = async (url, nestedKey, setter) => {
-      try {
-        const res = await fetch(url, { headers: commonHeaders });
-        const json = await res.json();
-        console.log(`payload for ${url}:`, json);
 
-        // 1) If the key lives at top-level:
-        if (nestedKey && Array.isArray(json[nestedKey])) {
-          return setter(json[nestedKey].length);
-        }
-
-        // 3) If you’ve got json.data as an array:
-        if (Array.isArray(json.data)) {
-          return setter(json.data.length);
-        }
-
-        // 4) Or json.data[nestedKey]:
-        const nestedArr = json.data?.[nestedKey];
-        if (Array.isArray(nestedArr)) {
-          return setter(nestedArr.length);
-        }
-
-        return setter(0);
-      } catch (err) {
-        console.error(`Error fetching ${url}:`, err);
-        setter(0);
-      }
-    };
-
-    // users, businesses & services all return data: [] or meta.total
-    fetchCount(`${baseUrl}/admin/users`, null, setTotalUsers);
-    fetchCount(`${baseUrl}/admin/businesses`, null, setTotalBusinesses);
-    fetchCount(`${baseUrl}/admin/services`, null, setTotalServices);
-    // reviewers endpoint likely same shape
-    fetchCount(`${baseUrl}/admin/reviewers`, null, setTotalReviewers);
-    // reviews & claims need their nestedKey
-    fetchCount(`${baseUrl}/admin/reviews`, "reviews", setTotalReviews);
-    fetchCount(`${baseUrl}/admin/claims`, "claims", setNewClaims);
-  }, [baseUrl, authToken]);
-
+ 
   return (
     <div className="space-y-6 p-4">
       {/* Overview header */}

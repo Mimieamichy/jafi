@@ -267,12 +267,7 @@ export default function Settings() {
           Update Password
         </button>
       </section>
-      <button
-        onClick={fetchPricesAndCategories}
-        className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded w-full"
-      >
-        View Categories & Prices
-      </button>
+      
 
       {/* Add New Category */}
       <section className="space-y-2">
@@ -344,7 +339,8 @@ export default function Settings() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-lg w-full space-y-4 shadow-lg">
+          <div className="bg-white p-6 rounded-lg max-w-lg w-full max-h-[80vh] overflow-y-auto space-y-4 shadow-lg">
+
             <h3 className="text-lg font-bold text-center">
               Pricing & Categories
             </h3>
@@ -369,7 +365,7 @@ export default function Settings() {
                   >
                     {cat.name}
                     <button
-                      onClick={() => deleteCategory(cat.id)}
+                      onClick={() => deleteCategory(cat.name)}
                       className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm"
                     >
                       Delete
@@ -410,6 +406,13 @@ export default function Settings() {
           </div>
         </div>
       )}
+
+      <button
+        onClick={fetchPricesAndCategories}
+        className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded w-50"
+      >
+        View Categories & Prices
+      </button>
     </div>
   );
 }
