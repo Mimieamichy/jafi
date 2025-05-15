@@ -2,14 +2,20 @@ import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash, faSave } from "@fortawesome/free-solid-svg-icons";
 import { useSnackbar } from "notistack";
+import { jwtDecode } from "jwt-decode";
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function ReviewersDashboard() {
   const { enqueueSnackbar } = useSnackbar();
   const [reviews, setReviews] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+
   const reviewsPerPage = 3;
   const token = localStorage.getItem("userToken");
+  const decodedToken = jwtDecode(token);
+  console.log(decodedToken);
+  
 
   const fetchReviews = useCallback(async () => {
     if (!token) return;
@@ -23,7 +29,7 @@ export default function ReviewersDashboard() {
       const data = await res.json();
       console.log(data);
       if (res.ok) {
-        setReviews(data.reviews || []);
+        setReviews(data.data || []);
       } else {
         enqueueSnackbar(data.message || "Failed to fetch reviews", {
           variant: "error",
@@ -93,6 +99,14 @@ export default function ReviewersDashboard() {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <h2 className="text-3xl font-semibold mb-6 text-center">My Reviews</h2>
+      <div className="flex justify-end max-w-3xl mx-auto mb-4">
+        <button
+          onClick={() => setShowSettingsModal(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Open Settings
+        </button>
+      </div>
 
       {reviews.length === 0 ? (
         <p className="text-center text-gray-600">No reviews yet.</p>
@@ -126,6 +140,25 @@ export default function ReviewersDashboard() {
             ))}
           </div>
         </>
+      )}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto shadow-xl space-y-6 relative">
+            <button
+              onClick={() => setShowSettingsModal(false)}
+              className="absolute top-2 right-2 text-red-600 font-bold text-lg"
+            >
+              &times;
+            </button>
+            <h3 className="text-xl font-semibold text-center mb-2">
+              Profile Settings
+            </h3>
+            <Settings
+              userId={decodedToken.id}
+              closeModal={() => setShowSettingsModal(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
@@ -205,6 +238,100 @@ function ReviewCard({ review, onEdit, onDelete }) {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+function Settings({ userId,  }) {
+  const { enqueueSnackbar } = useSnackbar();
+  const [image, setImage] = useState(null);
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const token = localStorage.getItem("userToken");
+
+  const handleImageUpload = async () => {
+    if (!image)
+      return enqueueSnackbar("Select an image", { variant: "warning" });
+
+    const formData = new FormData();
+    formData.append("profilePic", image);
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${baseUrl}/user/${userId}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!res.ok) throw new Error();
+      enqueueSnackbar("Profile picture updated", { variant: "success" });
+    } catch {
+      enqueueSnackbar("Failed to update profile picture", { variant: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!password)
+      return enqueueSnackbar("Enter a new password", { variant: "warning" });
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${baseUrl}/user/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ newPassword: password }),
+      });
+      if (!res.ok) throw new Error();
+      enqueueSnackbar("Password updated", { variant: "success" });
+      setPassword("");
+    } catch {
+      enqueueSnackbar("Failed to update password", { variant: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className="block font-medium mb-1">Profile Picture</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files[0])}
+          disabled={loading}
+        />
+        <button
+          onClick={handleImageUpload}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mt-2"
+          disabled={loading}
+        >
+          Upload
+        </button>
+      </div>
+
+      <div>
+        <label className="block font-medium mb-1">New Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="border p-2 w-full rounded"
+          disabled={loading}
+        />
+        <button
+          onClick={handlePasswordUpdate}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mt-2"
+          disabled={loading}
+        >
+          Update Password
+        </button>
+      </div>
     </div>
   );
 }
