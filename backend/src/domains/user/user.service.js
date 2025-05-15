@@ -106,6 +106,7 @@ exports.updateUser = async (id, password, profilePic) => {
     throw new Error("No update fields provided");
   }
 
+
   const [updatedCount] = await User.update(updateFields, {
     where: { id },
   });
