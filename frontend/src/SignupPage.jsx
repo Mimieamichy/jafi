@@ -2,6 +2,8 @@ import { useState } from "react";
 import SignupModal from "./SignupModal";
 import HiringSignup from "./HiringSignup";
 import BusinessSignup from "./BusinessSignup";
+import ReviewerSignup from "./ReveiwerSignup";
+
 
 
 export default function SignupPage() {
@@ -23,6 +25,7 @@ export default function SignupPage() {
 
       {signupType === "hiring" && <HiringSignup />}
       {signupType === "business" && <BusinessSignup />}
+      {signupType === "reviewer" && < ReviewerSignup/>}
       
     </div>
   );

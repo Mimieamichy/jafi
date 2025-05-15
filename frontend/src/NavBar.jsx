@@ -27,7 +27,6 @@ export default function Navbar() {
   const location = useLocation();
   const dropdownRef = useRef(null);
   const [showDropdown, setShowDropdown] = useState(false);
- 
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -135,12 +134,16 @@ export default function Navbar() {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowCategoriesDropdown((prev) => !prev)}
-              className="text-gray-600 hover:text-black" ref={dropdownRef}
+              className="text-gray-600 hover:text-black"
+              ref={dropdownRef}
             >
               Categories
             </button>
             {showCategoriesDropdown && (
-              <div className="absolute left-0 mt-2 bg-white border rounded shadow-md w-48 z-10 max-h-60 overflow-y-auto" ref={dropdownRef}>
+              <div
+                className="absolute left-0 mt-2 bg-white border rounded shadow-md w-48 z-10 max-h-60 overflow-y-auto"
+                ref={dropdownRef}
+              >
                 <ul>
                   {categories.map((cat, idx) => (
                     <li
@@ -173,7 +176,7 @@ export default function Navbar() {
           >
             About
           </Link>
-          
+
           <Link
             to="/#services"
             onClick={handleNavClick}
@@ -250,7 +253,6 @@ export default function Navbar() {
 
       {isOpen && (
         <div className="md:hidden mt-4 space-y-2 bg-white p-4 rounded-lg shadow-md max-h-60 overflow-y-auto">
-         
           <Link
             to="/"
             onClick={handleNavClick}
@@ -290,7 +292,7 @@ export default function Navbar() {
             onClick={handleNavClick}
             className="block text-black hover:text-gray-600"
           >
-           How to Review
+            How to Review
           </Link>
           <Link
             to="/#about"
@@ -299,7 +301,7 @@ export default function Navbar() {
           >
             About
           </Link>
-          
+
           <Link
             to="/#services"
             onClick={handleNavClick}
@@ -369,8 +371,12 @@ export default function Navbar() {
           onClose={() => setShowSignupModal(false)}
           onSelect={(type) => {
             setShowSignupModal(false);
-            window.location.href =
-              type === "hiring" ? "/hiring-signup" : "/business-signup";
+            window.location.href = window.location.href =
+              type === "hiring"
+                ? "/hiring-signup"
+                : type === "business"
+                ? "/business-signup"
+                : "/reviewer-signup";
           }}
         />
       )}
