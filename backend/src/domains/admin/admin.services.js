@@ -150,8 +150,6 @@ exports.getAdminCount = async () => {
     return { message: "Admin count retrieved successfully", adminCount, superAdminCount };
 };
 
-
-
 exports.getAllBusinesses = async (offset, limit, page) => {
   const { count, rows } = await Business.findAndCountAll({
     include: [
@@ -430,45 +428,42 @@ exports.addCategory = async (categoryName, type) => {
     return { message: `${categoryName} added to ${type} categories successfully` };
 };
 
-exports.deleteCategory = async (categoryName, type) => {
-    // Ensure the type is either 'enterprise' or 'premium'
-    if (type !== "enterprise" && type !== "premium") {
-        throw new Error("Invalid category type. Type must be 'enterprise' or 'premium'.");
-    }
+exports.deleteCategory = async (categoryName) => {
+  // 1. Load the AdminSettings row that stores all categories
+  const settings = await AdminSettings.findOne({
+    where: { key: "categories" },
+  });
+  if (!settings) {
+    throw new Error("No categories found to delete.");
+  }
 
-    // Find the admin setting entry for categories
-    const category = await AdminSettings.findOne({ where: { key: "categories" } });
+  // 2. Parse out the existing lists
+  const existing = JSON.parse(settings.value);
+  const { enterprise = [], premium = [] } = existing;
 
-    // If no entry exists, return an error message
-    if (!category) {
-        throw new Error("No categories found to delete.");
-    }
+  // 3. Determine which list the category is in
+  let listName;
+  if (enterprise.includes(categoryName)) {
+    listName = "enterprise";
+  } else if (premium.includes(categoryName)) {
+    listName = "premium";
+  } else {
+    throw new Error(`${categoryName} not found in any category list.`);
+  }
 
-    // Parse the existing categories
-    const existingCategories = JSON.parse(category.value);
+  // 4. Remove it
+  existing[listName] = existing[listName].filter(c => c !== categoryName);
 
-    // Check if the category exists in the correct array based on type
-    if (type === "enterprise") {
-        // Remove the category from the 'enterprise' array
-        const index = existingCategories.enterprise.indexOf(categoryName);
-        if (index === -1) {
-            throw new Error(`${categoryName} not found in enterprise categories.`);
-        }
-        existingCategories.enterprise.splice(index, 1);
-    } else if (type === "premium") {
-        // Remove the category from the 'premium' array
-        const index = existingCategories.premium.indexOf(categoryName);
-        if (index === -1) {
-            throw new Error(`${categoryName} not found in premium categories.`);
-        }
-        existingCategories.premium.splice(index, 1);
-    }
+  // 5. Persist the change
+  await settings.update({
+    value: JSON.stringify(existing),
+  });
 
-    // Update the value in the database with the updated categories
-    await category.update({ value: JSON.stringify(existingCategories) });
-
-    return { message: `${categoryName} has been deleted from ${type} categories.` };
+  return {
+    message: `${categoryName} has been deleted from ${listName} categories.`,
+  };
 };
+
 
 exports.getEnterpriseCategories = async () => {
     const allCategories = await AdminSettings.findOne({ where: { key: "categories" } });

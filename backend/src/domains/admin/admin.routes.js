@@ -55,7 +55,10 @@ router.post('/transfer/:userId', transferBusiness);
 router.get('/adminCount', getAdminCount)
 router.post('/addCategory', addCategory)
 router.get('/users', getAllUsers);
-//router.delete('/deleteCategory/', deleteCategory)
+router.delete('/deleteCategory', deleteCategory)
+
+
+
 
 //export table data as CSV
 router.get('/exportUsers', exportUsers);
