@@ -89,21 +89,31 @@ exports.getAllUsers = async () => {
 };
 
 exports.updateUser = async (id, password, profilePic) => {
-  // Hash password if it's included
-  if (data.password) {
-    data.password = await bcrypt.hash(password, 10);
+  const updateFields = {};
+
+  // Conditionally hash and assign password
+  if (password) {
+    console.log("password provided, hashing it");
+    updateFields.password = await bcrypt.hash(password, 10);
   }
 
-  const [updatedCount] = await User.update(
-  { password, profilePic },
-  { where: { id } }
-  );
-  
+  // Conditionally assign profilePic
+  if (profilePic) {
+    updateFields.profilePic = profilePic;
+  }
+
+  if (Object.keys(updateFields).length === 0) {
+    throw new Error("No update fields provided");
+  }
+
+  const [updatedCount] = await User.update(updateFields, {
+    where: { id },
+  });
+
   if (updatedCount === 0) {
     throw new Error("User not found or no changes applied");
   }
 
-  // Optionally return the updated user if needed
   const updatedUser = await User.findByPk(id, {
     attributes: { exclude: ['password'] },
   });
@@ -113,6 +123,7 @@ exports.updateUser = async (id, password, profilePic) => {
     user: updatedUser,
   };
 };
+
 
 exports.getUserRole = async (email) => {
   const user = await User.findOne({ where: { email } });

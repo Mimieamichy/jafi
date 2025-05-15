@@ -78,6 +78,7 @@ exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const password = req.body.password;
+
     let profilePic = null;
     if (req.files?.profilePic) {
       profilePic = req.files.profilePic[0]?.path;
