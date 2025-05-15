@@ -21,12 +21,10 @@ router.get("/:id", getUserById);
 
 
 
-
 // Protected routes - require authentication
-router.use(authenticate, authorize(["user", "admin", "business", "service"]));
-router.post("/reply/:reviewId", replyToReview);
+router.put("/:id", authenticate, authorize(["reviewer", "admin"]), cloudUpload, updateUser);
+router.post( "/reply/:reviewId", authenticate, authorize(["admin", "business", "service"]), replyToReview);
 
-router.use(authenticate, authorize(["reviewer", "admin"]));
-router.put("/:id", cloudUpload, updateUser);
+
 
 module.exports = router;
