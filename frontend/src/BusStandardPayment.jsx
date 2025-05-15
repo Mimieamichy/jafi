@@ -16,10 +16,10 @@ export default function StandardPricing() {
   useEffect(() => {
     const getPrice = async () => {
       try {
-        const r = await fetch(`${baseUrl}/admin/standardPrice`);
+        const r = await fetch(`${baseUrl}/admin/enterprisePrice`);
         const data = await r.json();                 
         console.log("Price API →", data);
-        setPrice(data.standardPrice);
+        setPrice(data.enterprisePrice);
       } catch (e) {
         console.error(e);
         enqueueSnackbar("Couldn’t fetch price", { variant: "error" });

@@ -1,6 +1,6 @@
 // src/components/Overview.jsx
-import React, { useEffect, useState } from "react";
-import {jwtDecode} from "jwt-decode";
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 
 const getFormattedDate = () => {
   const options = {
@@ -34,59 +34,52 @@ const Overview = () => {
 
   useEffect(() => {
     if (!authToken) return;
-  
+
     const commonHeaders = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${authToken}`,
     };
-  
+
     const fetchCount = async (url, nestedKey, setter) => {
       try {
-        const res  = await fetch(url, { headers: commonHeaders });
+        const res = await fetch(url, { headers: commonHeaders });
         const json = await res.json();
         console.log(`payload for ${url}:`, json);
-    
+
         // 1) If the key lives at top-level:
         if (nestedKey && Array.isArray(json[nestedKey])) {
           return setter(json[nestedKey].length);
         }
-    
-        // 2) If your paginated endpoints use json.meta.total:
-        if (typeof json.meta?.total === "number") {
-          return setter(json.meta.total);
-        }
-    
+
         // 3) If you’ve got json.data as an array:
         if (Array.isArray(json.data)) {
           return setter(json.data.length);
         }
-    
+
         // 4) Or json.data[nestedKey]:
         const nestedArr = json.data?.[nestedKey];
         if (Array.isArray(nestedArr)) {
           return setter(nestedArr.length);
         }
-    
+
         return setter(0);
       } catch (err) {
         console.error(`Error fetching ${url}:`, err);
         setter(0);
       }
     };
-    
-  
+
     // users, businesses & services all return data: [] or meta.total
-    fetchCount(`${baseUrl}/admin/users`,    null, setTotalUsers);
-    fetchCount(`${baseUrl}/admin/businesses`,null, setTotalBusinesses);
+    fetchCount(`${baseUrl}/admin/users`, null, setTotalUsers);
+    fetchCount(`${baseUrl}/admin/businesses`, null, setTotalBusinesses);
     fetchCount(`${baseUrl}/admin/services`, null, setTotalServices);
     // reviewers endpoint likely same shape
-    fetchCount(`${baseUrl}/admin/reviewers`,null, setTotalReviewers);
+    fetchCount(`${baseUrl}/admin/reviewers`, null, setTotalReviewers);
     // reviews & claims need their nestedKey
     fetchCount(`${baseUrl}/admin/reviews`, "reviews", setTotalReviews);
-    fetchCount(`${baseUrl}/admin/claims`,  "claims",  setNewClaims);
-    
+    fetchCount(`${baseUrl}/admin/claims`, "claims", setNewClaims);
   }, [baseUrl, authToken]);
-  
+
   return (
     <div className="space-y-6 p-4">
       {/* Overview header */}
@@ -99,7 +92,7 @@ const Overview = () => {
             </button>
             {/* replace newClaims with API-driven value when ready */}
             <button className="bg-blue-100 text-blue-600 px-2 py-1 rounded">
-           {newClaims > 1 ? `${newClaims} Claims` : `${newClaims} Claim`}
+              {newClaims > 1 ? `${newClaims} Claims` : `${newClaims} Claim`}
             </button>
           </div>
         </div>

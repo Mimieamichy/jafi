@@ -16,6 +16,7 @@ export default function BusinessSignup() {
   const [standardCategories, setStandardCategories] = useState([]);
   const [premiumCategories, setPremiumCategories] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -28,7 +29,7 @@ export default function BusinessSignup() {
     city: "",
     state: "",
     day: [],
-    businessType: "exclusive",
+    businessType: "enterprise ",
     description: "",
     images: [],
     logo: null,
@@ -71,7 +72,7 @@ export default function BusinessSignup() {
     async function loadPrices() {
       try {
         const [stdRes, premRes] = await Promise.all([
-          fetch(`${baseUrl}/admin/standardPrice`),
+          fetch(`${baseUrl}/admin/enterprisePrice`),
           fetch(`${baseUrl}/admin/premiumPrice`),
         ]);
 
@@ -79,9 +80,9 @@ export default function BusinessSignup() {
         const premData = await premRes.json();
         console.log("standrad", stdData, "premuim", premData);
 
-        if (stdRes.ok) setStandardPrice(stdData.standardPrice);
+        if (stdRes.ok) setStandardPrice(stdData.enterprisePrice);
         else
-          enqueueSnackbar(stdData.message || "Could not load standard price", {
+          enqueueSnackbar(stdData.message || "Could not load enterprise price", {
             variant: "error",
           });
 
@@ -103,7 +104,7 @@ export default function BusinessSignup() {
     async function loadCategories() {
       try {
         const [stdRes, premRes] = await Promise.all([
-          fetch(`${baseUrl}/admin/standardCategories`),
+          fetch(`${baseUrl}/admin/enterpriseCategories`),
           fetch(`${baseUrl}/admin/premiumCategories`),
         ]);
 
@@ -456,12 +457,12 @@ export default function BusinessSignup() {
             <input
               type="radio"
               name="businessType"
-              value="exclusive"
-              checked={formData.businessType === "exclusive"}
+              value="enterprise "
+              checked={formData.businessType === "enterprise "}
               onChange={handlebusinessTypeChange}
             />
             <span>
-              Exclusive{" "}
+            Enterprise {" "}
               {standardPrice != null
                 ? `— $${standardPrice.value}`
                 : "(loading…)"}
@@ -484,8 +485,8 @@ export default function BusinessSignup() {
 
         {/* Sub-Category */}
         <label htmlFor="category" className="font-semibold">
-          {formData.businessType === "exclusive"
-            ? "Exclusive Categories"
+          {formData.businessType === "enterprise "
+            ? "Enterprise Categories"
             : "Premium Categories"}
           :
         </label>
@@ -499,10 +500,10 @@ export default function BusinessSignup() {
         >
           <option value="" disabled>
             Select{" "}
-            {formData.businessType === "exclusive" ? "Exclusive" : "Premium"}{" "}
+            {formData.businessType === "enterprise " ? "Enterprise" : "Premium"}{" "}
             Category
           </option>
-          {formData.businessType === "exclusive"
+          {formData.businessType === "enterprise "
             ? standardCategories.map((cat) => (
                 <option key={cat} value={cat} className="capitalize">
                   {cat}
@@ -631,7 +632,7 @@ export default function BusinessSignup() {
             <>
               {formData.businessType === "premium"
                 ? "Proceed to Premium Payment"
-                : "Proceed to Standard Payment"}
+                : "Proceed to Enterprise Payment"}
             </>
           )}
         </button>

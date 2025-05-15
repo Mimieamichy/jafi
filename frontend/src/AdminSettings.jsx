@@ -9,18 +9,27 @@ export default function Settings() {
   const authToken = localStorage.getItem("userToken");
   const { enqueueSnackbar } = useSnackbar();
 
-  const headersJSON = useMemo(() => ({
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${authToken}`,
-  }), [authToken]);
+  const headersJSON = useMemo(
+    () => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authToken}`,
+    }),
+    [authToken]
+  );
 
   const [superCount, setSuperCount] = useState(0);
   const [adminCount, setAdminCount] = useState(0);
   const [form, setForm] = useState({ name: "", email: "", role: "admin" });
   const [newPw, setNewPw] = useState("");
   const [showNew, setShowNew] = useState(false);
-  const [newCatType, setNewCatType] = useState("exclusive");
+  const [newCatType, setNewCatType] = useState("enterprise");
   const [newCatName, setNewCatName] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [enterprisePrice, setEnterprisePrice] = useState(null);
+  const [premiumPrice, setPremiumPrice] = useState(null);
+  const [enterpriseCategories, setEnterpriseCategories] = useState([]);
+  const [premiumCategories, setPremiumCategories] = useState([]);
+
   const [price, setPrice] = useState({ business: "", service: "" });
 
   useEffect(() => {
@@ -32,7 +41,7 @@ export default function Settings() {
       })
       .then((data) => {
         console.log("adminCount data", data);
-        
+
         setAdminCount(data.adminCount ?? data.admin ?? 0);
         setSuperCount(data.superAdminCount ?? data.superadmin ?? 0);
       })
@@ -66,7 +75,8 @@ export default function Settings() {
   };
 
   const changePw = async () => {
-    if (!newPw) return enqueueSnackbar("Enter a new password", { variant: "warning" });
+    if (!newPw)
+      return enqueueSnackbar("Enter a new password", { variant: "warning" });
     try {
       const r = await fetch(`${baseUrl}/admin/updateAdminPassword`, {
         method: "PUT",
@@ -84,7 +94,9 @@ export default function Settings() {
   const handleAddCategory = async () => {
     const trimmed = newCatName.trim();
     if (!trimmed)
-      return enqueueSnackbar("Please enter a category name.", { variant: "warning" });
+      return enqueueSnackbar("Please enter a category name.", {
+        variant: "warning",
+      });
 
     try {
       const res = await fetch(`${baseUrl}/admin/addCategory`, {
@@ -97,17 +109,25 @@ export default function Settings() {
       });
 
       if (!res.ok) throw new Error(await res.text());
-      enqueueSnackbar(`${newCatType === "exclusive" ? "Exlusive" : "Premium"} category added!`, { variant: "success" });
+      enqueueSnackbar(
+        `${
+          newCatType === "enterprise" ? "Enterprise" : "Premium"
+        } category added!`,
+        { variant: "success" }
+      );
       setNewCatName("");
     } catch (err) {
-      enqueueSnackbar(err.message || "Error adding category", { variant: "error" });
+      enqueueSnackbar(err.message || "Error adding category", {
+        variant: "error",
+      });
     }
   };
 
   const pushPrice = async (field) => {
-    if (!price[field]) return enqueueSnackbar("Enter a price first", { variant: "warning" });
+    if (!price[field])
+      return enqueueSnackbar("Enter a price first", { variant: "warning" });
     const map = {
-      exclusive: "standardPrice",
+      enterprise: "enterprisePrice",
       premuim: "premiumPrice",
       service: "updateServicePrice",
     };
@@ -121,6 +141,55 @@ export default function Settings() {
       enqueueSnackbar("Price updated", { variant: "success" });
     } catch {
       enqueueSnackbar("Price update failed", { variant: "error" });
+    }
+  };
+
+  const fetchPricesAndCategories = async () => {
+  try {
+    const [epRes, ppRes, ecRes, pcRes] = await Promise.all([
+      fetch(`${baseUrl}/admin/enterprisePrice`, { headers: headersJSON }),
+      fetch(`${baseUrl}/admin/premiumPrice`, { headers: headersJSON }),
+      fetch(`${baseUrl}/admin/enterpriseCategories`, { headers: headersJSON }),
+      fetch(`${baseUrl}/admin/premiumCategories`, { headers: headersJSON }),
+    ]);
+
+    const enterprisePriceData = await epRes.json();
+    const premiumPriceData = await ppRes.json();
+    const enterpriseCategoriesData = await ecRes.json();
+    const premiumCategoriesData = await pcRes.json();
+
+    setEnterprisePrice(enterprisePriceData.enterprisePrice);
+    setPremiumPrice(premiumPriceData.premiumPrice);
+
+    // 👇 Extract the actual array
+    setEnterpriseCategories(Array.isArray(enterpriseCategoriesData.categories)
+      ? enterpriseCategoriesData.categories.map((name, i) => ({ id: i, name }))
+      : []);
+
+    setPremiumCategories(Array.isArray(premiumCategoriesData.categories)
+      ? premiumCategoriesData.categories.map((name, i) => ({ id: i, name }))
+      : []);
+
+    setShowModal(true);
+  } catch (err) {
+    console.error('Error fetching data:', err);
+    enqueueSnackbar("Failed to load categories or pricing", { variant: "error" });
+  }
+};
+
+
+  const deleteCategory = async (name) => {
+    try {
+      await fetch(`${baseUrl}/admin/deleteCategory`, {
+        method: "DELETE",
+        headers: headersJSON,
+        body: JSON.stringify({ categoryName: name }),
+      });
+      enqueueSnackbar("Category Deleted", { variant: "info" });
+      // Optionally re-fetch categories
+      fetchPricesAndCategories();
+    } catch (err) {
+      console.error("Delete failed:", err);
     }
   };
 
@@ -198,6 +267,12 @@ export default function Settings() {
           Update Password
         </button>
       </section>
+      <button
+        onClick={fetchPricesAndCategories}
+        className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded w-full"
+      >
+        View Categories & Prices
+      </button>
 
       {/* Add New Category */}
       <section className="space-y-2">
@@ -207,11 +282,11 @@ export default function Settings() {
           <label className="flex items-center space-x-2">
             <input
               type="radio"
-              value="exclusive"
-              checked={newCatType === "exclusive"}
-              onChange={() => setNewCatType("exclusive")}
+              value="enterprise"
+              checked={newCatType === "enterprise"}
+              onChange={() => setNewCatType("enterprise")}
             />
-            <span>Standard</span>
+            <span>Enterprise</span>
           </label>
           <label className="flex items-center space-x-2">
             <input
@@ -245,8 +320,11 @@ export default function Settings() {
       <section className="space-y-2">
         <h3 className="font-semibold text-lg">Update Pricing</h3>
 
-        {["exclusive", "premuim", "service"].map((field) => (
-          <div key={field} className="flex flex-col sm:flex-row sm:items-center gap-2">
+        {["enterprise", "premuim", "service"].map((field) => (
+          <div
+            key={field}
+            className="flex flex-col sm:flex-row sm:items-center gap-2"
+          >
             <label className="capitalize font-medium sm:w-32">{field}</label>
             <input
               type="number"
@@ -263,6 +341,75 @@ export default function Settings() {
           </div>
         ))}
       </section>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-lg w-full space-y-4 shadow-lg">
+            <h3 className="text-lg font-bold text-center">
+              Pricing & Categories
+            </h3>
+
+            <div>
+              <p>
+                <strong>Enterprise Price:</strong>{" "}
+                {enterprisePrice?.value || "N/A"}
+              </p>
+              <p>
+                <strong>Premium Price:</strong> {premiumPrice?.value || "N/A"}
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mt-4">Enterprise Categories</h4>
+              <ul className="space-y-1">
+                {enterpriseCategories.map((cat) => (
+                  <li
+                    key={cat.id}
+                    className="flex justify-between items-center border p-2 rounded"
+                  >
+                    {cat.name}
+                    <button
+                      onClick={() => deleteCategory(cat.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm"
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mt-4">Premium Categories</h4>
+              <ul className="space-y-1">
+                {premiumCategories.map((cat) => (
+                  <li
+                    key={cat.id}
+                    className="flex justify-between items-center border p-2 rounded"
+                  >
+                    {cat.name}
+                    <button
+                      onClick={() => deleteCategory(cat.name)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm"
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="text-center">
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded mt-4"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
