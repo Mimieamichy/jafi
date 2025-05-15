@@ -106,7 +106,7 @@ export default function Navbar() {
     navigate("/signin");
     setIsOpen(false);
   };
-  const roles = ["admin", "superadmin", "business", "service"];
+  // const roles = ["admin", "superadmin", "business", "service"];
 
   const dashboardPath =
     {
@@ -114,7 +114,7 @@ export default function Navbar() {
       service: "/hiring-dashboard",
       admin: "/admin-page",
       superadmin: "/admin",
-    }[userRole] || "/";
+    }[userRole];
 
   return (
     <nav className="bg-white shadow-md p-4  fixed top-0 left-0 w-full z-50  ">
@@ -185,7 +185,7 @@ export default function Navbar() {
           >
             Services
           </Link>
-          {userRole === roles && (
+          {userRole  && (
             <Link
               to={dashboardPath}
               onClick={handleNavClick}
@@ -208,7 +208,7 @@ export default function Navbar() {
                 onClick={() => setShowDropdown((prev) => !prev)}
                 className="text-gray-800 font-medium bg-gray-100 px-4 py-2 rounded hover:bg-gray-200"
               >
-                {"Welcome"}
+                Welcome
               </button>
               {showDropdown && (
                 <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg w-48 z-50">
@@ -310,7 +310,7 @@ export default function Navbar() {
           >
             Services
           </Link>
-          {userRole === roles && (
+          {userRole  && (
             <Link
               to={dashboardPath}
               onClick={handleNavClick}
@@ -334,7 +334,7 @@ export default function Navbar() {
                   navigate("/reviewer");
                   setIsOpen(false);
                 }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                className="block w-full text-left  hover:bg-gray-100"
               >
                 My Reviews
               </button>
@@ -343,7 +343,7 @@ export default function Navbar() {
                   handleLogout();
                   setIsOpen(false);
                 }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+                className="block w-full text-left  hover:bg-gray-100 text-red-600"
               >
                 Logout
               </button>

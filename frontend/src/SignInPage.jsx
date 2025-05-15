@@ -1,8 +1,8 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { faGoogle,faFacebookF,   } from "@fortawesome/free-brands-svg-icons";
+import { faGoogle, } from "@fortawesome/free-brands-svg-icons";
 import { useSnackbar } from "notistack";
 import { jwtDecode } from "jwt-decode";
 
@@ -34,7 +34,7 @@ export default function SignIn() {
       // 2. Decode and store user info
       const decoded = jwtDecode(token);
       console.log("Decoded token:", decoded);
-      
+
       localStorage.setItem("userData", JSON.stringify(decoded));
       localStorage.setItem("userRole", decoded.role);
       enqueueSnackbar("Google login successful!", { variant: "success" });
@@ -43,7 +43,9 @@ export default function SignIn() {
       navigate(redirect, { replace: true });
     } catch (err) {
       console.error("Invalid token:", err);
-      enqueueSnackbar("Invalid login token, please try again.", { variant: "error" });
+      enqueueSnackbar("Invalid login token, please try again.", {
+        variant: "error",
+      });
       navigate("/signin", { replace: true });
     }
   }, [location.search, navigate, enqueueSnackbar]);
@@ -83,24 +85,20 @@ export default function SignIn() {
       localStorage.setItem("userRole", role);
       localStorage.setItem("userData", JSON.stringify(decodedToken));
       console.log("userData", decodedToken);
-      
+
       enqueueSnackbar("Login Successful!", { variant: "success" });
 
       // const params = new URLSearchParam
 
       if (role === "business") {
         navigate("/bus-dashboard");
-      }
-     else if (role === "superadmin") {
+      } else if (role === "superadmin") {
         navigate("/admin");
-      }
-     else if (role === "admin") {
+      } else if (role === "admin") {
         navigate("/admin-page");
-      }
-      else if (role === "service") {
+      } else if (role === "service") {
         navigate("/hiring-dashboard");
-      }
-      else if (role === "reviewer") {
+      } else if (role === "reviewer") {
         navigate("/reviewer");
       }
     } catch (error) {
@@ -128,18 +126,17 @@ export default function SignIn() {
     )}`;
   };
 
-  const handleFacebookLogin = () => {
-    const params = new URLSearchParams(location.search);
-    const redirectPath = params.get("redirect") || "/";
-    window.location.href = `${baseUrl}/review/facebook?redirect=${encodeURIComponent(redirectPath)}`;
-  };
-  
+  // const handleFacebookLogin = () => {
+  //   const params = new URLSearchParams(location.search);
+  //   const redirectPath = params.get("redirect") || "/";
+  //   window.location.href = `${baseUrl}/review/facebook?redirect=${encodeURIComponent(redirectPath)}`;
+  // };
+
   // const handleAppleLogin = () => {
   //   const params = new URLSearchParams(location.search);
   //   const redirectPath = params.get("redirect") || "/";
   //   window.location.href = `${baseUrl}/review/apple?redirect=${encodeURIComponent(redirectPath)}`;
   // };
-  
 
   return (
     <div className="max-w-md mx-auto my-5 p-6 bg-gray-900 text-white shadow-md rounded-lg">
@@ -210,32 +207,31 @@ export default function SignIn() {
 
       {/* Sign In with Google */}
       {/* Sign In with Google, Facebook, Apple */}
-<div className="mt-4 text-center space-y-3">
-  <button
-    onClick={handleGoogleLogin}
-    className="w-full bg-gray-800 text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-700"
-  >
-    <FontAwesomeIcon icon={faGoogle} />
-    <span>with Google</span>
-  </button>
+      <div className="mt-4 text-center space-y-3">
+        <button
+          onClick={handleGoogleLogin}
+          className="w-full bg-gray-800 text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-700"
+        >
+          <FontAwesomeIcon icon={faGoogle} />
+          <span>with Google</span>
+        </button>
 
-  <button
+        {/* <button
     onClick={handleFacebookLogin}
     className="w-full bg-blue-800 text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-blue-700"
   >
     <FontAwesomeIcon icon={faFacebookF} />
     <span>with Facebook</span>
-  </button>
+  </button> */}
 
-  {/* <button
+        {/* <button
     onClick={handleAppleLogin}
     className="w-full bg-black text-white p-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-900"
   >
     <FontAwesomeIcon icon={faApple} />
     <span>with Apple</span>
   </button> */}
-</div>
-
+      </div>
     </div>
   );
 }

@@ -56,11 +56,11 @@ export default function ReviewerPersonalPage() {
         setTotalPages(Math.ceil(total / limit));
 
         // 2) Grab the User object off the first review (they all belong to same user)
-        if (reviewsArray.length > 0 && reviewsArray[0].User) {
+        if (reviewsArray.length > 0 && reviewsArray[0].user) {
           setReviewer({
-            name: reviewsArray[0].User.name,
-            email: reviewsArray[0].User.email,
-            profilePic: reviewsArray[0].User.profilePic,
+            name: reviewsArray[0].user.name,
+            email: reviewsArray[0].user.email,
+            profilePic: reviewsArray[0].user.profilePic,
           });
         }
       } catch (err) {

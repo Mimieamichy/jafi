@@ -14,8 +14,7 @@ export default function ReviewersDashboard() {
   const reviewsPerPage = 3;
   const token = localStorage.getItem("userToken");
   const decodedToken = jwtDecode(token);
-  console.log(decodedToken);
-  
+  const userId = decodedToken.userId;
 
   const fetchReviews = useCallback(async () => {
     if (!token) return;
@@ -102,9 +101,9 @@ export default function ReviewersDashboard() {
       <div className="flex justify-end max-w-3xl mx-auto mb-4">
         <button
           onClick={() => setShowSettingsModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700"
         >
-          Open Settings
+          Settings
         </button>
       </div>
 
@@ -154,7 +153,7 @@ export default function ReviewersDashboard() {
               Profile Settings
             </h3>
             <Settings
-              userId={decodedToken.id}
+              userId={userId}
               closeModal={() => setShowSettingsModal(false)}
             />
           </div>
@@ -242,12 +241,14 @@ function ReviewCard({ review, onEdit, onDelete }) {
   );
 }
 
-function Settings({ userId,  }) {
+function Settings({ userId }) {
   const { enqueueSnackbar } = useSnackbar();
   const [image, setImage] = useState(null);
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+
   const token = localStorage.getItem("userToken");
+  const [uploading, setUploading] = useState(false);
+  const [updatingPassword, setUpdatingPassword] = useState(false);
 
   const handleImageUpload = async () => {
     if (!image)
@@ -257,7 +258,7 @@ function Settings({ userId,  }) {
     formData.append("profilePic", image);
 
     try {
-      setLoading(true);
+      setUploading(true);
       const res = await fetch(`${baseUrl}/user/${userId}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
@@ -268,7 +269,7 @@ function Settings({ userId,  }) {
     } catch {
       enqueueSnackbar("Failed to update profile picture", { variant: "error" });
     } finally {
-      setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -277,7 +278,7 @@ function Settings({ userId,  }) {
       return enqueueSnackbar("Enter a new password", { variant: "warning" });
 
     try {
-      setLoading(true);
+      setUpdatingPassword(true);
       const res = await fetch(`${baseUrl}/user/${userId}`, {
         method: "PUT",
         headers: {
@@ -292,7 +293,7 @@ function Settings({ userId,  }) {
     } catch {
       enqueueSnackbar("Failed to update password", { variant: "error" });
     } finally {
-      setLoading(false);
+      setUpdatingPassword(false);
     }
   };
 
@@ -304,14 +305,13 @@ function Settings({ userId,  }) {
           type="file"
           accept="image/*"
           onChange={(e) => setImage(e.target.files[0])}
-          disabled={loading}
         />
         <button
           onClick={handleImageUpload}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mt-2"
-          disabled={loading}
+          disabled={uploading}
         >
-          Upload
+          {uploading ? "Uploading..." : "Upload"}
         </button>
       </div>
 
@@ -322,14 +322,13 @@ function Settings({ userId,  }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="border p-2 w-full rounded"
-          disabled={loading}
         />
         <button
           onClick={handlePasswordUpdate}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mt-2"
-          disabled={loading}
+          disabled={updatingPassword}
         >
-          Update Password
+          {updatingPassword ? "Updating..." : "Update Password"}
         </button>
       </div>
     </div>
