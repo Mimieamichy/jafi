@@ -9,6 +9,7 @@ exports.login = async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
+    console.log(error);
     res.status(error.status || 500).json({ message: error.message });
   }
 };
@@ -83,8 +84,10 @@ exports.updateUser = async (req, res) => {
     }
     const response = await UserService.updateUser(id, password, profilePic);
 
+    console.log(response)
     res.status(200).json(response);
   } catch (error) {
+    console.log(error);
     res.status(error.status || 500).json({ message: error.message });
   }
 }

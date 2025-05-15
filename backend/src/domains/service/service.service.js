@@ -89,6 +89,7 @@ exports.getAllServices = async (offset, limit, page, filter) => {
     limit,
     offset,
     raw: true,
+    order: [["createdAt", "DESC"]],
   });
 
   if (!raw.length) {

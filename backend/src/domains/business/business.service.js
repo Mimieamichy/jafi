@@ -64,6 +64,7 @@ exports.getAllBusinesses = async (offset, limit, page, filter) => {
       as: "user",
       attributes: ["id", "name", "email", "role"],
     },
+    order: [["createdAt", "DESC"]],
     raw: true,
   });
 

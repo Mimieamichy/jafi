@@ -75,15 +75,12 @@ exports.registerReviewer = async (email, name) => {
   const existingUser = await User.findOne({
       where: { email },
     });
-  
-    // No user – enforce unique business email
-    const existingReviewer = await Review.findOne({
-      where: { userId: existingUser.id },
-    });
+   
   
     if (existingUser || existingReviewer) {
       throw new Error("User already exists with this email");
     }
+  
   
     const { plainPassword, hashedPassword } = await generatePassword();
   
@@ -94,7 +91,6 @@ exports.registerReviewer = async (email, name) => {
       name: name,
     });
 
-
     // Send an email notification to the service owner
         const mailContent = `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -102,7 +98,7 @@ exports.registerReviewer = async (email, name) => {
         </div>
         <h2 style="color: #333; text-align: center;">Service Approved - Login Details</h2>
         <p style="font-size: 16px; color: #555; text-align: center;">
-            Your service has been successfully approved. You can log in with the details below.
+            Your Registration was successful. You can log in with the details below.
         </p>
         <div style="text-align: center; margin: 20px 0;">
             <p style="font-size: 16px; color: #555;">Your password is: <strong>${plainPassword}</strong></p>
@@ -119,9 +115,10 @@ exports.registerReviewer = async (email, name) => {
             &copy; 2025 JAFIAI. All rights reserved.
         </p>
     </div>`
-        await sendMail(email, "JAFI AI Service Approved", mailContent);
+        await sendMail(email, "JAFI AI User Login details", mailContent);
         return { message: "Reviewer registered successfully", newUser };
 }
+
 exports.createReview = async (userId, entityId, rating, comment, user_name, images) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found");
@@ -282,7 +279,7 @@ exports.getReviews = async (page, limit, offset, searchQuery, sort) => {
       attributes: ["id", "email", "name", "role"],
     }],
     attributes: [
-      "id", "userId", "listingId", "listingType",
+      "id", "userId", "listingId", "listingType", "listingName", "user_name",
       "comment", "images", "star_rating", "createdAt", "reply"
     ],
     raw: false,
@@ -370,7 +367,16 @@ exports.getReviewsByUser = async (userId, sort, limit, offset, page ) => {
       "reply",
     ],
     raw: true,
+    order: [["createdAt", "DESC"]],
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["id", "name", "email", "role"],
+      },
+    ],
   });
+
 
   if (!reviewsRaw.length) {
     return { message: "No reviews found for this user", data: [], meta: { page, limit, total: 0 } };
@@ -404,7 +410,7 @@ exports.getReviewsByUser = async (userId, sort, limit, offset, page ) => {
   const data = annotated.slice(offset, offset + limit);
 
   return {
-    data,
+    data: data,
     meta: { page, limit, total },
   };
 };
