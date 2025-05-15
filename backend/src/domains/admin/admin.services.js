@@ -187,9 +187,10 @@ exports.getAllBusinesses = async (offset, limit, page) => {
     };
   }
 
+
   return {
-  data: filteredRows.map(biz => biz.get({ plain: true })),
-  meta: { page, limit, total: count },
+  data: filteredRows.map((item) => item.toJSON()),
+  meta: { page, limit, total: filteredRows.length },
 };
 };
 
@@ -408,8 +409,8 @@ exports.addCategory = async (categoryName, type) => {
         const existingCategories = JSON.parse(category.value);
         // If entry exists,check if value exists
         const categoryList = existingCategories[type];
-        const lowerCasedList = categoryList.map(c => c.toLowerCase());
-        if (lowerCasedList.includes(categoryName.toLowerCase())) {
+        const lowerCasedList = categoryList.map(c => c);
+        if (lowerCasedList.includes(categoryName)) {
             return { message: `Category '${categoryName}' already exists in ${type}` }
         }
 
@@ -522,7 +523,7 @@ exports.getAllServices = async (offset, limit, page) => {
 
     return {
         data: rows.map((item) => item.toJSON()),
-        meta: { page, limit, total: count },
+        meta: { page, limit, total: rows.length },
     };
 };
 
@@ -734,9 +735,7 @@ exports.getAllReviews = async () => {
 
     if (!reviews) throw new Error("Reviews not found");
 
-    return {
-  data: reviews.map(r => r.get({ plain: true }))
-};
+    return { data: reviews.map((item) => item.toJSON())};
 };
 
 

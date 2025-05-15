@@ -284,12 +284,14 @@ exports.addCategory = async (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
   const { categoryName } = req.body;
+  console.log(req.body)
   try {
     //Delete cacke key
     cache.flushAll();
     const response = await AdminService.deleteCategory(categoryName);
     res.status(200).json(response);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };
