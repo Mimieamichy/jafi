@@ -38,7 +38,7 @@ export default function ReviewerSignup() {
   if (submitted) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
-        <h2 className="text-2xl font-bold mb-4 text-green-600">
+        <h2 className="text-2xl font-bold mb-4 text-blue-600">
           Registration Successful!
         </h2>
         <p className="text-gray-700">

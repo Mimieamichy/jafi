@@ -22,7 +22,7 @@ const SignupModal = ({ isOpen, onClose, onSelect }) => {
           className="mt-2 w-full py-2 bg-blue-600 text-white rounded-lg"
           onClick={() => onSelect("reviewer")}
         >
-          Revierwer
+          Reviewer
         </button>
         <button className="mt-4 text-red-500" onClick={onClose}>
           Cancel

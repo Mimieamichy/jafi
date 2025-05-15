@@ -100,6 +100,9 @@ export default function SignIn() {
       else if (role === "service") {
         navigate("/hiring-dashboard");
       }
+      else if (role === "reviewer") {
+        navigate("/reviewer");
+      }
     } catch (error) {
       console.error("Login or role fetch error:", error);
       setError(
