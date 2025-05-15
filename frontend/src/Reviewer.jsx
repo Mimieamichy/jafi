@@ -14,7 +14,9 @@ export default function ReviewersDashboard() {
   const reviewsPerPage = 3;
   const token = localStorage.getItem("userToken");
   const decodedToken = jwtDecode(token);
-  const userId = decodedToken.userId;
+  const userId = decodedToken.id;
+  console.log("Decoded token:", decodedToken);
+  
 
   const fetchReviews = useCallback(async () => {
     if (!token) return;
