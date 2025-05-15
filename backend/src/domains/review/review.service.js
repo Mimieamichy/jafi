@@ -366,15 +366,8 @@ exports.getReviewsByUser = async (userId, sort, limit, offset, page ) => {
       "createdAt",
       "reply",
     ],
-    raw: true,
     order: [["createdAt", "DESC"]],
-    include: [
-      {
-        model: User,
-        as: "user",
-        attributes: ["id", "name", "email", "role"],
-      },
-    ],
+    raw: true,
   });
 
 
