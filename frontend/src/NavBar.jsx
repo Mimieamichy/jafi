@@ -106,15 +106,17 @@ export default function Navbar() {
     navigate("/signin");
     setIsOpen(false);
   };
-  // const roles = ["admin", "superadmin", "business", "service"];
+  
+  const roleRoutes = {
+  business: "/bus-dashboard",
+  service: "/hiring-dashboard",
+  admin: "/admin-page",
+  superadmin: "/admin",
+};
 
-  const dashboardPath =
-    {
-      business: "/bus-dashboard",
-      service: "/hiring-dashboard",
-      admin: "/admin-page",
-      superadmin: "/admin",
-    }[userRole];
+
+  const dashboardPath = roleRoutes[userRole] ?? null;
+
 
   return (
     <nav className="bg-white shadow-md p-4  fixed top-0 left-0 w-full z-50  ">
@@ -185,7 +187,7 @@ export default function Navbar() {
           >
             Services
           </Link>
-          {userRole  && (
+          {dashboardPath  && (
             <Link
               to={dashboardPath}
               onClick={handleNavClick}
@@ -310,7 +312,7 @@ export default function Navbar() {
           >
             Services
           </Link>
-          {userRole  && (
+          {dashboardPath  && (
             <Link
               to={dashboardPath}
               onClick={handleNavClick}
