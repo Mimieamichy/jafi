@@ -156,7 +156,7 @@ export default function Transactions() {
               filteredTxs.map((t, idx) => {
                
                 return (
-                  <tr key={t.paymentId} className="border-t text-center">
+                  <tr key={t.id} className="border-t text-center">
                     <td className="p-2 border"> {(page - 1) * limit + idx + 1}</td>
                     <td className="p-2 border">{t.payment_reference}</td>
                     <td className="p-2 border capitalize">{t.user.name}</td>
@@ -191,7 +191,7 @@ export default function Transactions() {
             
             return (
               <div
-                key={t.paymentId}
+                key={t.id}
                 className="border border-gray-300 rounded p-4 space-y-2"
               >
                 <div>
