@@ -103,7 +103,7 @@ const Business = sequelize.define(
       allowNull: true,
     },
     businessType: {
-      type: DataTypes.ENUM("standard", "premium"),
+      type: DataTypes.ENUM("enterprise", "premium"),
       allowNull: false,
     },
     day: {
