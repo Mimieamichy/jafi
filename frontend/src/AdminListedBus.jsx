@@ -27,7 +27,7 @@ export default function Businesses() {
     address: "",
     phone_number1: "",
     start: "",
-    businessType: "standard",
+    businessType: "enterprise",
     end: "",
     city: "",
     state: "",
@@ -128,11 +128,11 @@ export default function Businesses() {
     async function loadCategories() {
       try {
         const [stdRes, premRes] = await Promise.all([
-          fetch(`${baseUrl}/admin/standardCategories`),
+          fetch(`${baseUrl}/admin/enterpriseCategories`),
           fetch(`${baseUrl}/admin/premiumCategories`),
         ]);
 
-        if (!stdRes.ok) throw new Error("Failed to load standard categories");
+        if (!stdRes.ok) throw new Error("Failed to load enterprise categories");
         if (!premRes.ok) throw new Error("Failed to load premium categories");
 
         const stdJson = await stdRes.json();
@@ -636,11 +636,11 @@ export default function Businesses() {
                   <input
                     type="radio"
                     name="businessType"
-                    value="standard"
-                    checked={formData.businessType === "standard"}
+                    value="enterprise"
+                    checked={formData.businessType === "enterprise"}
                     onChange={handlebusinessTypeChange}
                   />
-                  <span>Standard </span>
+                  <span>Enterprise </span>
                 </label>
                 <label className="flex items-center space-x-2">
                   <input
@@ -656,8 +656,8 @@ export default function Businesses() {
 
               {/* Sub-Category */}
               <label htmlFor="category" className="font-semibold">
-                {formData.businessType === "standard"
-                  ? "Standard Categories"
+                {formData.businessType === "enterprise"
+                  ? "Enterprise Categories"
                   : "Premium Categories"}
                 :
               </label>
@@ -671,12 +671,12 @@ export default function Businesses() {
               >
                 <option value="" disabled>
                   Select{" "}
-                  {formData.businessType === "standard"
-                    ? "Standard"
+                  {formData.businessType === "enterprise"
+                    ? "Enterprise"
                     : "Premium"}{" "}
                   Category
                 </option>
-                {formData.businessType === "standard"
+                {formData.businessType === "Enterprise"
                   ? standardCategories.map((cat) => (
                       <option key={cat} value={cat}>
                         {cat}

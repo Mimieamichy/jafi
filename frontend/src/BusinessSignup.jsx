@@ -29,7 +29,7 @@ export default function BusinessSignup() {
     city: "",
     state: "",
     day: [],
-    businessType: "enterprise ",
+    businessType: "enterprise",
     description: "",
     images: [],
     logo: null,
