@@ -80,6 +80,7 @@ exports.getAllServices = async (offset, limit, page, filter) => {
       "id",
       "name",
       "description",
+      "address",
       "category",
       "images",
       "phone_number",
