@@ -77,7 +77,7 @@ exports.registerReviewer = async (email, name) => {
     });
    
   
-    if (existingUser || existingReviewer) {
+    if (existingUser) {
       throw new Error("User already exists with this email");
     }
   
