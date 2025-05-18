@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash, faSave } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { useSnackbar } from "notistack";
 import { jwtDecode } from "jwt-decode";
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
@@ -247,6 +248,7 @@ function Settings({ userId }) {
   const { enqueueSnackbar } = useSnackbar();
   const [image, setImage] = useState(null);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const token = localStorage.getItem("userToken");
   const [uploading, setUploading] = useState(false);
@@ -287,7 +289,7 @@ function Settings({ userId }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ newPassword: password }),
+        body: JSON.stringify({ password: password }),
       });
       if (!res.ok) throw new Error();
       enqueueSnackbar("Password updated", { variant: "success" });
@@ -319,12 +321,25 @@ function Settings({ userId }) {
 
       <div>
         <label className="block font-medium mb-1">New Password</label>
+        <div className="relative">
         <input
-          type="password"
+          type={showPassword ? "text" : "password"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 w-full rounded"
+          className="w-full p-3 bg-gray-700 border rounded-lg text-white  pr-10"
         />
+         <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          >
+            {showPassword ? (
+              <FontAwesomeIcon icon={faEye} />
+            ) : (
+              <FontAwesomeIcon icon={faEyeSlash} />
+            )}
+          </button>
+        </div>
         <button
           onClick={handlePasswordUpdate}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mt-2"
