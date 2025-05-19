@@ -163,7 +163,7 @@ exports.getAllBusinesses = async (offset, limit, page) => {
         as: "payments",
         where: { status: "successful" },
         attributes: ["status", "payment_reference"],
-        required: false, 
+        required: true, 
       },
     ],
     order: [["createdAt", "DESC"]],
