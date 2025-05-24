@@ -5,6 +5,7 @@ import privacyChoices from "../assets/jafi privacy choice.pdf";
 import privacyPolicy from "../assets/jafi Privacy Policy 3.pdf";
 import termsOfService from "../assets/jafi Terms of Service.pdf";
 import trustAndSafety from "../assets/jafi Trust and safety.pdf";
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { faPhone, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import {
   faWhatsapp,
@@ -22,17 +23,27 @@ const docs = {
 };
 
 export default function Footer() {
-  const [doc, setDoc] = useState("");
+  const docTitles = Object.keys(docs);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+
+  const openModal = (index) => {
+    setSelectedIndex(index);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setSelectedIndex(null);
+  };
 
   const handleSelect = (e) => {
-    const val = e.target.value;
-    setDoc(val);
-    if (docs[val]) {
-      const docLink = document.getElementById("docLink");
-      docLink.href = docs[val]; // Set the correct document URL
-      docLink.click(); // Simulate a user clicking the link
-    }
+    const index = docTitles.indexOf(e.target.value);
+    if (index !== -1) openModal(index);
   };
+
+  const selectedDoc =
+    selectedIndex !== null ? docs[docTitles[selectedIndex]] : null;
 
   return (
     <footer className="bg-gray-900 text-white py-10">
@@ -139,29 +150,73 @@ export default function Footer() {
         </div>
 
         {/* policy dropdown */}
-        <select
-          value={doc}
-          onChange={handleSelect}
-          className="bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="" disabled>
-            Legal &amp; Policies…
-          </option>
-          {Object.keys(docs).map((title) => (
-            <option key={title} value={title}>
-              {title}
+        <div>
+          {/* Dropdown */}
+          <select
+            onChange={handleSelect}
+            defaultValue=""
+            className="bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>
+              Legal &amp; Policies…
             </option>
-          ))}
-        </select>
+            {docTitles.map((title) => (
+              <option key={title} value={title}>
+                {title}
+              </option>
+            ))}
+          </select>
+
+          {/* Modal */}
+          {modalOpen && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity"
+              onClick={closeModal}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()} // Prevent close on iframe click
+                className="relative w-[90%] max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden animate-fade-in"
+              >
+                {/* Close button */}
+                <button
+                  onClick={closeModal}
+                  className="absolute top-2 right-2 text-gray-600 hover:text-red-600 text-xl"
+                >
+                  <FontAwesomeIcon icon={faTimes} />
+                </button>
+
+                {/* Navigation */}
+                <div className="flex justify-between items-center p-3 border-b text-sm text-gray-600">
+                  <button
+                    disabled={selectedIndex === 0}
+                    onClick={() => setSelectedIndex((i) => i - 1)}
+                    className={`px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-30`}
+                  >
+                    ← Previous
+                  </button>
+                  <span className="font-medium">
+                    {docTitles[selectedIndex]}
+                  </span>
+                  <button
+                    disabled={selectedIndex === docTitles.length - 1}
+                    onClick={() => setSelectedIndex((i) => i + 1)}
+                    className={`px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-30`}
+                  >
+                    Next →
+                  </button>
+                </div>
+
+                {/* PDF iframe */}
+                <iframe
+                  src={selectedDoc}
+                  className="w-full h-[80vh]"
+                  title="Policy Document"
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-      <a
-        id="docLink"
-        style={{ visibility: "hidden", position: "absolute" }}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Open Document
-      </a>
     </footer>
   );
 }
