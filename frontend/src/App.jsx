@@ -37,6 +37,9 @@ const AllListings = lazy(() => import("./AllListings"));
 const ForgotPassword = lazy(() => import("./ForgotPassword"));
 const ResetPassword = lazy(() => import("./ResetPassword"));
 const ReviewerSignup = lazy(() => import("./ReveiwerSignup"));
+const PrivacyChoice = lazy(() => import("./PrivacyChoice"));
+
+
 
 export default function App() {
   return (
@@ -54,6 +57,7 @@ export default function App() {
               <Route path="/reviewer-signup" element={<ReviewerSignup />} />
               <Route path="/review-page" element={<PaginatedReviews />} />
               <Route path="/signin" element={<SignIn />} />
+              <Route path="/privacychoice" element={<PrivacyChoice />} />
               <Route path="/signup" element={<SignupModal />} />
               <Route path="/howtoreview" element={<HowToReview />} />
               <Route path="/category/:category" element={<CategoryPage />} />

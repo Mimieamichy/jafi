@@ -204,7 +204,7 @@ function UserCard({ user, onClick }) {
       </div>
 
       {/* "Claimed" badge displayed if user.claimed is true */}
-      {user.claimed && (
+      {user.claimed == 1 && (
         <div className="absolute bottom-0 right-0 m-2 bg-blue-600 text-white text-xs px-3 py-1 rounded-tl-full rounded-br-full">
           Claimed
         </div>

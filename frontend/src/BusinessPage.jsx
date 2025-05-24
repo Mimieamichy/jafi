@@ -26,8 +26,6 @@ import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export default function BusinessPage() {
-
-
   const { enqueueSnackbar } = useSnackbar();
   const { id } = useParams();
   const navigate = useNavigate();
@@ -194,22 +192,19 @@ export default function BusinessPage() {
       });
       if (response.ok) {
         enqueueSnackbar("Claim submitted", { variant: "success" });
-        
-       
+
         const data = await response.json();
         console.log("climid", data);
         const claimid = data.claim.id;
-         const bussinessType = data.claim.bussinessType;
+        const bussinessType = data.claim.bussinessType;
         localStorage.setItem("claimid", claimid);
         if (bussinessType === "premium") {
           navigate("/claim-premium-payment");
         } else {
           navigate("/claim-standard-payment");
         }
-        
-
       } else {
-        const errorData = await response.message
+        const errorData = await response.message;
         enqueueSnackbar("Claim error:", errorData, { variant: "error" });
 
         console.error("Claim error:", errorData);
@@ -308,17 +303,17 @@ export default function BusinessPage() {
 
   return (
     <>
-      <div className="w-full h-64 mt-10">
-        <Slider {...sliderSettings} className=" w-full h-full">
+      <div className="w-full h-[32rem] mt-2">
+        <Slider {...sliderSettings} className="w-full h-full">
           {business.images?.map((img, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-center  w-full h-full"
+              className="flex items-center justify-center w-full h-full"
             >
               <img
                 src={img}
                 alt={`Slide ${idx}`}
-                className="h-64 w-full object-fill"
+                className="h-[32rem] w-full object-fit rounded-md"
               />
             </div>
           ))}
@@ -331,7 +326,7 @@ export default function BusinessPage() {
           {/* Business Info - remains unchanged */}
           <div className="mt-4">
             <div className="flex items-center m-2">
-            {business?.logo && (
+              {business?.logo && (
                 <img
                   src={business.logo}
                   alt={`${business.name} Logo`}
@@ -339,7 +334,6 @@ export default function BusinessPage() {
                 />
               )}
               <h1 className="text-2xl font-bold capitalize">{business.name}</h1>
-              
             </div>
             <p className="text-sm text-gray-500 m-2">
               {business.category} | {business.address}, {business.city},{" "}

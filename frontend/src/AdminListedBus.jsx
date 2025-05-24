@@ -141,6 +141,8 @@ export default function Businesses() {
         // assuming your API returns { categories: ["...", "..."] }
         setStandardCategories(stdJson.categories || []);
         setPremiumCategories(premJson.categories || []);
+        console.log("stdJson", stdJson);
+        console.log("premJson", premJson);
       } catch (err) {
         console.error(err);
         enqueueSnackbar("Error loading categories", { variant: "error" });
@@ -220,7 +222,6 @@ export default function Businesses() {
     }));
   };
 
-
   // Handle file input change (for images)
   const handleImagesChange = (e) => {
     // Convert FileList to an array and limit to the first five files
@@ -282,7 +283,7 @@ export default function Businesses() {
       });
     } catch (error) {
       console.error(error);
-    }finally {
+    } finally {
       setIsSaving(false);
     }
   };
@@ -636,8 +637,8 @@ export default function Businesses() {
                   <input
                     type="radio"
                     name="businessType"
-                    value="enterprise"
-                    checked={formData.businessType === "enterprise"}
+                    value="enterprise "
+                    checked={formData.businessType === "enterprise "}
                     onChange={handlebusinessTypeChange}
                   />
                   <span>Enterprise </span>
@@ -656,7 +657,7 @@ export default function Businesses() {
 
               {/* Sub-Category */}
               <label htmlFor="category" className="font-semibold">
-                {formData.businessType === "enterprise"
+                {formData.businessType === "enterprise "
                   ? "Enterprise Categories"
                   : "Premium Categories"}
                 :
@@ -671,19 +672,19 @@ export default function Businesses() {
               >
                 <option value="" disabled>
                   Select{" "}
-                  {formData.businessType === "enterprise"
+                  {formData.businessType === "enterprise "
                     ? "Enterprise"
                     : "Premium"}{" "}
                   Category
                 </option>
-                {formData.businessType === "Enterprise"
+                {formData.businessType === "enterprise "
                   ? standardCategories.map((cat) => (
-                      <option key={cat} value={cat}>
+                      <option key={cat} value={cat} className="capitalize">
                         {cat}
                       </option>
                     ))
                   : premiumCategories.map((cat) => (
-                      <option key={cat} value={cat}>
+                      <option key={cat} value={cat} className="capitalize">
                         {cat}
                       </option>
                     ))}
@@ -816,12 +817,13 @@ export default function Businesses() {
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded"
                 >
-                   {isSaving
-              ? "Processing..."
-              : <>
-                  
-                  <span>Create a Business</span>
-                </>}
+                  {isSaving ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <span>Create a Business</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

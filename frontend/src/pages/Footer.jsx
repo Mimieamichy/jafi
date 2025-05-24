@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import privacyChoices from "../assets/jafi privacy choice.pdf";
 import privacyPolicy from "../assets/jafi Privacy Policy 3.pdf";
@@ -10,7 +11,7 @@ import {
   faFacebookF,
   faInstagram,
   faTiktok,
-  faXTwitter
+  faXTwitter,
 } from "@fortawesome/free-brands-svg-icons";
 
 const docs = {
@@ -26,14 +27,19 @@ export default function Footer() {
   const handleSelect = (e) => {
     const val = e.target.value;
     setDoc(val);
-    if (docs[val]) window.open(docs[val], "_blank", "noopener,noreferrer");
+    if (docs[val]) {
+      const docLink = document.getElementById("docLink");
+      docLink.href = docs[val]; // Set the correct document URL
+      docLink.click(); // Simulate a user clicking the link
+    }
   };
 
   return (
     <footer className="bg-gray-900 text-white py-10">
-      <p className="text-2xl sm:text-3xl font-bold mb-4 text-center">Contact Us</p>
+      <p className="text-2xl sm:text-3xl font-bold mb-4 text-center">
+        Contact Us
+      </p>
       <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-      
         {/* logo */}
         <a href="/" className="shrink-0">
           <img src="../logo.png" alt="JAFI logo" className="h-16 w-auto" />
@@ -41,21 +47,18 @@ export default function Footer() {
 
         {/* contact */}
         <div className="text-center md:text-right">
-         
           <div className="flex justify-center md:justify-start items-center space-x-2">
-
             <FontAwesomeIcon icon={faPhone} />
             <span className="tracking-wide">
               <a href="tel:08070446107" className="hover:underline">
                 08070446107
               </a>
-              
             </span>
           </div>
           {/* Contact details */}
           <div className="flex items-center justify-center cursor-pointer md:justify-start space-x-3 mt-2">
             <FontAwesomeIcon icon={faEnvelope} />
-           
+
             <a
               href="mailto:info@jafi.ai"
               className="hover:underline text-white"
@@ -64,43 +67,42 @@ export default function Footer() {
             </a>
           </div>
           <div className="flex items-center justify-center md:justify-start space-x-3 mt-2">
-            <FontAwesomeIcon icon={faWhatsapp} className="text-white text-xl hover:text-green-400"/>
-            
+            <FontAwesomeIcon
+              icon={faWhatsapp}
+              className="text-white text-xl hover:text-green-400"
+            />
+
             <a
-            href="https://wa.me/message/3PF6SWGMJXQCE1"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-blue-500"
-          >
-            <span className="fi fi-ng mr-2" />
-          </a>
+              href="https://wa.me/message/3PF6SWGMJXQCE1"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-blue-500"
+            >
+              <span className="fi fi-ng mr-2" />
+            </a>
             <a
-            href="https://wa.me/qr/NYBXMQBAOYCRJ1"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-blue-500"
-          >
-            <span className="fi fi-ke mr-2" />
-          </a>
+              href="https://wa.me/qr/NYBXMQBAOYCRJ1"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-blue-500"
+            >
+              <span className="fi fi-ke mr-2" />
+            </a>
             <a
-            href="https://wa.link/6h9p7p"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-blue-500"
-          >
-            <span className="fi fi-za mr-2" />
-          </a>
-            
-           
-          
-            
+              href="https://wa.link/6h9p7p"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-blue-500"
+            >
+              <span className="fi fi-za mr-2" />
+            </a>
           </div>
         </div>
 
         {/* social icons */}
         <div className="flex space-x-4 text-xl">
-        <span className="flag-icon flag-icon-ng" />
-          
+          <span className="flag-icon flag-icon-ng" />
+
           <a
             href="https://www.facebook.com/share/1C3e1PUmiP/?mibextid=wwXIfr"
             target="_blank"
@@ -109,7 +111,7 @@ export default function Footer() {
           >
             <FontAwesomeIcon icon={faFacebookF} />
           </a>
-          
+
           <a
             href="https://www.instagram.com/jafi.ai?igsh=MTRvNHFvcGl0YXdmcg==&utm_source=qr"
             target="_blank"
@@ -152,6 +154,14 @@ export default function Footer() {
           ))}
         </select>
       </div>
+      <a
+        id="docLink"
+        style={{ visibility: "hidden", position: "absolute" }}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Open Document
+      </a>
     </footer>
   );
 }

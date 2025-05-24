@@ -59,7 +59,7 @@ export default function AdminPage() {
   const [rows, setRows] = useState([]);
 
   const [previewImages, setPreviewImages] = useState([]);
- const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editTarget, setEditTarget] = useState(null); // full biz obj
   const [editData, setEditData] = useState({}); // working copy
   const [previewImgs, setPreviewImgs] = useState([]);
@@ -170,7 +170,7 @@ export default function AdminPage() {
       });
     } catch (error) {
       console.error(error);
-    }finally {
+    } finally {
       setIsSaving(false);
     }
   };
@@ -183,7 +183,6 @@ export default function AdminPage() {
       category: "",
     }));
   };
-
 
   /* ---------------- fetch only *my* businesses ---------------- */
   /* example with async / await */
@@ -303,7 +302,7 @@ export default function AdminPage() {
     } catch (e) {
       enqueueSnackbar("Update failed", { variant: "error" });
       console.error(e);
-    }finally {
+    } finally {
       setIsSaving(false);
     }
   };
@@ -541,14 +540,14 @@ export default function AdminPage() {
                 onClick={saveEdit}
                 className="px-4 py-2 bg-blue-600 text-white rounded flex items-center space-x-1"
               >
-                {isSaving
-              ? "Processing..."
-              : <>
-                  
-                  <FontAwesomeIcon icon={faSave} />
-                  <span>Save</span>
-                </>}
-                
+                {isSaving ? (
+                  "Processing..."
+                ) : (
+                  <>
+                    <FontAwesomeIcon icon={faSave} />
+                    <span>Save</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -579,8 +578,8 @@ export default function AdminPage() {
                   <input
                     type="radio"
                     name="businessType"
-                    value="enterprise"
-                    checked={formData.businessType === "enterprise"}
+                    value="enterprise "
+                    checked={formData.businessType === "enterprise "}
                     onChange={handlebusinessTypeChange}
                   />
                   <span>Enterprise </span>
@@ -599,7 +598,7 @@ export default function AdminPage() {
 
               {/* Sub-Category */}
               <label htmlFor="category" className="font-semibold">
-                {formData.businessType === "enterprise"
+                {formData.businessType === "enterprise "
                   ? "Enterprise Categories"
                   : "Premium Categories"}
                 :
@@ -614,24 +613,23 @@ export default function AdminPage() {
               >
                 <option value="" disabled>
                   Select{" "}
-                  {formData.businessType === "enterprise"
+                  {formData.businessType === "enterprise "
                     ? "Enterprise"
                     : "Premium"}{" "}
                   Category
                 </option>
-                {formData.businessType === "enterprise"
+                {formData.businessType === "enterprise "
                   ? standardCategories.map((cat) => (
-                      <option key={cat} value={cat}>
+                      <option key={cat} value={cat} className="capitalize">
                         {cat}
                       </option>
                     ))
                   : premiumCategories.map((cat) => (
-                      <option key={cat} value={cat}>
+                      <option key={cat} value={cat} className="capitalize">
                         {cat}
                       </option>
                     ))}
               </select>
-
               <div>
                 <label className="block font-medium">Phone Number</label>
                 <input
@@ -759,12 +757,13 @@ export default function AdminPage() {
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded"
                 >
-                 {isSaving
-              ? "Processing..."
-              : <>
-                  
-                  <span>Create a Business</span>
-                </>}
+                  {isSaving ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <span>Create a Business</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

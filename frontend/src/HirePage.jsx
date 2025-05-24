@@ -242,17 +242,17 @@ export default function HireProfileDetails() {
 
   return (
     <>
-      <div className="w-full h-64 mt-10">
-        <Slider {...sliderSettings} className=" w-full h-full">
+      <div className="w-full h-[32rem] mt-2">
+        <Slider {...sliderSettings} className="w-full h-full">
           {hire.images?.map((img, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-center  w-full h-full"
+              className="flex items-center justify-center w-full h-full"
             >
               <img
                 src={img}
                 alt={`Slide ${idx}`}
-                className="h-64 w-full object-fill"
+                className="h-[32rem] w-full object-right-top rounded-md"
               />
             </div>
           ))}
