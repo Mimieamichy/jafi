@@ -170,12 +170,13 @@ export default function Footer() {
           {/* Modal */}
           {modalOpen && (
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity overflow-y-auto"
               onClick={closeModal}
             >
               <div
-                onClick={(e) => e.stopPropagation()} // Prevent close on iframe click
-                className="relative w-[90%] max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden animate-fade-in"
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-[95%] max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden animate-fade-in
+             h-[90vh] flex flex-col"
               >
                 {/* Close button */}
                 <button
@@ -186,7 +187,7 @@ export default function Footer() {
                 </button>
 
                 {/* Navigation */}
-                <div className="flex justify-between items-center p-3 border-b text-sm text-gray-600">
+                <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-2 p-3 border-b text-sm text-gray-600 text-center sm:text-left">
                   <button
                     disabled={selectedIndex === 0}
                     onClick={() => setSelectedIndex((i) => i - 1)}
@@ -209,7 +210,7 @@ export default function Footer() {
                 {/* PDF iframe */}
                 <iframe
                   src={selectedDoc}
-                  className="w-full h-[80vh]"
+                  className="w-full flex-grow"
                   title="Policy Document"
                 />
               </div>

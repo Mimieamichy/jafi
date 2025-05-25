@@ -174,7 +174,7 @@ export default function AllListings() {
                     {listing.type}
                   </p>
                 </div>
-                {listing.claimed && (
+                {listing.claimed === 1 && (
                   <div className="absolute bottom-0 right-0 m-2 bg-blue-600 text-white text-xs px-3 py-1 rounded-tl-full rounded-br-full">
                     Claimed
                   </div>
